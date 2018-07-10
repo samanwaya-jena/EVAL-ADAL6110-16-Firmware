@@ -6,6 +6,7 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 
 #include <drivers\spi\adi_spi.h>
 
@@ -86,6 +87,12 @@ uint16_t DMA_SPI_RX[SPIPayloadLenghtMultiple + SPICommandLenght] = { 0x0FF,
 uint16_t DataForSPITransaction[SPICommandLenght + SPIPayloadLenghtMultiple]; // data readout container
 uint16_t *SPICommand = DataForSPITransaction;
 uint16_t *SPIPayload = DataForSPITransaction + 1;
+
+
+uint8_t spiMem[ADI_SPI_INT_MEMORY_SIZE]; //ADI_SPI_DMA_MEMORY_SIZE
+
+ADI_SPI_HANDLE hSpi = NULL;
+
 
 /**
  *
@@ -177,29 +184,6 @@ static inline int PerformMultipleSPITransaction(void) {
 
 
 
-//#include "common/spi.h"
-
-int select_RFWireless(void)
-{
-	spi_select_slave(1);
-	spi_enable();
-	return 0;
-}
-
-int unselect_RFWireless(void)
-{
-	spi_disable();
-	spi_select_slave(0);
-	return 0;
-}
-
-
-
-
-
-
-
-
 /**
  *  @brief Writes param to SPI
  *
@@ -207,31 +191,18 @@ int unselect_RFWireless(void)
  *  @param uint16 _data: data to send
  *
  */
-void WriteParamToSPI(uint16_t _startAddress, uint16_t _data) {
+void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
+{
+	uint8_t ProBuffer1[4] = {0x03u, 0x00u};
 
-#if 1
-	uint8_t tbuf[2];
-	uint8_t rbuf[2];
+	ProBuffer1[0] = (_startAddress << 1);
+	ProBuffer1[1] = (_startAddress << 1) >> 8;
+	ProBuffer1[2] = (_data >> 0);
+	ProBuffer1[3] = (_data >> 8);
 
-	tbuf[0] = (_startAddress << 1) >> 8;
-	tbuf[1] = (_startAddress << 1);
+	ADI_SPI_TRANSCEIVER Xcv0  = {ProBuffer1, 4u, NULL, 0u, NULL, 0u};
 
-	select_RFWireless();
-
-	spi_send(tbuf, 2);
-
-	tbuf[0] = _data >> 8;
-	tbuf[1] = _data;
-
-	spi_send(tbuf, 2);
-
-	unselect_RFWireless();
-#else
-	DataForSPITransaction[0] = (_startAddress << 1) + 0;
-	DataForSPITransaction[SPICommandLenght] = _data;
-
-	PerformSingleSPITransaction();
-#endif
+	ADI_SPI_RESULT result = adi_spi_ReadWrite(hSpi, &Xcv0);
 }
 
 /**
@@ -241,34 +212,19 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data) {
  *  @param uint16 *_dataPtr: pointer to the receive data buffer
  *
  */
-void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data) {
+void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
+{
+	uint8_t ProBuffer1[2] = {0x03u, 0x00u};
+	uint8_t RxBuffer1[2];
 
-#if 1
-	uint8_t tbuf[2];
-	uint8_t rbuf[2];
+	ProBuffer1[0] = (_startAddress << 1) | 0x01;
+	ProBuffer1[1] = (_startAddress << 1) >> 8;
 
-	tbuf[0] = (_startAddress << 1) >> 8;
-	tbuf[1] = (_startAddress << 1) | 1;
+	ADI_SPI_TRANSCEIVER Xcv0  = {ProBuffer1, 2u, NULL, 0u, RxBuffer1, 2u};
 
-	select_RFWireless();
+	ADI_SPI_RESULT result = adi_spi_ReadWrite(hSpi, &Xcv0);
 
-//	spi_send(tbuf, 2);
-
-//	spi_recv(rbuf, 2);
-
-	adi_spi_ReadWrite();
-
-	*_data = *((uint16_t *) rbuf);
-
-	unselect_RFWireless();
-#else
-	DataForSPITransaction[0] = (_startAddress << 1) + 1;
-	DataForSPITransaction[SPICommandLenght] = 0x00ff;
-
-	PerformSingleSPITransaction();
-
-	_data[0] = DataForSPITransaction[SPICommandLenght];
-#endif
+	*_data = *((uint16_t*)RxBuffer1);
 }
 
 /**
@@ -279,8 +235,52 @@ void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data) {
  *  Suffucient space should be made for all the data in the block *_dataPtr
  *
  */
-void ReadDataFromSPI(uint16_t * pData) {
+//uint16_t TxBuffer1[1600+1];
+void ReadDataFromSPI(uint16_t * pData)
+{
 #if 1
+	ADI_SPI_RESULT result;
+
+	/* Disable DMA */
+	result = adi_spi_EnableDmaMode(hSpi, true);
+
+	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
+
+//	uint8_t TxBuffer1[4] = {0xFF, 0x01, 0x00, 0x00};
+//	ADI_SPI_TRANSCEIVER Xcv0DMA  = {NULL, 0u, (uint8_t*) TxBuffer1, 4u, (uint8_t*) pData, 4};
+
+	uint8_t ProBuffer1[2] = {0xFF, 0x01};
+	ADI_SPI_TRANSCEIVER Xcv0DMA  = {ProBuffer1, 2u, NULL, 0u, (uint8_t*) pData, 1600*2};
+
+//	memset(TxBuffer1, 0, sizeof(TxBuffer1));
+//	TxBuffer1[0] = 0x01FF;
+
+	result = adi_spi_SubmitBuffer(hSpi, &Xcv0DMA);
+
+	bool bAvailSpi = false;
+	while (!bAvailSpi)
+	{
+		result = adi_spi_IsBufferAvailable(hSpi, &bAvailSpi);
+
+		if (bAvailSpi)
+		{
+			ADI_SPI_TRANSCEIVER     *pTransceiver = NULL;
+
+			result =  adi_spi_GetBuffer(hSpi, &pTransceiver);
+
+			if (pTransceiver)
+			{
+				++pTransceiver->TransmitterBytes;
+			}
+
+		}
+	}
+
+	/* Disable DMA */
+	result = adi_spi_EnableDmaMode(hSpi, false);
+
+#else
+
 	uint8_t tbuf[2];
 	uint8_t rbuf[2];
 
@@ -296,15 +296,6 @@ void ReadDataFromSPI(uint16_t * pData) {
 	spi_recv((uint8_t*)pData, 1600*sizeof(uint16_t));
 
 	unselect_RFWireless();
-#else
-	int i;
-
-	for (i = 0; i < SPICommandLenght + SPIPayloadLenghtMultiple; i++) {
-		DataForSPITransaction[i] = 0x00ff;
-	}
-	DataForSPITransaction[0] = (DataForSPITransaction[0] << 1) + 1;
-
-	PerformMultipleSPITransaction();
 #endif
 }
 
@@ -427,28 +418,69 @@ void InitADI() {
     };
 	int num = sizeof(initValues) / sizeof(initValues[0]);
 
-//	uint16_t tempValues[8] = { 0x0000, 0x3220, 0xC000, 0x3A50, 0x0237, 0x0437,
-//			0x3015, 0x01E0 };
 
-//laser trig detection to be removed if we want to use it as an input compare feature...
-//	P1_2_set_mode(INPUT_PD);
+
+
+
+
+
+
+
+
+	if (hSpi == NULL)
+	{
+		ADI_SPI_RESULT result;
+
+		result = adi_spi_Open(2, spiMem, ADI_SPI_DMA_MEMORY_SIZE, &hSpi);
+
+
+		/* Set master */
+		result = adi_spi_SetMaster( hSpi,true);
+
+		/* Set slave select using hardware*/
+		result = adi_spi_SetHwSlaveSelect( hSpi, false);
+
+		result = adi_spi_SetTransmitUnderflow( hSpi, true);
+
+		result = adi_spi_SetClockPhase(hSpi, false);
+
+		/* Setting the clock frequency of spi   The frequency of the SPI clock is calculated by SCLK / 2* (Baud=3)*/
+		result = adi_spi_SetClock( hSpi, 9);
+
+		/* Selecting slave1 as the device*/
+		result = adi_spi_SetSlaveSelect( hSpi, ADI_SPI_SSEL_ENABLE1);
+
+		/* Setting the word size of 8 bytes*/
+		result = adi_spi_SetWordSize( hSpi, ADI_SPI_TRANSFER_16BIT);
+
+		/* No call backs required*/
+	//	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
+
+	//	result = adi_spi_SetTransceiverMode(hSpi, ADI_SPI_TXRX_MODE);
+
+		result = adi_spi_SetClockPolarity(hSpi, true);
+
+		if (result == 0u)
+		{
+			/* generate tx data interrupt when watermark level breaches 50% level */
+			/* DMA watermark levels are disabled because SPI is in interrupt mode */
+			result = adi_spi_SetTxWatermark(hSpi,
+													  ADI_SPI_WATERMARK_50,
+													  ADI_SPI_WATERMARK_DISABLE,
+													  ADI_SPI_WATERMARK_DISABLE);
+		}
+		if (result == 0u)
+		{
+			/* generate rx data interrupt when watermark level breaches 50% level */
+			/* DMA watermark levels are disabled because SPI is in interrupt mode */
+			result = adi_spi_SetRxWatermark(hSpi,
+													  ADI_SPI_WATERMARK_50,
+													  ADI_SPI_WATERMARK_DISABLE,
+													  ADI_SPI_WATERMARK_DISABLE);
+		}
+	}
 
 	ResetADI();
-	//ReadParamFromSPI(DeviceIDAddress, tempValues);
-
-	//tempValues[1] = (sensorParameter.DSP.numberOfAccumulation << 7)
-	//		+ (sensorParameter.DSP.gateTime << 3);
-//	WriteParamToSPI(Control0Address, tempValues[1]);
-//	WriteParamToSPI(Control1Address, tempValues[2]);
-//	WriteParamToSPI(0x0007, tempValues[6]); //undocumented registers
-//	WriteParamToSPI(ReferenceControl0Address, tempValues[3]);
-//	WriteParamToSPI(ADC0Controlreg0Address, tempValues[4]);
-//	WriteParamToSPI(ADC1Controlreg0Address, tempValues[5]);
-//
-//	WriteParamToSPI(0x00f1, tempValues[7]); //undocumented registers
-//
-//	ReadParamFromSPI(DelayBetweenFlashesAddress, tempValues);
-	//WriteParamToSPI(ChannelEnableAddress, sensorParameter.DSP.ADIchEnable);
 
 	for (i=0; i<num; i++)
 	{

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <sys/platform.h>
 
-//#define USE_UART
+#define USE_UART
 
 #ifdef USE_UART
 #include <drivers\uart\adi_uart.h>
@@ -19,6 +19,7 @@
 #include "adi_initialize.h"
 #include "BF707_Wagner.h"
 
+#include "Guardian_ADI.h"
 
 
 #ifdef USE_UART
@@ -45,7 +46,6 @@ static uint8_t  gUARTMemory[ADI_UART_BIDIR_DMA_MEMORY_SIZE];
 
 
 
-uint8_t spiMem[ADI_SPI_INT_MEMORY_SIZE]; //ADI_SPI_DMA_MEMORY_SIZE
 
 /** 
  * If you want to use command program arguments, then place them in the following string. 
@@ -102,6 +102,8 @@ void SpiCallback(void* pHandle, uint32_t u32Arg, void* pArg)
     }
 }
 
+void ProcessChar(char curChar);
+
 int main(int argc, char *argv[])
 {
 	int dgg = 0;
@@ -116,10 +118,6 @@ int main(int argc, char *argv[])
 	/* Set the Software controlled switches to default values */
 	ConfigSoftSwitches();
 
-	SPI_UNSELECT_SLAVE;
-
-#if 0
-	SPI_UNSELECT_SLAVE;
 
     /* Initialize Power service */
 #if defined (__ADSPBF707_FAMILY__) || defined (__ADSPSC589_FAMILY__)
@@ -137,8 +135,11 @@ int main(int argc, char *argv[])
 #endif
 
 
-    adi_sec_Enable(true);
-#endif
+
+	InitADI();
+
+
+//    adi_sec_Enable(true);
 
 
 #ifdef USE_UART
@@ -201,6 +202,11 @@ int main(int argc, char *argv[])
     eResult = adi_uart_Write(ghUART, "\r\n\r\nBF707-EZLITE\r\n", 18);
 
 
+
+
+
+
+
 	eResult = adi_uart_SubmitRxBuffer(ghUART, &RxBuffer[0], 1);
 
 	eResult = adi_uart_EnableRx(ghUART, true);
@@ -212,8 +218,8 @@ int main(int argc, char *argv[])
 
 
 	/* command processing loop */
-//	while ( 1 )
-//	{
+	while ( 1 )
+	{
 	bool bAvailUart = false;
 	eResult = adi_uart_IsRxBufferAvailable (ghUART, &bAvailUart);
 
@@ -223,12 +229,12 @@ int main(int argc, char *argv[])
 
 		eResult = adi_uart_GetRxBuffer(ghUART, &ptr);
 
-//			ProcessChar(*((char*)ptr));
+		ProcessChar(*((char*)ptr));
 
 		eResult = adi_uart_SubmitRxBuffer(ghUART, ptr, 1);
 	}
 
-//	}
+	}
 
 
 
@@ -238,115 +244,390 @@ int main(int argc, char *argv[])
 
 
 
+//	return 0;
+}
 
 
-	ADI_SPI_HANDLE hSpi = NULL;
-
-	ADI_SPI_RESULT result;
-
-	result = adi_spi_Open(2, spiMem, ADI_SPI_DMA_MEMORY_SIZE, &hSpi);
 
 
-	/* Set master */
-	result = adi_spi_SetMaster( hSpi,true);
 
-	/* Set slave select using hardware*/
-	result = adi_spi_SetHwSlaveSelect( hSpi, false);
-
-	result = adi_spi_SetTransmitUnderflow( hSpi, true);
-
-	result = adi_spi_SetClockPhase(hSpi, false);
-
-	/* Setting the clock frequency of spi   The frequency of the SPI clock is calculated by SCLK / 2* (Baud=3)*/
-	result = adi_spi_SetClock( hSpi, 9);
-
-	/* Selecting slave1 as the device*/
-	result = adi_spi_SetSlaveSelect( hSpi, ADI_SPI_SSEL_ENABLE1);
-
-	/* Setting the word size of 8 bytes*/
-	result = adi_spi_SetWordSize( hSpi, ADI_SPI_TRANSFER_16BIT);
-
-	/* No call backs required*/
-//	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
-
-//	result = adi_spi_SetTransceiverMode(hSpi, ADI_SPI_TXRX_MODE);
-
-	result = adi_spi_SetClockPolarity(hSpi, true);
-
-	if (result == 0u)
-	{
-		/* generate tx data interrupt when watermark level breaches 50% level */
-		/* DMA watermark levels are disabled because SPI is in interrupt mode */
-		result = adi_spi_SetTxWatermark(hSpi,
-												  ADI_SPI_WATERMARK_50,
-												  ADI_SPI_WATERMARK_DISABLE,
-												  ADI_SPI_WATERMARK_DISABLE);
-	}
-	if (result == 0u)
-	{
-		/* generate rx data interrupt when watermark level breaches 50% level */
-		/* DMA watermark levels are disabled because SPI is in interrupt mode */
-		result = adi_spi_SetRxWatermark(hSpi,
-												  ADI_SPI_WATERMARK_50,
-												  ADI_SPI_WATERMARK_DISABLE,
-												  ADI_SPI_WATERMARK_DISABLE);
-	}
+void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
+void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
 
-//	result = adi_spi_SetFlowControl(hSpi, ADI_SPI_FLOWCONTROL_MASTER, ADI_SPI_WATERMARK_DISABLE);
 
-//	result = adi_spi_SetInterruptMode(hSpi, ADI_SPI_HW_ERR_NONE, false);
+int Lidar_read_mid(uint8_t *mid, uint8_t *pid, uint8_t *rid)
+{
+	uint16_t data;
 
-	uint8_t ProBuffer1[2] = {0x03u, 0x00u};
-	uint8_t RxBuffer1[4];
-	ADI_SPI_TRANSCEIVER Xcv0  = {ProBuffer1, 2u, NULL, 0u, RxBuffer1, 2u};
+	ReadParamFromSPI(0, &data);
 
-	memset(RxBuffer1, 0, sizeof(RxBuffer1));
-	result = adi_spi_ReadWrite(hSpi, &Xcv0);
+	*mid = (data >> 8) & 0xFF;
+	*pid = (data >> 4) & 0x0F;
+	*rid = (data & 0x0F);
+
+	return 0;
+}
 
 
-    /* Register a callback for the DMA */
-//	result = adi_spi_RegisterCallback(hSpi, SpiCallback, NULL);
-	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
 
-	/* Disable DMA */
-	result = adi_spi_EnableDmaMode(hSpi, true);
+void Lidar_PrintInfo(void)
+{
+	int i;
+	char str[32];
 
-	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
+	uint8_t mid = 0;
+	uint8_t pid = 0;
+	uint8_t rid = 0;
 
-	uint8_t TxBuffer1[4] = {0x03u, 0x00u, 0x00u, 0x00u};
-	ADI_SPI_TRANSCEIVER Xcv0DMA  = {NULL, 0u, TxBuffer1, 4u, RxBuffer1, 4u};
+	int result = Lidar_read_mid(&mid, &pid, &rid);
 
-	memset(RxBuffer1, 0, sizeof(RxBuffer1));
-	result = adi_spi_SubmitBuffer(hSpi, &Xcv0DMA);
+	sprintf(str, "Lidar mid:%d pid:%d rid:%d\r\n", mid, pid, rid);
+#ifdef USE_UART
+	adi_uart_Write(ghUART, str, strlen(str));
+#endif //USE_UART
+}
 
-//	while(!bComplete)
-//    {
-//		result=ADI_SPI_FAILURE;
-//    }
+void Lidar_PrintInfoLoop(void)
+{
+	int i;
 
 	while (1)
 	{
-		bool bAvailSpi = false;
+		Lidar_PrintInfo();
 
-		result = adi_spi_IsBufferAvailable(hSpi, &bAvailSpi);
-
-		if (bAvailSpi)
+		for (i=0; i<3000000; i++)
 		{
-			ADI_SPI_TRANSCEIVER     *pTransceiver = NULL;
-
-			result =  adi_spi_GetBuffer(hSpi, &pTransceiver);
-
-			if (pTransceiver)
-			{
-				++pTransceiver->TransmitterBytes;
-			}
-
+			asm("nop;");
 		}
 	}
-
-//	SPI_UNSELECT_SLAVE;
-
-//	return 0;
 }
+
+const char * hex = "0123456789ABCDEF";
+
+void Lidar_DumpRegs(void)
+{
+	uint8_t regs[] = { 0,1,2,3,4,7,0x4D,0x56,0xF1,0xF2 };
+	int i, ch;
+	char str[32];
+
+	int num = sizeof(regs) / sizeof(regs[0]);
+
+	for (i=0; i<num; i++)
+	{
+		uint16_t reg = regs[i];
+		uint16_t data = 0xFFFF;
+
+		ReadParamFromSPI(reg, &data);
+
+		sprintf(str, "%c%c: %c%c%c%c\r\n", hex[(reg>>4)&0xF], hex[(reg>>0)&0xF],
+				hex[(data>>12)&0xF], hex[(data>>8)&0xF], hex[(data>>4)&0xF], hex[(data>>0)&0xF]);
+
+#ifdef USE_UART
+		adi_uart_Write(ghUART, str, strlen(str));
+#endif //USE_UART
+	}
+
+	sprintf(str, "Ch: E TIA BAL\r\n");
+#ifdef USE_UART
+	adi_uart_Write(ghUART, str, strlen(str));
+#endif //USE_UART
+
+	for (ch=0; ch<16; ch++)
+	{
+		uint16_t en, tia, bal;
+		uint16_t data = 0xFFFF;
+
+		ReadParamFromSPI(13 + 4 * ch, &data);
+		en = (data & 0x001F);
+
+		ReadParamFromSPI(13 + 4 * ch + 1, &data);
+		tia = (data & 0x03FF);
+
+		ReadParamFromSPI(13 + 4 * ch + 2, &data);
+		bal = (data & 0x01FF);
+
+		sprintf(str, "%02d: %d %c%c%c %d\r\n", ch, (en) ? 1 : 0,
+				hex[(tia>>8)&0xF], hex[(tia>>4)&0xF], hex[(tia>>0)&0xF],
+				bal);
+
+#ifdef USE_UART
+		adi_uart_Write(ghUART, str, strlen(str));
+#endif //USE_UART
+	}
+
+}
+
+uint16_t buf[1600];
+
+void Lidar_GetData(void)
+{
+	uint16_t banknum = 0;
+	int i,j,ch;
+
+	memset(buf, 0, sizeof(buf));
+//	for(i=0; i<1600; i++)
+//		buf[i] = 0x;
+
+	GetADIData(&banknum, buf);
+
+	uint16_t * pData = buf;
+
+	if (banknum)
+	{
+#ifdef USE_UART
+		char str[32];
+		sprintf(str, "bank %d\r\n", banknum);
+
+		adi_uart_Write(ghUART, str, strlen(str));
+
+		for(ch=0; ch<3; ch++)
+		{
+			sprintf(str, "Ch %d\r\n", ch);
+			adi_uart_Write(ghUART, str, strlen(str));
+
+			for(j=0; j<10; j++)
+			{
+				for(i=0; i<10; i++)
+				{
+					uint16_t data = pData[ch*100 + j*10 + i];
+					sprintf(str, " %c%c%c%c ",
+						hex[(data>>12)&0xF], hex[(data>>8)&0xF], hex[(data>>4)&0xF], hex[(data>>0)&0xF]);
+
+					adi_uart_Write(ghUART, str, strlen(str));
+				}
+				adi_uart_Write(ghUART, "\r\n", 2);
+			}
+		}
+#endif //USE_UART
+	}
+	else
+		adi_uart_Write(ghUART, "No data!\r\n", 10);
+}
+
+int chIdx[16] = {
+100 * 0,
+100 * 1,
+100 * 2,
+100 * 3,
+100 * 4,
+100 * 5,
+100 * 6,
+100 * 7,
+100 * 15,
+100 * 14,
+100 * 13,
+100 * 12,
+100 * 11,
+100 * 10,
+100 * 9,
+100 * 8
+};
+
+void Lidar_GetDataCSV(void)
+{
+	char str[256];
+	uint16_t banknum = 0;
+	int i,j,ch,sample;
+
+	memset(buf, 0, sizeof(buf));
+//	for(i=0; i<1600; i++)
+//		buf[i] = 0x7ff0 + i;
+
+	GetADIData(&banknum, buf);
+
+	uint16_t * pData = buf;
+
+	if (banknum)
+	{
+#ifdef USE_UART
+		sprintf(str, "##, ch00 , ch01 , ch02 , ch03 , ch04 , ch05 , ch06 , ch07 , ch08 , ch09 , ch10 , ch11 , ch12 , ch13 , ch14 , ch15\r\n", banknum);
+		adi_uart_Write(ghUART, str, strlen(str));
+
+		for(sample=0; sample<100; sample++)
+		{
+			sprintf(str, "%2d,", sample);
+			adi_uart_Write(ghUART, str, strlen(str));
+
+			for(ch=0; ch<16; ch++)
+			{
+				int16_t data = pData[chIdx[ch] + sample];
+
+				sprintf(str, "%6d,", data);
+
+				adi_uart_Write(ghUART, str, strlen(str));
+			}
+			adi_uart_Write(ghUART, "\r\n", 2);
+		}
+
+#endif //USE_UART
+	}
+}
+
+
+
+
+#define MAX_CMD_SIZE  16
+
+static char debugCmdIdx = 0;
+static char debugCmd[MAX_CMD_SIZE];
+
+void ProcessChar(char curChar)
+{
+#ifdef USE_UART
+	/* UART return code */
+	ADI_UART_RESULT    eResult;
+	eResult = adi_uart_Write(ghUART, &curChar, 1);
+
+	if (curChar == '\r')
+	{
+		char tmpChar = '\n';
+		eResult = adi_uart_Write(ghUART, &tmpChar, 1);
+	}
+#endif //USE_UART
+
+  if (debugCmdIdx < MAX_CMD_SIZE)
+    debugCmd[debugCmdIdx++] = curChar;
+
+  if (curChar == '\r')
+  {
+    debugCmd[debugCmdIdx-1] = 0;
+
+    switch (debugCmd[0])
+    {
+//    case 'I':
+//    	PrintFlashInfo();
+//    	break;
+
+    case 'a':
+   		Lidar_GetData();
+    	break;
+
+    case 'A':
+#ifdef USE_UART
+    	adi_uart_Write(ghUART, "\r\n", 2);
+#endif //USE_UART
+   		Lidar_GetDataCSV();
+    	break;
+
+    case 'i':
+   		Lidar_PrintInfo();
+    	break;
+
+    case 'I':
+    	InitADI();
+    	break;
+
+    case 'g':
+    	Lidar_Trig();
+    	break;
+
+    case 's':
+    	Lidar_SPITriggerMode();
+    	break;
+
+    case 'f':
+    	Lidar_FreerunMode();
+    	break;
+
+    case 'd':
+   		Lidar_DumpRegs();
+    	break;
+
+    case '1':
+   		Lidar_ChannelEnable(0, 1);
+    	break;
+
+    case '!':
+   		Lidar_ChannelEnable(0, 0);
+    	break;
+
+    case '2':
+   		Lidar_ChannelEnable(1, 1);
+    	break;
+
+    case '@':
+   		Lidar_ChannelEnable(1, 0);
+    	break;
+
+    case 'b':
+    {
+    	int i = 1;
+    	uint16_t bal = 0;
+    	int ch = 0;
+
+    	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+    		ch = ch * 10 + debugCmd[i++] - '0';
+
+    	if (debugCmd[i] == ' ' || debugCmd[i] == '=')
+    		i++;
+
+    	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+    		bal = bal * 10 + debugCmd[i++] - '0';
+
+    	Lidar_ChannelDCBal(ch, bal);
+    	break;
+    }
+
+    case 'F':
+    {
+    	int i = 1;
+    	uint16_t feedback = 0;
+    	int ch = 0;
+
+    	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+    		ch = ch * 10 + debugCmd[i++] - '0';
+
+    	if (debugCmd[i] == ' ' || debugCmd[i] == '=')
+    		i++;
+
+    	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+    		feedback = feedback * 10 + debugCmd[i++] - '0';
+
+    	Lidar_ChannelTIAFeedback(ch, feedback);
+    	break;
+    }
+
+    case 'r':
+	{
+		char str[32];
+		uint16_t data = 0xFFFF;
+
+		ReadParamFromSPI(1, &data);
+
+		sprintf(str, "r 1: %d\r\n", data);
+#ifdef USE_UART
+		adi_uart_Write(ghUART, str, strlen(str));
+#endif //USE_UART
+
+		break;
+	}
+
+    case 'w':
+	{
+		char str[32];
+		uint16_t data = 0x3220;
+
+		WriteParamToSPI(1, data);
+
+		sprintf(str, "w 1: %d\r\n", data);
+#ifdef USE_UART
+		adi_uart_Write(ghUART, str, strlen(str));
+#endif //USE_UART
+
+		break;
+	}
+
+    }
+
+
+    debugCmdIdx = 0;
+  }
+
+
+}
+
+
+
+
 
