@@ -445,7 +445,7 @@ void InitADI() {
 		result = adi_spi_SetClockPhase(hSpi, false);
 
 		/* Setting the clock frequency of spi   The frequency of the SPI clock is calculated by SCLK / 2* (Baud=3)*/
-		result = adi_spi_SetClock( hSpi, 9);
+		result = adi_spi_SetClock( hSpi, 4);
 
 		/* Selecting slave1 as the device*/
 		result = adi_spi_SetSlaveSelect( hSpi, ADI_SPI_SSEL_ENABLE1);
