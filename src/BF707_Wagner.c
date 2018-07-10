@@ -297,32 +297,33 @@ int main(int argc, char *argv[])
 
 //	result = adi_spi_SetInterruptMode(hSpi, ADI_SPI_HW_ERR_NONE, false);
 
-
-	uint8_t ProBuffer1[4] = {0x03u, 0x00u, 0x00u, 0x00u};
-	//uint8_t TxBuffer1[2] = {0x00u, 0x00u};
+	uint8_t ProBuffer1[2] = {0x03u, 0x00u};
 	uint8_t RxBuffer1[4];
-	ADI_SPI_TRANSCEIVER Xcv0  = {NULL, 0u, ProBuffer1, 4u, RxBuffer1, 4u};
+	ADI_SPI_TRANSCEIVER Xcv0  = {ProBuffer1, 2u, NULL, 0u, RxBuffer1, 2u};
 
-//	memset(RxBuffer1, 0, sizeof(RxBuffer1));
-//	result = adi_spi_ReadWrite(hSpi, &Xcv0);
+	memset(RxBuffer1, 0, sizeof(RxBuffer1));
+	result = adi_spi_ReadWrite(hSpi, &Xcv0);
 
 
     /* Register a callback for the DMA */
-	result = adi_spi_RegisterCallback(hSpi, SpiCallback, NULL);
-//	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
+//	result = adi_spi_RegisterCallback(hSpi, SpiCallback, NULL);
+	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
 
 	/* Disable DMA */
 	result = adi_spi_EnableDmaMode(hSpi, true);
 
 	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
 
-	memset(RxBuffer1, 0, sizeof(RxBuffer1));
-	result = adi_spi_SubmitBuffer(hSpi, &Xcv0);
+	uint8_t TxBuffer1[4] = {0x03u, 0x00u, 0x00u, 0x00u};
+	ADI_SPI_TRANSCEIVER Xcv0DMA  = {NULL, 0u, TxBuffer1, 4u, RxBuffer1, 4u};
 
-	while(!bComplete)
-    {
-		result=ADI_SPI_FAILURE;
-    }
+	memset(RxBuffer1, 0, sizeof(RxBuffer1));
+	result = adi_spi_SubmitBuffer(hSpi, &Xcv0DMA);
+
+//	while(!bComplete)
+//    {
+//		result=ADI_SPI_FAILURE;
+//    }
 
 	while (1)
 	{
