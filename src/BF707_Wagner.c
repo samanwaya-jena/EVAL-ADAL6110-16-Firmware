@@ -3,6 +3,7 @@
  *****************************************************************************/
 
 #include <stdio.h>
+#include <string.h>
 #include <sys/platform.h>
 
 //#define USE_UART
@@ -297,27 +298,31 @@ int main(int argc, char *argv[])
 //	result = adi_spi_SetInterruptMode(hSpi, ADI_SPI_HW_ERR_NONE, false);
 
 
-	uint8_t ProBuffer1[4] = {0x03u, 0x00u};
-	uint8_t RxBuffer1[2] =  {0x00u, 0x00u};
-	ADI_SPI_TRANSCEIVER Xcv0  = {&ProBuffer1[0], 2u, NULL, 0u, &RxBuffer1[0], 2u};
+	uint8_t ProBuffer1[4] = {0x03u, 0x00u, 0x00u, 0x00u};
+	//uint8_t TxBuffer1[2] = {0x00u, 0x00u};
+	uint8_t RxBuffer1[4];
+	ADI_SPI_TRANSCEIVER Xcv0  = {NULL, 0u, ProBuffer1, 4u, RxBuffer1, 4u};
 
-	//SPI_SELECT_SLAVE;
-	//result = adi_spi_ReadWrite(hSpi, &spiTx);
-	//SPI_UNSELECT_SLAVE;
+//	memset(RxBuffer1, 0, sizeof(RxBuffer1));
+//	result = adi_spi_ReadWrite(hSpi, &Xcv0);
+
 
     /* Register a callback for the DMA */
-//	result = adi_spi_RegisterCallback(hSpi, SpiCallback, NULL);
-	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
+	result = adi_spi_RegisterCallback(hSpi, SpiCallback, NULL);
+//	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
 
 	/* Disable DMA */
-	result = adi_spi_EnableDmaMode(hSpi, false);
+	result = adi_spi_EnableDmaMode(hSpi, true);
 
+	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
+
+	memset(RxBuffer1, 0, sizeof(RxBuffer1));
 	result = adi_spi_SubmitBuffer(hSpi, &Xcv0);
 
-//	while(!bComplete)
-//  {
-//		result=1;
-//  }
+	while(!bComplete)
+    {
+		result=ADI_SPI_FAILURE;
+    }
 
 	while (1)
 	{
