@@ -85,6 +85,13 @@ extern void ConfigSoftSwitches(void);
 
 
 bool bComplete = false;
+bool gAcq = false;
+int iAcqNum = 0;
+int iAcqNum1 = 0;
+int iAcqNum2 = 0;
+uint16_t buf[1600];
+
+
 
 /* SPI callback */
 void SpiCallback(void* pHandle, uint32_t u32Arg, void* pArg)
@@ -220,20 +227,40 @@ int main(int argc, char *argv[])
 	/* command processing loop */
 	while ( 1 )
 	{
-	bool bAvailUart = false;
-	eResult = adi_uart_IsRxBufferAvailable (ghUART, &bAvailUart);
+		bool bAvailUart = false;
+		eResult = adi_uart_IsRxBufferAvailable (ghUART, &bAvailUart);
 
-	if (bAvailUart)
-	{
-		void * ptr = NULL;
+		if (bAvailUart)
+		{
+			void * ptr = NULL;
 
-		eResult = adi_uart_GetRxBuffer(ghUART, &ptr);
+			eResult = adi_uart_GetRxBuffer(ghUART, &ptr);
 
-		ProcessChar(*((char*)ptr));
+			ProcessChar(*((char*)ptr));
 
-		eResult = adi_uart_SubmitRxBuffer(ghUART, ptr, 1);
-	}
+			eResult = adi_uart_SubmitRxBuffer(ghUART, ptr, 1);
+		}
 
+		if (gAcq)
+		{
+			uint16_t banknum = 0;
+			int i,j,ch;
+
+//			memset(buf, 0, sizeof(buf));
+
+			GetADIData(&banknum, buf);
+
+			uint16_t * pData = buf;
+
+			if (banknum)
+			{
+				++iAcqNum;
+				if (banknum == 1)
+					++iAcqNum1;
+				else if (banknum == 2)
+					++iAcqNum2;
+			}
+		}
 	}
 
 
@@ -357,8 +384,6 @@ void Lidar_DumpRegs(void)
 	}
 
 }
-
-uint16_t buf[1600];
 
 void Lidar_GetData(void)
 {
@@ -523,6 +548,24 @@ void ProcessChar(char curChar)
     	break;
 
     case 's':
+    	gAcq = false;
+    	break;
+
+    case 'q':
+    	gAcq = true;
+    	break;
+
+    case 'z':
+    {
+		char str[32];
+
+		sprintf(str, "a %d 1:%d 2:%d\r\n", iAcqNum, iAcqNum1, iAcqNum2);
+		adi_uart_Write(ghUART, str, strlen(str));
+		iAcqNum = iAcqNum1 = iAcqNum2 = 0;
+		break;
+	}
+
+    case 't':
     	Lidar_SPITriggerMode();
     	break;
 
