@@ -5,7 +5,12 @@
 #include <stdio.h>
 #include <sys/platform.h>
 
+//#define USE_UART
+
+#ifdef USE_UART
 #include <drivers\uart\adi_uart.h>
+#endif //USE_UART
+
 #include <drivers\spi\adi_spi.h>
 #include <services\pwr\adi_pwr.h>
 #include <services/int/adi_sec.h>
@@ -15,7 +20,7 @@
 
 
 
-
+#ifdef USE_UART
 
 /* Baud rate to be used for char echo */
 #define BAUD_RATE           115200u
@@ -35,7 +40,7 @@ static uint8_t RxBuffer[NUM_BUFFERS];
 /* Memory required for operating UART in interrupt mode */
 static uint8_t  gUARTMemory[ADI_UART_BIDIR_DMA_MEMORY_SIZE];
 
-
+#endif //USE_UART
 
 
 
@@ -78,7 +83,23 @@ extern void ConfigSoftSwitches(void);
 #define VCO_MIN       (72 * MHZTOHZ)
 
 
+bool bComplete = false;
 
+/* SPI callback */
+void SpiCallback(void* pHandle, uint32_t u32Arg, void* pArg)
+{
+    ADI_SPI_HANDLE pDevice = (ADI_SPI_HANDLE *)pHandle;
+    ADI_SPI_EVENT event = (ADI_SPI_EVENT)u32Arg;
+    uint16_t *data = (uint16_t*)pArg;
+
+    switch (event) {
+        case ADI_SPI_TRANSCEIVER_PROCESSED:
+            bComplete = true;
+            break;
+    default:
+        break;
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -94,6 +115,9 @@ int main(int argc, char *argv[])
 	/* Set the Software controlled switches to default values */
 	ConfigSoftSwitches();
 
+	SPI_UNSELECT_SLAVE;
+
+#if 0
 	SPI_UNSELECT_SLAVE;
 
     /* Initialize Power service */
@@ -113,10 +137,10 @@ int main(int argc, char *argv[])
 
 
     adi_sec_Enable(true);
+#endif
 
 
-
-
+#ifdef USE_UART
     /* UART return code */
    	ADI_UART_RESULT    eResult;
 
@@ -189,11 +213,25 @@ int main(int argc, char *argv[])
 	/* command processing loop */
 //	while ( 1 )
 //	{
+	bool bAvailUart = false;
+	eResult = adi_uart_IsRxBufferAvailable (ghUART, &bAvailUart);
+
+	if (bAvailUart)
+	{
+		void * ptr = NULL;
+
+		eResult = adi_uart_GetRxBuffer(ghUART, &ptr);
+
+//			ProcessChar(*((char*)ptr));
+
+		eResult = adi_uart_SubmitRxBuffer(ghUART, ptr, 1);
+	}
+
 //	}
 
 
 
-
+#endif //USE_UART
 
 
 
@@ -212,79 +250,78 @@ int main(int argc, char *argv[])
 	result = adi_spi_SetMaster( hSpi,true);
 
 	/* Set slave select using hardware*/
-	result = adi_spi_SetHwSlaveSelect( hSpi, true);
+	result = adi_spi_SetHwSlaveSelect( hSpi, false);
+
+	result = adi_spi_SetTransmitUnderflow( hSpi, true);
+
+	result = adi_spi_SetClockPhase(hSpi, false);
+
+	/* Setting the clock frequency of spi   The frequency of the SPI clock is calculated by SCLK / 2* (Baud=3)*/
+	result = adi_spi_SetClock( hSpi, 9);
 
 	/* Selecting slave1 as the device*/
-	result = adi_spi_SetSlaveSelect( hSpi,ADI_SPI_SSEL_ENABLE6);
+	result = adi_spi_SetSlaveSelect( hSpi, ADI_SPI_SSEL_ENABLE1);
 
 	/* Setting the word size of 8 bytes*/
 	result = adi_spi_SetWordSize( hSpi, ADI_SPI_TRANSFER_16BIT);
 
-	/* Setting the clock frequency of spi   The frequency of the SPI clock is calculated by SCLK / 2* (Baud=3)*/
-	result = adi_spi_SetClock( hSpi, 20);
-
 	/* No call backs required*/
-	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
-
-	/* Disable DMA */
-	result = adi_spi_EnableDmaMode(hSpi, false);
+//	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
 
 //	result = adi_spi_SetTransceiverMode(hSpi, ADI_SPI_TXRX_MODE);
 
 	result = adi_spi_SetClockPolarity(hSpi, true);
 
-	result = adi_spi_SetClockPhase(hSpi, false);
+	if (result == 0u)
+	{
+		/* generate tx data interrupt when watermark level breaches 50% level */
+		/* DMA watermark levels are disabled because SPI is in interrupt mode */
+		result = adi_spi_SetTxWatermark(hSpi,
+												  ADI_SPI_WATERMARK_50,
+												  ADI_SPI_WATERMARK_DISABLE,
+												  ADI_SPI_WATERMARK_DISABLE);
+	}
+	if (result == 0u)
+	{
+		/* generate rx data interrupt when watermark level breaches 50% level */
+		/* DMA watermark levels are disabled because SPI is in interrupt mode */
+		result = adi_spi_SetRxWatermark(hSpi,
+												  ADI_SPI_WATERMARK_50,
+												  ADI_SPI_WATERMARK_DISABLE,
+												  ADI_SPI_WATERMARK_DISABLE);
+	}
+
 
 //	result = adi_spi_SetFlowControl(hSpi, ADI_SPI_FLOWCONTROL_MASTER, ADI_SPI_WATERMARK_DISABLE);
 
 //	result = adi_spi_SetInterruptMode(hSpi, ADI_SPI_HW_ERR_NONE, false);
 
 
-//	result = adi_spi_SlaveSelect(hSpi, true);
-//	result = adi_spi_SlaveSelect(hSpi, false);
-//	result = adi_spi_SlaveSelect(hSpi, true);
-
-	uint16_t _startAddress = 0;
-
-	uint8_t tbuf[4];
-	uint8_t rbuf[4];
-
-	tbuf[1] = (_startAddress << 1) >> 8;
-	tbuf[0] = (_startAddress << 1) | 1;
-
-	ADI_SPI_TRANSCEIVER spiTx;
-
-	spiTx.pPrologue = NULL;
-	spiTx.PrologueBytes = 0;
-	spiTx.pTransmitter = tbuf;
-	spiTx.TransmitterBytes = 4;
-	spiTx.pReceiver = rbuf;
-	spiTx.ReceiverBytes = 4;
+	uint8_t ProBuffer1[4] = {0x03u, 0x00u};
+	uint8_t RxBuffer1[2] =  {0x00u, 0x00u};
+	ADI_SPI_TRANSCEIVER Xcv0  = {&ProBuffer1[0], 2u, NULL, 0u, &RxBuffer1[0], 2u};
 
 	//SPI_SELECT_SLAVE;
 	//result = adi_spi_ReadWrite(hSpi, &spiTx);
 	//SPI_UNSELECT_SLAVE;
 
-	result = adi_spi_SubmitBuffer(hSpi, &spiTx);
+    /* Register a callback for the DMA */
+//	result = adi_spi_RegisterCallback(hSpi, SpiCallback, NULL);
+	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
+
+	/* Disable DMA */
+	result = adi_spi_EnableDmaMode(hSpi, false);
+
+	result = adi_spi_SubmitBuffer(hSpi, &Xcv0);
+
+//	while(!bComplete)
+//  {
+//		result=1;
+//  }
 
 	while (1)
 	{
-		bool bAvailUart = false;
 		bool bAvailSpi = false;
-
-		eResult = adi_uart_IsRxBufferAvailable (ghUART, &bAvailUart);
-
-		if (bAvailUart)
-		{
-			void * ptr = NULL;
-
-			eResult = adi_uart_GetRxBuffer(ghUART, &ptr);
-
-//			ProcessChar(*((char*)ptr));
-
-			eResult = adi_uart_SubmitRxBuffer(ghUART, ptr, 1);
-		}
-
 
 		result = adi_spi_IsBufferAvailable(hSpi, &bAvailSpi);
 
@@ -304,6 +341,6 @@ int main(int argc, char *argv[])
 
 //	SPI_UNSELECT_SLAVE;
 
-	return 0;
+//	return 0;
 }
 
