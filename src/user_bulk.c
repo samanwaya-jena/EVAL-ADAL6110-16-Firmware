@@ -33,6 +33,8 @@ typedef enum
     LOOPBACK,                                           /* run loopback on the device */
     MEMORY_READ,                                        /* read from specified memory on the device */
     MEMORY_WRITE,                                       /* write to specified memory on the device */
+	LIDAR_QUERY,
+	LIDAR_GETDATA
 } ADI_Loopback_Command_Function_Code;
 
 #pragma pack (1)
@@ -59,6 +61,18 @@ typedef struct
     unsigned long usb_port;                             /* 0x00000000 = USB0, 0x00000001 = USB1 */
     unsigned long next_msg_length;                      /* Set to 0 */
 } ADI_Bulk_Loopback_Query_USB_Response;
+
+
+
+/* QUERY_SUPPORT command response */
+typedef struct
+{
+    unsigned long command;                              /* Query response function code */
+    unsigned long nbrCycles;
+    unsigned long nbrBytes;
+    unsigned long next_msg_length;                      /* Set to 0 */
+} ADI_Bulk_Loopback_Lidar_Query_Response;
+
 
 /* The first 4-bytes of the bulk loopback transfer describe the next bulk loopback
    transfer.
@@ -242,6 +256,7 @@ void user_bulk_main (void)
     static CLD_Time main_time = 0;
 //    static CLD_Time msg_time = 0;
 //    static CLD_Time run_time = 0;
+    static CLD_Time acq_time = 0;
 
     cld_bf70x_bulk_lib_main();
 
@@ -252,6 +267,13 @@ void user_bulk_main (void)
     }
 
     Serial_Process();
+
+    if (cld_time_passed_ms(acq_time) >= 100u)
+	{
+    	uint16_t banknum = 0;
+    	acq_time = cld_time_get();
+    	GetADIData(&banknum, buf);
+	}
 
 //    if (cld_time_passed_ms(msg_time) >= 237u)
 //    {
@@ -371,6 +393,7 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
     };
     ADI_Bulk_Loopback_Query_Response * p_query_resp;
     ADI_Bulk_Loopback_Query_USB_Response * p_query_usb_port;
+    ADI_Bulk_Loopback_Lidar_Query_Response * p_lidar_query_resp;
 
     cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Bulk Command %d: ", user_bulk_adi_loopback_data.cmd.command);
     /* Process the received command */
@@ -439,11 +462,12 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
             transfer_params.num_bytes = user_bulk_adi_loopback_data.cmd.next_msg_length;
             /* Set the Bulk In data buffer address to the starting address specified in the
                Memory Read command. */
-            transfer_params.p_data_buffer = (unsigned char*)user_bulk_adi_loopback_data.cmd.cmd_data;
+            transfer_params.p_data_buffer = (unsigned char*) buf;
+
             transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
             transfer_params.transfer_timeout_ms = 1000;
             cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Read Memory");
+            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Read Data");
         break;
 
         case MEMORY_WRITE:
@@ -455,6 +479,25 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
             user_bulk_adi_loopback_data.write_mem_addr = user_bulk_adi_loopback_data.cmd.cmd_data;
             cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Write Memory");
         break;
+
+        // Wagner
+        case LIDAR_QUERY:
+        	p_lidar_query_resp = (ADI_Bulk_Loopback_Lidar_Query_Response *)user_bulk_adi_loopback_buffer;
+
+			/* Set the Query response data. */
+        	p_lidar_query_resp->command = LIDAR_QUERY;
+        	p_lidar_query_resp->nbrCycles = 10;
+        	p_lidar_query_resp->nbrBytes = 1234;
+        	p_lidar_query_resp->next_msg_length = 0;
+
+			/* Return the query response using the Bulk IN endpoint. */
+			transfer_params.num_bytes = sizeof(ADI_Bulk_Loopback_Lidar_Query_Response);
+			transfer_params.p_data_buffer = user_bulk_adi_loopback_buffer;
+			transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
+			transfer_params.transfer_timeout_ms = 1000;
+			cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
+			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar Query");
+		break;
 
         default:
             /* Do nothing */
