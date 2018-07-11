@@ -478,6 +478,13 @@ void InitADI() {
 													  ADI_SPI_WATERMARK_DISABLE,
 													  ADI_SPI_WATERMARK_DISABLE);
 		}
+
+
+		/* Disable DMA */
+		result = adi_spi_EnableDmaMode(hSpi, true);
+
+		result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
+
 	}
 
 	ResetADI();

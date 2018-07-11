@@ -19,7 +19,7 @@
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,com.analog.crosscore.managedbuilder.buildType=com.analog.crosscore.managedbuilder.buildType.debug" cleanCommand="clean" description="" id="blackfin.toolchain.configuration.debug.1581875278" name="Debug" parent="blackfin.toolchain.configuration.debug">
 					<folderInfo id="blackfin.toolchain.configuration.debug.1581875278." name="/" resourcePath="">
-						<toolChain id="blackfin.toolchain.debug.1600078990" isAbstract="false" name="CrossCore Blackfin Toolchain" superClass="blackfin.toolchain">
+						<toolChain id="blackfin.toolchain.debug.1600078990" isAbstract="false" name="CrossCore Blackfin Toolchain" superClass="blackfin.toolchain" targetTool="blackfin.toolchain.linker">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="blackfin.platform.1585327529" name="CrossCore Blackfin Target Platform" osList="all" superClass="blackfin.platform"/>
 							<builder buildPath="${workspace_loc:/BF707_Wagner}/Debug" id="blackfin.toolchain.builder.1621097900" keepEnvironmentInBuildfile="false" name="CrossCore Blackfin Builder" superClass="blackfin.toolchain.builder"/>
 							<tool id="blackfin.toolchain.assembler.2033434094" name="CrossCore Blackfin Assembler" superClass="blackfin.toolchain.assembler">
@@ -68,6 +68,10 @@
 								<option id="linker.option.srchdir.790714875" name="Library search directories (-L):" superClass="linker.option.srchdir" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${OutDir}/system/startup_ldf&quot;"/>
 								</option>
+								<option id="linker.option.libdoj.522650587" superClass="linker.option.libdoj" valueType="libFiles">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/cld_bf70x_bulk_lib.dlb&quot;"/>
+								</option>
+								<option id="linker.option.misrachecksrcfiles.1127082766" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="linker.doj.input.1918017046" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.925817650" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
@@ -77,6 +81,7 @@
 							<tool id="blackfin.toolchain.loader.1915839976" name="CrossCore Blackfin Loader" superClass="blackfin.toolchain.loader">
 								<option id="loader.option.proc.1634329211" name="-proc" superClass="loader.option.proc" value=" ADSP-BF707" valueType="string"/>
 								<option id="loader.option.sirevision.1153804454" name="-si-revision" superClass="loader.option.sirevision" value=" 1.1" valueType="string"/>
+								<option id="blackfin.loader.option.enumerated.bootmode.390904284" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
@@ -107,7 +112,7 @@
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,com.analog.crosscore.managedbuilder.buildType=com.analog.crosscore.managedbuilder.buildType.release" cleanCommand="clean" description="" id="blackfin.toolchain.configuration.release.879373966" name="Release" parent="blackfin.toolchain.configuration.release">
 					<folderInfo id="blackfin.toolchain.configuration.release.879373966." name="/" resourcePath="">
-						<toolChain id="blackfin.toolchain.release.732326033" isAbstract="false" name="CrossCore Blackfin Toolchain" superClass="blackfin.toolchain">
+						<toolChain id="blackfin.toolchain.release.732326033" isAbstract="false" name="CrossCore Blackfin Toolchain" superClass="blackfin.toolchain" targetTool="blackfin.toolchain.linker">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="blackfin.platform.898362304" name="CrossCore Blackfin Target Platform" osList="all" superClass="blackfin.platform"/>
 							<builder buildPath="${workspace_loc:/BF707_Wagner}/Release" id="blackfin.toolchain.builder.520026178" keepEnvironmentInBuildfile="false" name="CrossCore Blackfin Builder" superClass="blackfin.toolchain.builder"/>
 							<tool id="blackfin.toolchain.assembler.926274277" name="CrossCore Blackfin Assembler" superClass="blackfin.toolchain.assembler">
@@ -156,6 +161,7 @@
 								<option id="linker.option.srchdir.2086199098" name="Library search directories (-L):" superClass="linker.option.srchdir" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${OutDir}/system/startup_ldf&quot;"/>
 								</option>
+								<option id="linker.option.misrachecksrcfiles.421232291" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="linker.doj.input.258462543" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.1098090604" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
@@ -165,6 +171,7 @@
 							<tool id="blackfin.toolchain.loader.151547988" name="CrossCore Blackfin Loader" superClass="blackfin.toolchain.loader">
 								<option id="loader.option.proc.89314331" name="-proc" superClass="loader.option.proc" value=" ADSP-BF707" valueType="string"/>
 								<option id="loader.option.sirevision.1614708240" name="-si-revision" superClass="loader.option.sirevision" value=" 1.1" valueType="string"/>
+								<option id="blackfin.loader.option.enumerated.bootmode.916950518" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
