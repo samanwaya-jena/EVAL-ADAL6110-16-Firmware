@@ -23,33 +23,17 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
 
 
-int Lidar_read_mid(uint8_t *mid, uint8_t *pid, uint8_t *rid)
+void Lidar_PrintInfo(void)
 {
 	uint16_t data;
 
 	ReadParamFromSPI(0, &data);
 
-	*mid = (data >> 8) & 0xFF;
-	*pid = (data >> 4) & 0x0F;
-	*rid = (data & 0x0F);
+	uint8_t mid = (data >> 8) & 0xFF;
+	uint8_t pid = (data >> 4) & 0x0F;
+	uint8_t rid = (data & 0x0F);
 
-	return 0;
-}
-
-
-
-void Lidar_PrintInfo(void)
-{
-	int i;
-	char str[32];
-
-	uint8_t mid = 0;
-	uint8_t pid = 0;
-	uint8_t rid = 0;
-
-	int result = Lidar_read_mid(&mid, &pid, &rid);
-
-	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar mid:%d pid:%d rid:%d\r\n", mid, pid, rid);
+	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar 0x%02x/0x%02x mid:%d pid:%d rid:%d\r\n", data & 0xFF, (data >> 8) & 0xFF, mid, pid, rid);
 }
 
 void Lidar_PrintInfoLoop(void)
@@ -132,7 +116,7 @@ void Lidar_GetData(void)
 		{
 			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Ch %d\r\n", ch);
 
-			for(j=0; j<10; j++)
+			for(j=0; j<3; j++)
 			{
 				for(i=0; i<10; i++)
 				{
@@ -335,4 +319,29 @@ void ProcessChar(char curChar)
   }
 
 
+}
+
+
+
+static char rxCharHead = 0;
+static char rxCharTail = 0;
+static char rxChar[MAX_CMD_SIZE];
+
+void Serial_RxChar(char curChar)
+{
+	if (((rxCharHead + 1) % MAX_CMD_SIZE) != rxCharTail)
+	{
+		rxChar[rxCharHead] = curChar;
+		rxCharHead = (rxCharHead + 1) % MAX_CMD_SIZE;
+	}
+}
+
+void Serial_Process(void)
+{
+	if (rxCharHead != rxCharTail)
+	{
+		char ch = rxChar[rxCharTail];
+		rxCharTail = (rxCharTail + 1) % MAX_CMD_SIZE;
+		ProcessChar(ch);
+	}
 }

@@ -193,7 +193,8 @@ static inline int PerformMultipleSPITransaction(void) {
  */
 void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
 {
-	uint8_t ProBuffer1[4] = {0x03u, 0x00u};
+#if 1
+	static uint8_t ProBuffer1[4];
 
 	ProBuffer1[0] = (_startAddress << 1);
 	ProBuffer1[1] = (_startAddress << 1) >> 8;
@@ -203,6 +204,7 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
 	ADI_SPI_TRANSCEIVER Xcv0  = {ProBuffer1, 4u, NULL, 0u, NULL, 0u};
 
 	ADI_SPI_RESULT result = adi_spi_ReadWrite(hSpi, &Xcv0);
+#endif
 }
 
 /**
@@ -214,8 +216,45 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
  */
 void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
 {
-	uint8_t ProBuffer1[2] = {0x03u, 0x00u};
-	uint8_t RxBuffer1[2];
+#if 0
+	ADI_SPI_RESULT result;
+
+	/* Disable DMA */
+	result = adi_spi_EnableDmaMode(hSpi, true);
+
+	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_8BIT);
+
+	uint8_t ProBuffer1[4] = {0x90u, 0x00u, 0x00u, 0x00u};
+	uint8_t RxBuffer1[2] =  {0x00u, 0x00u};
+
+	/* transceiver configurations */
+	/* Manufacturer ID transceiver, 4 byte prologue followed by 2 byte rx buffer, expected readback result [0xEF, 0x15] */
+	ADI_SPI_TRANSCEIVER Xcv0  = {&ProBuffer1[0], 4u, NULL, 0u, &RxBuffer1[0], 2u};
+
+	//result = adi_spi_ReadWrite(hSpi, &Xcv0);
+
+	result = adi_spi_SubmitBuffer(hSpi, &Xcv0);
+
+	bool bAvailSpi = false;
+	while (!bAvailSpi)
+	{
+		result = adi_spi_IsBufferAvailable(hSpi, &bAvailSpi);
+
+		if (bAvailSpi)
+		{
+			ADI_SPI_TRANSCEIVER     *pTransceiver = NULL;
+
+			result =  adi_spi_GetBuffer(hSpi, &pTransceiver);
+		}
+	}
+
+	*_data = *((uint16_t*)RxBuffer1);
+
+	result = adi_spi_EnableDmaMode(hSpi, true);
+
+#else
+	static uint8_t ProBuffer1[2];
+	static uint8_t RxBuffer1[2];
 
 	ProBuffer1[0] = (_startAddress << 1) | 0x01;
 	ProBuffer1[1] = (_startAddress << 1) >> 8;
@@ -225,6 +264,7 @@ void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
 	ADI_SPI_RESULT result = adi_spi_ReadWrite(hSpi, &Xcv0);
 
 	*_data = *((uint16_t*)RxBuffer1);
+#endif
 }
 
 /**
@@ -242,18 +282,12 @@ void ReadDataFromSPI(uint16_t * pData)
 	ADI_SPI_RESULT result;
 
 	/* Disable DMA */
-	result = adi_spi_EnableDmaMode(hSpi, true);
+//	result = adi_spi_EnableDmaMode(hSpi, true);
 
-	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
-
-//	uint8_t TxBuffer1[4] = {0xFF, 0x01, 0x00, 0x00};
-//	ADI_SPI_TRANSCEIVER Xcv0DMA  = {NULL, 0u, (uint8_t*) TxBuffer1, 4u, (uint8_t*) pData, 4};
+//	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
 
 	uint8_t ProBuffer1[2] = {0xFF, 0x01};
 	ADI_SPI_TRANSCEIVER Xcv0DMA  = {ProBuffer1, 2u, NULL, 0u, (uint8_t*) pData, 1600*2};
-
-//	memset(TxBuffer1, 0, sizeof(TxBuffer1));
-//	TxBuffer1[0] = 0x01FF;
 
 	result = adi_spi_SubmitBuffer(hSpi, &Xcv0DMA);
 
@@ -277,7 +311,7 @@ void ReadDataFromSPI(uint16_t * pData)
 	}
 
 	/* Disable DMA */
-	result = adi_spi_EnableDmaMode(hSpi, false);
+//	result = adi_spi_EnableDmaMode(hSpi, false);
 
 #else
 
@@ -445,7 +479,7 @@ void InitADI() {
 		result = adi_spi_SetClockPhase(hSpi, false);
 
 		/* Setting the clock frequency of spi   The frequency of the SPI clock is calculated by SCLK / 2* (Baud=3)*/
-		result = adi_spi_SetClock( hSpi, 4);
+		result = adi_spi_SetClock( hSpi, 9);
 
 		/* Selecting slave1 as the device*/
 		result = adi_spi_SetSlaveSelect( hSpi, ADI_SPI_SSEL_ENABLE1);
@@ -481,9 +515,9 @@ void InitADI() {
 
 
 		/* Disable DMA */
-		result = adi_spi_EnableDmaMode(hSpi, true);
+//		result = adi_spi_EnableDmaMode(hSpi, true);
 
-		result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
+//		result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
 
 	}
 

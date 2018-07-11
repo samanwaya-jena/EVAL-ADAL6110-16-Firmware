@@ -19,6 +19,9 @@
 
 #include <ADSP-BF707_device.h>
 
+#include "Serial_cmd.h"
+
+
 /* ADI hostapp.exe commands */
 typedef enum
 {
@@ -247,6 +250,9 @@ void user_bulk_main (void)
         main_time = cld_time_get();
         pADI_PORTA->DATA_TGL = (1 << 0);
     }
+
+    Serial_Process();
+
 //    if (cld_time_passed_ms(msg_time) >= 237u)
 //    {
 //        msg_time = cld_time_get();
@@ -588,11 +594,9 @@ Description:
 
 Returns:
 ==============================================================================*/
-extern void ProcessChar(char curChar);
-
 static void user_bulk_console_rx_byte (unsigned char byte)
 {
-	ProcessChar(byte);
+	Serial_RxChar(byte);
 
 #if 0
     static const CLD_CONSOLE_COLOR cld_console_colors[CLD_CONSOLE_NUM_COLORS] =
