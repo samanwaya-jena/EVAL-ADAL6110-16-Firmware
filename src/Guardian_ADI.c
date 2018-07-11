@@ -67,121 +67,11 @@ enum ADI_REGISTER_INDEX {
 	SRAMReadOutAddress = 0xFF // read only
 };
 
-const uint16_t bank0Full = 0x0001;
-const uint16_t bank1Full = 0x0002;
-
-#define SPICommandLenght 1
-#define SPIPayloadLenghtSingle 1
-#define SPIPayloadLenghtMultiple 1600
-
-#define fillerVal10    0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
-#define fillerVal100  fillerVal10,fillerVal10,fillerVal10,fillerVal10,fillerVal10,fillerVal10,fillerVal10,fillerVal10,fillerVal10,fillerVal10
-#define fillerVal800  fillerVal100,fillerVal100,fillerVal100,fillerVal100,fillerVal100,fillerVal100,fillerVal100,fillerVal100
-#define fillerVal1600 fillerVal800,fillerVal800
-
-uint16_t DMA_SPI_TX[SPIPayloadLenghtMultiple + SPICommandLenght] = { 0x1FE,
-		fillerVal1600 };
-uint16_t DMA_SPI_RX[SPIPayloadLenghtMultiple + SPICommandLenght] = { 0x0FF,
-		fillerVal1600 };
-
-uint16_t DataForSPITransaction[SPICommandLenght + SPIPayloadLenghtMultiple]; // data readout container
-uint16_t *SPICommand = DataForSPITransaction;
-uint16_t *SPIPayload = DataForSPITransaction + 1;
 
 
 uint8_t spiMem[ADI_SPI_INT_MEMORY_SIZE]; //ADI_SPI_DMA_MEMORY_SIZE
 
 ADI_SPI_HANDLE hSpi = NULL;
-
-
-/**
- *
- * Private functions
- *
- *
- */
-
-/**
- * @brief transfer message to SPI device and puts the return data in the communication buffer
- *
- * this function uses the DataForSPITransaction buffer to send/receive the data from the ADI chip
- *
- */
-#if 0
-static inline int PerformSingleSPITransaction() {
-	int dataTransfered;
-	uint16_t* currentDataPtr;
-
-	dataTransfered = 0;
-	currentDataPtr = DataForSPITransaction;
-
-	USIC_FlushRxFIFO(SPI001_Handle0.USICRegs);
-	USIC_FlushTxFIFO(SPI001_Handle0.USICRegs);
-
-	SPI001_ClearFlag(&SPI001_Handle0, SPI001_FIFO_STD_RECV_BUF_FLAG);
-
-	EnableStartOfFrame(SPI001_Handle0);
-	SPI001_WriteData(&SPI001_Handle0, currentDataPtr, SPI001_STANDARD);
-	SPI001_WriteData(&SPI001_Handle0, currentDataPtr + 1, SPI001_STANDARD);
-	EnableEndOfFrame(SPI001_Handle0);
-
-	while (SPI001_ReadData(&SPI001_Handle0, &currentDataPtr[dataTransfered]));
-	dataTransfered++;
-	while (SPI001_ReadData(&SPI001_Handle0, &currentDataPtr[dataTransfered]));
-	dataTransfered++;
-
-	return (dataTransfered);
-}
-#endif
-
-/**
- * @brief transfer message to SPI device and puts the return data in the communication buffer
- *
- * this function uses the DataForSPITransaction buffer to send/receive the data from the ADI chip
- *
- */
-
-static inline int PerformMultipleSPITransaction(void) {
-	int numberOfDataSent, numberOfDataRead, numberOfDataToTransfer;
-	//SPI001_StatusType rcvrStatus;
-
-	numberOfDataSent = 0;
-	numberOfDataRead = 0;
-	numberOfDataToTransfer = SPICommandLenght + SPIPayloadLenghtMultiple;
-#if 0
-	USIC_FlushRxFIFO(SPI001_Handle0.USICRegs);
-	USIC_FlushTxFIFO(SPI001_Handle0.USICRegs);
-
-	EnableStartOfFrame(SPI001_Handle0);
-	while (numberOfDataSent < numberOfDataToTransfer) {
-		if (numberOfDataSent == numberOfDataToTransfer - 1) {
-			EnableEndOfFrame(SPI001_Handle0);
-		}
-		if (SPI001_WriteData(&SPI001_Handle0,
-					&DataForSPITransaction[numberOfDataSent], SPI001_STANDARD)){
-			numberOfDataSent++;
-		}
-		if (SPI001_ReadData(&SPI001_Handle0,
-					&DataForSPITransaction[numberOfDataRead])){
-			numberOfDataRead++;
-		}
-	}
-	while (numberOfDataRead < numberOfDataToTransfer) {
-		if (SPI001_ReadData(&SPI001_Handle0,
-					&DataForSPITransaction[numberOfDataRead])){
-			numberOfDataRead++;
-		}
-	}
-#endif
-	return (numberOfDataRead);
-}
-
-
-
-
-
-
-
 
 
 /**
@@ -193,7 +83,6 @@ static inline int PerformMultipleSPITransaction(void) {
  */
 void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
 {
-#if 1
 	static uint8_t ProBuffer1[4];
 
 	ProBuffer1[0] = (_startAddress << 1);
@@ -204,7 +93,6 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
 	ADI_SPI_TRANSCEIVER Xcv0  = {ProBuffer1, 4u, NULL, 0u, NULL, 0u};
 
 	ADI_SPI_RESULT result = adi_spi_ReadWrite(hSpi, &Xcv0);
-#endif
 }
 
 /**
@@ -216,43 +104,6 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
  */
 void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
 {
-#if 0
-	ADI_SPI_RESULT result;
-
-	/* Disable DMA */
-	result = adi_spi_EnableDmaMode(hSpi, true);
-
-	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_8BIT);
-
-	uint8_t ProBuffer1[4] = {0x90u, 0x00u, 0x00u, 0x00u};
-	uint8_t RxBuffer1[2] =  {0x00u, 0x00u};
-
-	/* transceiver configurations */
-	/* Manufacturer ID transceiver, 4 byte prologue followed by 2 byte rx buffer, expected readback result [0xEF, 0x15] */
-	ADI_SPI_TRANSCEIVER Xcv0  = {&ProBuffer1[0], 4u, NULL, 0u, &RxBuffer1[0], 2u};
-
-	//result = adi_spi_ReadWrite(hSpi, &Xcv0);
-
-	result = adi_spi_SubmitBuffer(hSpi, &Xcv0);
-
-	bool bAvailSpi = false;
-	while (!bAvailSpi)
-	{
-		result = adi_spi_IsBufferAvailable(hSpi, &bAvailSpi);
-
-		if (bAvailSpi)
-		{
-			ADI_SPI_TRANSCEIVER     *pTransceiver = NULL;
-
-			result =  adi_spi_GetBuffer(hSpi, &pTransceiver);
-		}
-	}
-
-	*_data = *((uint16_t*)RxBuffer1);
-
-	result = adi_spi_EnableDmaMode(hSpi, true);
-
-#else
 	static uint8_t ProBuffer1[2];
 	static uint8_t RxBuffer1[2];
 
@@ -264,7 +115,6 @@ void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
 	ADI_SPI_RESULT result = adi_spi_ReadWrite(hSpi, &Xcv0);
 
 	*_data = *((uint16_t*)RxBuffer1);
-#endif
 }
 
 /**
@@ -278,7 +128,6 @@ void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
 //uint16_t TxBuffer1[1600+1];
 void ReadDataFromSPI(uint16_t * pData)
 {
-#if 1
 	ADI_SPI_RESULT result;
 
 	/* Disable DMA */
@@ -312,25 +161,6 @@ void ReadDataFromSPI(uint16_t * pData)
 
 	/* Disable DMA */
 //	result = adi_spi_EnableDmaMode(hSpi, false);
-
-#else
-
-	uint8_t tbuf[2];
-	uint8_t rbuf[2];
-
-	uint16_t _startAddress = 0xFF;
-
-	tbuf[0] = (_startAddress << 1) >> 8;
-	tbuf[1] = (_startAddress << 1) | 1;
-
-	select_RFWireless();
-
-	spi_send(tbuf, 2);
-
-	spi_recv((uint8_t*)pData, 1600*sizeof(uint16_t));
-
-	unselect_RFWireless();
-#endif
 }
 
 void ResetADI(void) {
@@ -359,7 +189,7 @@ void ResetADI(void) {
 /**
  * @brief initialize SPI port for ADI communication
  */
-void InitADI() {
+void InitADI(void) {
     int i;
 
     uint16_t initValues[][2] =
@@ -450,23 +280,14 @@ void InitADI() {
 		200,
 		200
     };
+
 	int num = sizeof(initValues) / sizeof(initValues[0]);
-
-
-
-
-
-
-
-
-
 
 	if (hSpi == NULL)
 	{
 		ADI_SPI_RESULT result;
 
 		result = adi_spi_Open(2, spiMem, ADI_SPI_DMA_MEMORY_SIZE, &hSpi);
-
 
 		/* Set master */
 		result = adi_spi_SetMaster( hSpi,true);
@@ -512,13 +333,6 @@ void InitADI() {
 													  ADI_SPI_WATERMARK_DISABLE,
 													  ADI_SPI_WATERMARK_DISABLE);
 		}
-
-
-		/* Disable DMA */
-//		result = adi_spi_EnableDmaMode(hSpi, true);
-
-//		result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
-
 	}
 
 	ResetADI();
@@ -539,19 +353,21 @@ void InitADI() {
  */
 void ClearSram(void) {
 
-	WriteParamToSPI(DataControlAddress, 0x01);
-	ReadDataFromSPI(&DataForSPITransaction[0]);
-	WriteParamToSPI(DataControlAddress, 0x00);
+//	WriteParamToSPI(DataControlAddress, 0x01);
+//	ReadDataFromSPI(&DataForSPITransaction[0]);
+//	WriteParamToSPI(DataControlAddress, 0x00);
 
-	WriteParamToSPI(DataControlAddress, 0x02);
-	ReadDataFromSPI(&DataForSPITransaction[0]);
-	WriteParamToSPI(DataControlAddress, 0x00);
+//	WriteParamToSPI(DataControlAddress, 0x02);
+//	ReadDataFromSPI(&DataForSPITransaction[0]);
+//	WriteParamToSPI(DataControlAddress, 0x00);
 
 }
 
 /**
  * @brief Get the current status
  */
+const uint16_t bank0Full = 0x0001;
+const uint16_t bank1Full = 0x0002;
 const uint16_t maxNumberOfSameState = 20;
 int GetADIStatus(void) {
 	static uint16_t bankLastStatus = 0x00;

@@ -395,7 +395,9 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
     ADI_Bulk_Loopback_Query_USB_Response * p_query_usb_port;
     ADI_Bulk_Loopback_Lidar_Query_Response * p_lidar_query_resp;
 
-    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Bulk Command %d: ", user_bulk_adi_loopback_data.cmd.command);
+    if ((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != MEMORY_READ)
+    	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Bulk Command %d: ", user_bulk_adi_loopback_data.cmd.command);
+
     /* Process the received command */
     switch((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command)
     {
@@ -467,7 +469,7 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
             transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
             transfer_params.transfer_timeout_ms = 1000;
             cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Read Data");
+//            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Read Data");
         break;
 
         case MEMORY_WRITE:
@@ -503,7 +505,10 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
             /* Do nothing */
         break;
     }
-    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\n\r");
+
+    if ((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != MEMORY_READ)
+    	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\n\r");
+
     return CLD_USB_DATA_GOOD;
 }
 
