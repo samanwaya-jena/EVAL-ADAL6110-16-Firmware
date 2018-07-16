@@ -8,7 +8,9 @@
 #ifndef SERIAL_CMD_H_
 #define SERIAL_CMD_H_
 
-extern uint16_t buf[1600];
+#include "Guardian_ADI.h"
+
+extern int gLogData;
 
 void Serial_RxChar(char curChar);
 void Serial_Process(void);

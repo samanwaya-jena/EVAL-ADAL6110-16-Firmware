@@ -204,6 +204,8 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
     .fp_cld_usb_event_callback = user_bulk_usb_event,
 };
 
+static uint16_t numPending = 0;
+
 /*=============================================================================
 Function:       user_bulk_init
 
@@ -256,23 +258,55 @@ void user_bulk_main (void)
     static CLD_Time main_time = 0;
 //    static CLD_Time msg_time = 0;
 //    static CLD_Time run_time = 0;
+    static CLD_Time log_time = 0;
     static CLD_Time acq_time = 0;
+
+    static int iAcqNum = 0;
+    static int iAcqNum1 = 0;
+    static int iAcqNum2 = 0;
+    static int iAcqNumX = 0;
 
     cld_bf70x_bulk_lib_main();
 
     if (cld_time_passed_ms(main_time) >= 250u)
     {
         main_time = cld_time_get();
-        pADI_PORTA->DATA_TGL = (1 << 0);
+//        pADI_PORTA->DATA_TGL = (1 << 0);
     }
 
     Serial_Process();
 
-    if (cld_time_passed_ms(acq_time) >= 100u)
-	{
+    pADI_PORTA->DATA_TGL = (1 << 0);
+
+    if (cld_time_passed_ms(acq_time) >= 2u)
+    {
     	uint16_t banknum = 0;
     	acq_time = cld_time_get();
-    	GetADIData(&banknum, buf);
+
+    	Lidar_Acq(&banknum);
+
+    	if (banknum)
+    	{
+    		pADI_PORTA->DATA_TGL = (1 << 1);
+    		++iAcqNum;
+    		if (banknum == 1)
+    			++iAcqNum1;
+    		else if (banknum == 2)
+    			++iAcqNum2;
+    		else
+    			++iAcqNumX;
+    	}
+    }
+
+	if (gLogData & 1)
+	{
+		if (cld_time_passed_ms(log_time) >= 1000u)
+		{
+			log_time = cld_time_get();
+			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (%d,%d,%d) USB %d (%d,%d)\r\n", iAcqNum, iAcqNum1, iAcqNum2, iAcqNumX, iUSBnum, iUSBnumOK, iUSBnumEmpty);
+			iAcqNum = iAcqNum1 = iAcqNum2 = iAcqNumX = 0;
+			iUSBnum = iUSBnumOK = iUSBnumEmpty = 0;
+		}
 	}
 
 //    if (cld_time_passed_ms(msg_time) >= 237u)
@@ -459,18 +493,39 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
         break;
 
         case MEMORY_READ:
-            /* Configure the USB Bulk IN transfer to read the number of bytes
-               specified in the Memory Read command. */
-            transfer_params.num_bytes = user_bulk_adi_loopback_data.cmd.next_msg_length;
-            /* Set the Bulk In data buffer address to the starting address specified in the
-               Memory Read command. */
-            transfer_params.p_data_buffer = (unsigned char*) buf;
+        {
+        	uint16_t * pData = 0;
 
-            transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
-            transfer_params.transfer_timeout_ms = 1000;
-            cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
+        	++iUSBnum;
+
+        	Lidar_GetDataFromFifo(&pData, &numPending);
+
+        	if (numPending)
+        	{
+        		numPending = 1;
+
+        		++iUSBnumOK;
+
+				/* Configure the USB Bulk IN transfer to read the number of bytes
+				   specified in the Memory Read command. */
+				transfer_params.num_bytes = numPending * 1600 * 2;
+				/* Set the Bulk In data buffer address to the starting address specified in the
+				   Memory Read command. */
+				transfer_params.p_data_buffer = (unsigned char*) pData;
+        	}
+        	else
+        	{
+        		++iUSBnumEmpty;
+
+        		transfer_params.num_bytes = 0;
+        		transfer_params.p_data_buffer = 0;
+        	}
+			transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
+			transfer_params.transfer_timeout_ms = 1000;
+			cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
 //            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Read Data");
         break;
+        }
 
         case MEMORY_WRITE:
             /* The write memory test is starting */
@@ -624,13 +679,19 @@ Returns:        None.
 ==============================================================================*/
 static void user_bulk_adi_loopback_bulk_in_transfer_complete (void)
 {
-    static unsigned char cnt = 0;
-    cnt++;
-    if (cnt == 6)
-    {
-        cnt = 0;
-        pADI_PORTB->DATA_TGL = (1 << 1);
-    }
+	if (numPending)
+	{
+    	Lidar_ReleaseDataToFifo(numPending);
+    	numPending = 0;
+	}
+
+//    static unsigned char cnt = 0;
+//    cnt++;
+//    if (cnt == 6)
+//    {
+//        cnt = 0;
+//        pADI_PORTB->DATA_TGL = (1 << 1);
+//    }
 }
 
 /*=============================================================================
@@ -700,10 +761,10 @@ static void user_bulk_usb_event (CLD_USB_Event event)
     switch (event)
     {
         case CLD_USB_CABLE_CONNECTED:
-            pADI_PORTA->DATA_SET = (1 << 1);
+//            pADI_PORTA->DATA_SET = (1 << 1);
         break;
         case CLD_USB_CABLE_DISCONNECTED:
-            pADI_PORTA->DATA_CLR = (1 << 1);
+//            pADI_PORTA->DATA_CLR = (1 << 1);
         break;
         case CLD_USB_ENUMERATED_CONFIGURED:
             cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Enumerated\n\r");

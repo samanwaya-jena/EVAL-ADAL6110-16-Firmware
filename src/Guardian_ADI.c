@@ -10,6 +10,8 @@
 
 #include <drivers\spi\adi_spi.h>
 
+#include <ADSP-BF707_device.h>
+
 #include "Guardian_ADI.h"
 
 //#include "Guardian_basics.h"
@@ -110,6 +112,9 @@ void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
 	ProBuffer1[0] = (_startAddress << 1) | 0x01;
 	ProBuffer1[1] = (_startAddress << 1) >> 8;
 
+	RxBuffer1[0] = 0;
+	RxBuffer1[1] = 0;
+
 	ADI_SPI_TRANSCEIVER Xcv0  = {ProBuffer1, 2u, NULL, 0u, RxBuffer1, 2u};
 
 	ADI_SPI_RESULT result = adi_spi_ReadWrite(hSpi, &Xcv0);
@@ -125,8 +130,7 @@ void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
  *  Suffucient space should be made for all the data in the block *_dataPtr
  *
  */
-//uint16_t TxBuffer1[1600+1];
-void ReadDataFromSPI(uint16_t * pData)
+void ReadDataFromSPI(uint16_t * pData, int num)
 {
 	ADI_SPI_RESULT result;
 
@@ -136,7 +140,7 @@ void ReadDataFromSPI(uint16_t * pData)
 //	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
 
 	uint8_t ProBuffer1[2] = {0xFF, 0x01};
-	ADI_SPI_TRANSCEIVER Xcv0DMA  = {ProBuffer1, 2u, NULL, 0u, (uint8_t*) pData, 1600*2};
+	ADI_SPI_TRANSCEIVER Xcv0DMA  = {ProBuffer1, 2u, NULL, 0u, (uint8_t*) pData, num * sizeof(uint16_t)};
 
 	result = adi_spi_SubmitBuffer(hSpi, &Xcv0DMA);
 
@@ -161,6 +165,46 @@ void ReadDataFromSPI(uint16_t * pData)
 
 	/* Disable DMA */
 //	result = adi_spi_EnableDmaMode(hSpi, false);
+}
+
+static uint8_t gProBuffer1[2] = {0xFF, 0x01};
+static ADI_SPI_TRANSCEIVER gXcv0DMA;
+
+void ReadDataFromSPI_Start(uint16_t * pData, int num)
+{
+	ADI_SPI_RESULT result;
+
+	gXcv0DMA.pPrologue = gProBuffer1;
+	gXcv0DMA.PrologueBytes = 2u;
+	gXcv0DMA.pTransmitter = NULL;
+	gXcv0DMA.TransmitterBytes = 0u;
+	gXcv0DMA.pReceiver = (uint8_t*) pData;
+	gXcv0DMA.ReceiverBytes = num * sizeof(uint16_t);
+
+	result = adi_spi_SubmitBuffer(hSpi, &gXcv0DMA);
+}
+
+bool ReadDataFromSPI_Check(void)
+{
+	ADI_SPI_RESULT result;
+
+	bool bAvailSpi = false;
+
+	result = adi_spi_IsBufferAvailable(hSpi, &bAvailSpi);
+
+	if (bAvailSpi)
+	{
+		ADI_SPI_TRANSCEIVER     *pTransceiver = NULL;
+
+		result =  adi_spi_GetBuffer(hSpi, &pTransceiver);
+
+//		if (pTransceiver)
+//		{
+//			++pTransceiver->TransmitterBytes;
+//		}
+	}
+
+	return bAvailSpi;
 }
 
 void ResetADI(void) {
@@ -403,7 +447,7 @@ int GetADIStatus(void) {
  */
 
 void GetADIData(uint16_t *pBank, uint16_t * pData) {
-	uint16_t bankStatus;
+	uint16_t bankStatus = 0;
 
 	*pBank = 0;
 	ReadParamFromSPI(BankStatusAddress, &bankStatus);
@@ -427,7 +471,7 @@ void GetADIData(uint16_t *pBank, uint16_t * pData) {
 		//   SRAM Read operation which is detailed in the figure
 		//   below. The SPI FSM will be locked into operation until
 		//   all 1600 words are read.
-		ReadDataFromSPI(pData);
+		ReadDataFromSPI(pData, FRAME_NUM_PTS);
 
 		//5. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x0
 		WriteParamToSPI(0xF1, 0x01B0);
@@ -436,6 +480,50 @@ void GetADIData(uint16_t *pBank, uint16_t * pData) {
 		//   to disengage the transfer intent.
 		WriteParamToSPI(DataControlAddress, 0x0000);
 	}
+}
+
+void GetADIData_Start(uint16_t *pBank, uint16_t * pData) {
+	uint16_t bankStatus = 0;
+
+	*pBank = 0;
+	ReadParamFromSPI(BankStatusAddress, &bankStatus);
+	if (bankStatus)
+	{
+		//1. Poll the Bank_Status register (Address 0xF6) until
+		//   register reads 0x1 or 0x2. This means data is ready at
+		//   that bank.
+		*pBank = bankStatus;
+
+		//2. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x1
+		WriteParamToSPI(0xF1, 0x01B0 | 0x0002);
+
+        //3. Immediately write to the corresponding bit in the
+		//   SRAM_READ register bit 0 for bank0 and bit 1 for
+		//   bank1 (Address 0x3). This will tell the AFE you intend
+		//   to transfer that data.
+		WriteParamToSPI(DataControlAddress, bankStatus);
+
+		//4. Read 1600 words from the SRAM by performing the
+		//   SRAM Read operation which is detailed in the figure
+		//   below. The SPI FSM will be locked into operation until
+		//   all 1600 words are read.
+		ReadDataFromSPI_Start(pData, FRAME_NUM_PTS);
+	}
+}
+
+bool GetADIData_Check(void)
+{
+	return ReadDataFromSPI_Check();
+}
+
+void GetADIData_Stop(void)
+{
+	//5. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x0
+	WriteParamToSPI(0xF1, 0x01B0);
+
+	//6. Write 0x0 to the SRAM_READ register (Address 0x3)
+	//   to disengage the transfer intent.
+	WriteParamToSPI(DataControlAddress, 0x0000);
 }
 
 void Lidar_Trig(void)
@@ -503,3 +591,84 @@ void Lidar_ChannelDCBal(int ch, uint16_t bal)
     WriteParamToSPI(CH0ControlReg0Address + ch * 4 + 2, data);
 }
 
+void Lidar_FlashGain(uint16_t flashGain)
+{
+	uint16_t data;
+
+	ReadParamFromSPI(Control0Address, &data);
+
+	data &= ~0x1F80;
+	data |= (flashGain << 7) & 0x1F80;
+
+    WriteParamToSPI(Control0Address, data);
+}
+
+
+
+//
+// Acquisition control
+//
+
+static uint16_t BankInTransfer = 0;
+
+static int iFifoHead = 0;
+static int iFifoTail = 0;
+static uint16_t AcqFifo[NUM_FIFO][FRAME_NUM_PTS];
+
+void Lidar_Acq(uint16_t *pBank)
+{
+	GetADIData_Start(pBank, AcqFifo[iFifoHead]);
+
+	if (*pBank)
+	{
+		bool bDone = false;
+
+		while (!bDone)
+			bDone = GetADIData_Check();
+
+		GetADIData_Stop();
+
+		int iFifoHeadNext = (iFifoHead + 1) & NUM_FIFO_MASK;
+
+		if (iFifoHeadNext != iFifoTail)
+		{
+			iFifoHead = iFifoHeadNext;
+			pADI_PORTB->DATA_CLR = (1 << 1);
+		}
+		else
+			pADI_PORTB->DATA_SET = (1 << 1);
+	}
+}
+
+void Lidar_GetDataFromFifo(uint16_t ** pDataPtr, uint16_t * pNumFifo)
+{
+	if (iFifoHead != iFifoTail)
+	{
+		if (iFifoTail < iFifoHead)
+			*pNumFifo = iFifoHead - iFifoTail;
+		else
+			*pNumFifo = NUM_FIFO - iFifoTail;
+
+		*pDataPtr = AcqFifo[iFifoTail];
+	}
+	else
+	{
+		*pDataPtr = NULL;
+	    *pNumFifo = 0;
+	}
+}
+
+void Lidar_ReleaseDataToFifo(uint16_t numFifo)
+{
+	iFifoTail = (iFifoTail + numFifo) & NUM_FIFO_MASK;
+	pADI_PORTB->DATA_CLR = (1 << 1);
+}
+
+
+//
+// USB
+//
+
+int iUSBnum = 0;
+int iUSBnumOK = 0;
+int iUSBnumEmpty = 0;

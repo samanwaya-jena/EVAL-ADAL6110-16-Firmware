@@ -12,8 +12,8 @@
 
 
 
-
-uint16_t buf[1600];
+int gLogData = 1;
+static uint16_t buf[FRAME_NUM_PTS];
 
 
 
@@ -101,8 +101,6 @@ void Lidar_GetData(void)
 	int i,j,ch;
 
 	memset(buf, 0, sizeof(buf));
-//	for(i=0; i<1600; i++)
-//		buf[i] = 0x;
 
 	GetADIData(&banknum, buf);
 
@@ -158,8 +156,6 @@ void Lidar_GetDataCSV(void)
 	int i,j,ch,sample;
 
 	memset(buf, 0, sizeof(buf));
-//	for(i=0; i<1600; i++)
-//		buf[i] = 0x7ff0 + i;
 
 	GetADIData(&banknum, buf);
 
@@ -214,6 +210,10 @@ void ProcessChar(char curChar)
 //    	PrintFlashInfo();
 //    	break;
 
+    case 'l':
+   		gLogData = !gLogData;
+    	break;
+
     case 'a':
    		Lidar_GetData();
     	break;
@@ -230,7 +230,7 @@ void ProcessChar(char curChar)
     	InitADI();
     	break;
 
-    case 'g':
+    case 'G':
     	Lidar_Trig();
     	break;
 
@@ -274,6 +274,18 @@ void ProcessChar(char curChar)
     case '@':
    		Lidar_ChannelEnable(1, 0);
     	break;
+
+    case 'g':
+    {
+    	int i = 1;
+    	uint16_t flashGain = 0;
+
+    	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+    		flashGain = flashGain * 10 + debugCmd[i++] - '0';
+
+    	Lidar_FlashGain(flashGain);
+    	break;
+    }
 
     case 'b':
     {
