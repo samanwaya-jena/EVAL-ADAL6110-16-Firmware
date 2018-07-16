@@ -617,26 +617,31 @@ static uint16_t AcqFifo[NUM_FIFO][FRAME_NUM_PTS];
 
 void Lidar_Acq(uint16_t *pBank)
 {
-	GetADIData_Start(pBank, AcqFifo[iFifoHead]);
+	*pBank = 0;
 
-	if (*pBank)
+	if (BankInTransfer == 0)
 	{
-		bool bDone = false;
-
-		while (!bDone)
-			bDone = GetADIData_Check();
-
-		GetADIData_Stop();
-
-		int iFifoHeadNext = (iFifoHead + 1) & NUM_FIFO_MASK;
-
-		if (iFifoHeadNext != iFifoTail)
+		GetADIData_Start(&BankInTransfer, AcqFifo[iFifoHead]);
+	}
+	else
+	{
+		if (GetADIData_Check())
 		{
-			iFifoHead = iFifoHeadNext;
-			pADI_PORTB->DATA_CLR = (1 << 1);
+			*pBank = BankInTransfer;
+			BankInTransfer = 0;
+
+			GetADIData_Stop();
+
+			int iFifoHeadNext = (iFifoHead + 1) & NUM_FIFO_MASK;
+
+			if (iFifoHeadNext != iFifoTail)
+			{
+				iFifoHead = iFifoHeadNext;
+				pADI_PORTB->DATA_CLR = (1 << 1);
+			}
+			else
+				pADI_PORTB->DATA_SET = (1 << 1);
 		}
-		else
-			pADI_PORTB->DATA_SET = (1 << 1);
 	}
 }
 

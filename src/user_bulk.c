@@ -429,7 +429,8 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
     ADI_Bulk_Loopback_Query_USB_Response * p_query_usb_port;
     ADI_Bulk_Loopback_Lidar_Query_Response * p_lidar_query_resp;
 
-    if ((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != MEMORY_READ)
+    if (((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != MEMORY_READ) &&
+    	((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != LIDAR_QUERY))
     	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Bulk Command %d: ", user_bulk_adi_loopback_data.cmd.command);
 
     /* Process the received command */
@@ -502,13 +503,17 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
 
         	if (numPending)
         	{
-        		numPending = 1;
+        		uint16_t numReq = (uint16_t) user_bulk_adi_loopback_data.cmd.cmd_data;
 
-        		++iUSBnumOK;
+        		if (numPending > numReq)
+        			numPending = numReq;
+
+        		iUSBnumOK += numPending;
 
 				/* Configure the USB Bulk IN transfer to read the number of bytes
 				   specified in the Memory Read command. */
-				transfer_params.num_bytes = numPending * 1600 * 2;
+        		transfer_params.num_bytes = numPending * 1600 * 2;
+
 				/* Set the Bulk In data buffer address to the starting address specified in the
 				   Memory Read command. */
 				transfer_params.p_data_buffer = (unsigned char*) pData;
@@ -522,8 +527,12 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
         	}
 			transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 			transfer_params.transfer_timeout_ms = 1000;
-			cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-//            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Read Data");
+
+			CLD_USB_Data_Transmit_Return_Type res = cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
+
+			if (res != CLD_USB_TRANSMIT_SUCCESSFUL)
+				cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Error!");
+
         break;
         }
 
@@ -539,12 +548,17 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
 
         // Wagner
         case LIDAR_QUERY:
+        {
         	p_lidar_query_resp = (ADI_Bulk_Loopback_Lidar_Query_Response *)user_bulk_adi_loopback_buffer;
+
+        	uint16_t * pData = 0;
+        	uint16_t numPendingTemp = 0;
+        	Lidar_GetDataFromFifo(&pData, &numPendingTemp);
 
 			/* Set the Query response data. */
         	p_lidar_query_resp->command = LIDAR_QUERY;
-        	p_lidar_query_resp->nbrCycles = 10;
-        	p_lidar_query_resp->nbrBytes = 1234;
+        	p_lidar_query_resp->nbrCycles = numPendingTemp;
+        	p_lidar_query_resp->nbrBytes = numPendingTemp * 1600 * 2;
         	p_lidar_query_resp->next_msg_length = 0;
 
 			/* Return the query response using the Bulk IN endpoint. */
@@ -553,7 +567,8 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
 			transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 			transfer_params.transfer_timeout_ms = 1000;
 			cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar Query");
+			//cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar Query");
+        }
 		break;
 
         default:
@@ -561,7 +576,8 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
         break;
     }
 
-    if ((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != MEMORY_READ)
+    if (((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != MEMORY_READ) &&
+        	((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != LIDAR_QUERY))
     	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\n\r");
 
     return CLD_USB_DATA_GOOD;
