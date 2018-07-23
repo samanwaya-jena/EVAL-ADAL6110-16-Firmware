@@ -606,6 +606,53 @@ void Lidar_FlashGain(uint16_t flashGain)
 
 
 //
+//
+//
+
+bool bPendingRead = false;
+bool bPendingWrite = false;
+bool bDoneRead = false;
+
+uint16_t gAddress = 0;
+uint16_t gData = 0;
+
+void Lidar_QueueReadParamFromSPI(uint16_t _startAddress)
+{
+	if (!bPendingRead)
+	{
+		gAddress = _startAddress;
+		bPendingRead = true;
+	}
+}
+
+void Lidar_QueueWriteParamToSPI(uint16_t _startAddress, uint16_t _data)
+{
+	if (!bPendingWrite)
+	{
+		gAddress = _startAddress;
+		gData = _data;
+		bPendingWrite = true;
+	}
+}
+
+bool Lidar_GetReadDone(void)
+{
+	return bDoneRead;
+}
+
+void Lidar_GetReadParamToSPI(uint16_t * _startAddress, uint16_t * _data)
+{
+	if (bDoneRead)
+	{
+		*_startAddress = gAddress;
+		*_data = gData;
+		bDoneRead = false;
+	}
+}
+
+
+
+//
 // Acquisition control
 //
 
@@ -621,6 +668,18 @@ void Lidar_Acq(uint16_t *pBank)
 
 	if (BankInTransfer == 0)
 	{
+		if (bPendingRead)
+		{
+			ReadParamFromSPI(gAddress, &gData);
+			bPendingRead = false;
+			bDoneRead = true;
+		}
+		else if (bPendingWrite)
+		{
+			WriteParamToSPI(gAddress, gData);
+			bPendingWrite = false;
+		}
+
 		GetADIData_Start(&BankInTransfer, AcqFifo[iFifoHead]);
 	}
 	else
@@ -637,10 +696,10 @@ void Lidar_Acq(uint16_t *pBank)
 			if (iFifoHeadNext != iFifoTail)
 			{
 				iFifoHead = iFifoHeadNext;
-				pADI_PORTB->DATA_CLR = (1 << 1);
+//				LED5_OFF();
 			}
-			else
-				pADI_PORTB->DATA_SET = (1 << 1);
+//			else
+//				LED5_ON();
 		}
 	}
 }
@@ -666,7 +725,7 @@ void Lidar_GetDataFromFifo(uint16_t ** pDataPtr, uint16_t * pNumFifo)
 void Lidar_ReleaseDataToFifo(uint16_t numFifo)
 {
 	iFifoTail = (iFifoTail + numFifo) & NUM_FIFO_MASK;
-	pADI_PORTB->DATA_CLR = (1 << 1);
+//	LED5_OFF();
 }
 
 

@@ -18,7 +18,7 @@ enum ADI_Status {
 #define FRAME_SIZE_BYTES	(FRAME_NUM_PTS * 2)
 
 #define NUM_FIFO			8
-#define NUM_FIFO_MASK		(8-1)
+#define NUM_FIFO_MASK		(NUM_FIFO-1)
 
 /**
  * initialize SPI port for ADI communication
@@ -55,6 +55,16 @@ void Lidar_FlashGain(uint16_t flashGain);
 void Lidar_Acq(uint16_t *pBank);
 void Lidar_GetDataFromFifo(uint16_t ** pDataPtr, uint16_t * pNumFifo);
 void Lidar_ReleaseDataToFifo(uint16_t numFifo);
+
+void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
+void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
+
+void Lidar_QueueReadParamFromSPI(uint16_t _startAddress);
+void Lidar_QueueWriteParamToSPI(uint16_t _startAddress, uint16_t _data);
+void Lidar_GetReadParamToSPI(uint16_t * _startAddress, uint16_t * _data);
+
+bool Lidar_GetReadDone(void);
+void Lidar_GetReadParamToSPI(uint16_t * _startAddress, uint16_t * _data);
 
 extern int iUSBnum;
 extern int iUSBnumOK;
