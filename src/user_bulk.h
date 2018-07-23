@@ -25,4 +25,18 @@ typedef enum
 
 extern User_Bulk_Init_Return_Code user_bulk_init (void);
 extern void user_bulk_main (void);
+
+
+
+#define LED3_ON()  pADI_PORTA->DATA_SET = (1 << 0)
+#define LED3_OFF() pADI_PORTA->DATA_CLR = (1 << 0)
+
+#define LED4_ON()  pADI_PORTA->DATA_SET = (1 << 1)
+#define LED4_OFF() pADI_PORTA->DATA_CLR = (1 << 1)
+
+#define LED5_ON()  pADI_PORTB->DATA_SET = (1 << 1)
+#define LED5_OFF() pADI_PORTB->DATA_CLR = (1 << 1)
+
+
+
 #endif /* __USER_BULK_ */

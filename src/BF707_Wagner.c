@@ -121,6 +121,13 @@ int main(int argc, char *argv[])
                 pADI_PORTA->DIR_SET = (3 << 0);
                 pADI_PORTB->DIR_SET = (1 << 1);
 
+                LED3_ON();
+                LED3_OFF();
+                LED4_ON();
+                LED4_OFF();
+                LED5_ON();
+                LED5_OFF();
+
                 main_state = MAIN_STATE_USER_INIT;
             break;
 
