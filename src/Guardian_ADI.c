@@ -12,7 +12,10 @@
 
 #include <ADSP-BF707_device.h>
 
+#include "algo.h"
+
 #include "Guardian_ADI.h"
+
 
 //#include "Guardian_basics.h"
 //#include "rawdata.h"
@@ -656,11 +659,17 @@ void Lidar_GetReadParamToSPI(uint16_t * _startAddress, uint16_t * _data)
 // Acquisition control
 //
 
+bool gAcq = true;
+
 static uint16_t BankInTransfer = 0;
 
 static int iFifoHead = 0;
 static int iFifoTail = 0;
-static uint16_t AcqFifo[NUM_FIFO][FRAME_NUM_PTS];
+
+static tDataFifo dataFifo[NUM_FIFO];
+
+static float tmpAcqFloat[GUARDIAN_SAMPLING_LENGTH];
+
 
 void Lidar_Acq(uint16_t *pBank)
 {
@@ -680,16 +689,32 @@ void Lidar_Acq(uint16_t *pBank)
 			bPendingWrite = false;
 		}
 
-		GetADIData_Start(&BankInTransfer, AcqFifo[iFifoHead]);
+		if (gAcq)
+			GetADIData_Start(&BankInTransfer, (uint16_t*) dataFifo[iFifoHead].AcqFifo);
 	}
 	else
 	{
 		if (GetADIData_Check())
 		{
+			int ch;
+
 			*pBank = BankInTransfer;
 			BankInTransfer = 0;
 
 			GetADIData_Stop();
+
+			LED5_ON();
+
+			for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
+			{
+				int i;
+				for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
+					tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[ch * GUARDIAN_SAMPLING_LENGTH + i];
+
+				threshold2(&dataFifo[iFifoHead].detections[ch * GUARDIAN_NUM_DET_PER_CH], tmpAcqFloat, ch);
+			};
+
+            LED5_OFF();
 
 			int iFifoHeadNext = (iFifoHead + 1) & NUM_FIFO_MASK;
 
@@ -704,7 +729,7 @@ void Lidar_Acq(uint16_t *pBank)
 	}
 }
 
-void Lidar_GetDataFromFifo(uint16_t ** pDataPtr, uint16_t * pNumFifo)
+void Lidar_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo)
 {
 	if (iFifoHead != iFifoTail)
 	{
@@ -713,7 +738,7 @@ void Lidar_GetDataFromFifo(uint16_t ** pDataPtr, uint16_t * pNumFifo)
 		else
 			*pNumFifo = NUM_FIFO - iFifoTail;
 
-		*pDataPtr = AcqFifo[iFifoTail];
+		*pDataPtr = &dataFifo[iFifoTail];
 	}
 	else
 	{

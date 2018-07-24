@@ -234,13 +234,13 @@ void ProcessChar(char curChar)
     	Lidar_Trig();
     	break;
 
-//    case 's':
-//    	gAcq = false;
-//    	break;
+    case 's':
+    	gAcq = false;
+    	break;
 
-//    case 'q':
-//    	gAcq = true;
-//    	break;
+    case 'q':
+    	gAcq = true;
+    	break;
 
 //    case 'z':
 //		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "a %d 1:%d 2:%d\r\n", iAcqNum, iAcqNum1, iAcqNum2);

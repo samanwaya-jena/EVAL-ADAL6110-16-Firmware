@@ -527,7 +527,7 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
 
         case MEMORY_READ:
         {
-        	uint16_t * pData = 0;
+        	tDataFifo * pData = NULL;
 
         	++iUSBnum;
 
@@ -544,7 +544,7 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
 
 				/* Configure the USB Bulk IN transfer to read the number of bytes
 				   specified in the Memory Read command. */
-        		transfer_params.num_bytes = numPending * 1600 * 2;
+        		transfer_params.num_bytes = numPending * sizeof(tDataFifo);
 
 				/* Set the Bulk In data buffer address to the starting address specified in the
 				   Memory Read command. */
@@ -583,8 +583,9 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
         {
         	p_lidar_query_resp = (ADI_Bulk_Loopback_Lidar_Query_Response *)user_bulk_adi_loopback_buffer;
 
-        	uint16_t * pData = 0;
+        	tDataFifo * pData = NULL;
         	uint16_t numPendingTemp = 0;
+
         	Lidar_GetDataFromFifo(&pData, &numPendingTemp);
 
         	bool bReadDone = Lidar_GetReadDone();
