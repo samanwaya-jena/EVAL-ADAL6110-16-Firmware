@@ -5,6 +5,11 @@
  *      Author: pc
  */
 
+
+#define USE_DMA
+//#define USE_ALGO
+
+
 #include <stdint.h>
 #include <string.h>
 
@@ -12,7 +17,9 @@
 
 #include <ADSP-BF707_device.h>
 
+#ifdef USE_ALGO
 #include "algo.h"
+#endif //USE_ALGO
 
 #include "Guardian_ADI.h"
 
@@ -73,8 +80,11 @@ enum ADI_REGISTER_INDEX {
 };
 
 
-
-uint8_t spiMem[ADI_SPI_INT_MEMORY_SIZE]; //ADI_SPI_DMA_MEMORY_SIZE
+#ifdef USE_DMA
+uint8_t spiMem[ADI_SPI_DMA_MEMORY_SIZE];
+#else //USE_DMA
+uint8_t spiMem[ADI_SPI_INT_MEMORY_SIZE];
+#endif //USE_DMA
 
 ADI_SPI_HANDLE hSpi = NULL;
 
@@ -176,6 +186,13 @@ static ADI_SPI_TRANSCEIVER gXcv0DMA;
 void ReadDataFromSPI_Start(uint16_t * pData, int num)
 {
 	ADI_SPI_RESULT result;
+
+#ifdef USE_DMA
+	/* Disable DMA */
+	result = adi_spi_EnableDmaMode(hSpi, true);
+
+	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
+#endif //USE_DMA
 
 	gXcv0DMA.pPrologue = gProBuffer1;
 	gXcv0DMA.PrologueBytes = 2u;
@@ -334,7 +351,7 @@ void InitADI(void) {
 	{
 		ADI_SPI_RESULT result;
 
-		result = adi_spi_Open(2, spiMem, ADI_SPI_DMA_MEMORY_SIZE, &hSpi);
+		result = adi_spi_Open(2, spiMem, sizeof(spiMem), &hSpi);
 
 		/* Set master */
 		result = adi_spi_SetMaster( hSpi,true);
@@ -521,6 +538,13 @@ bool GetADIData_Check(void)
 
 void GetADIData_Stop(void)
 {
+#ifdef USE_DMA
+	ADI_SPI_RESULT result;
+
+	/* Disable DMA */
+	result = adi_spi_EnableDmaMode(hSpi, false);
+#endif //USE_DMA
+
 	//5. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x0
 	WriteParamToSPI(0xF1, 0x01B0);
 
@@ -668,7 +692,10 @@ static int iFifoTail = 0;
 
 static tDataFifo dataFifo[NUM_FIFO];
 
+
+#ifdef USE_ALGO
 static float tmpAcqFloat[GUARDIAN_SAMPLING_LENGTH];
+#endif //USE_ALGO
 
 
 void Lidar_Acq(uint16_t *pBank)
@@ -705,6 +732,7 @@ void Lidar_Acq(uint16_t *pBank)
 
 			LED5_ON();
 
+#ifdef USE_ALGO
 			for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
 			{
 				int i;
@@ -712,7 +740,8 @@ void Lidar_Acq(uint16_t *pBank)
 					tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[ch * GUARDIAN_SAMPLING_LENGTH + i];
 
 				threshold2(&dataFifo[iFifoHead].detections[ch * GUARDIAN_NUM_DET_PER_CH], tmpAcqFloat, ch);
-			};
+			}
+#endif //USE_ALGO
 
             LED5_OFF();
 
