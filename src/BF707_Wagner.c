@@ -19,6 +19,7 @@
 #include <ADSP-BF707_device.h>
 
 
+#define USE_USB
 
 
 
@@ -60,7 +61,6 @@ extern void ConfigSoftSwitches(void);
 #define SYSCLK_MAX    (250 * MHZTOHZ)
 #define SCLK_MAX      (125 * MHZTOHZ)
 #define VCO_MIN       (72 * MHZTOHZ)
-
 
 
 
@@ -133,6 +133,7 @@ int main(int argc, char *argv[])
 
             case MAIN_STATE_USER_INIT:
             {
+#ifdef USE_USB
             	User_Bulk_Init_Return_Code rv = user_bulk_init();
                 if (rv == USER_BULK_INIT_SUCCESS)
                 {
@@ -142,11 +143,24 @@ int main(int argc, char *argv[])
                 {
                     main_state = MAIN_STATE_ERROR;
                 }
+#else //USE_USB
+                main_state = MAIN_STATE_RUN;
+#endif //USE_USB
                 break;
             }
 
             case MAIN_STATE_RUN:
-                 user_bulk_main();
+#ifdef USE_USB
+                user_bulk_main();
+#else //USE_USB
+                {
+                   	uint16_t banknum = 0;
+
+					LED4_ON();
+					Lidar_Acq(&banknum);
+					LED4_OFF();
+                }
+#endif //USE_USB
             break;
 
             case MAIN_STATE_ERROR:
