@@ -22,7 +22,7 @@
 
 //#include "common/spi.h"
 #include "post_debug.h"
-//#include "SoftConfig_BF707.h"
+#include "SoftConfig_BF707.h"
 //#include "timer_isr.h"
 
 
@@ -38,6 +38,29 @@ extern FILE *pDebugFile;				/* debug file when directing output to a file */
 
 
 extern struct flash_info w25q32bv_info;
+
+
+static SWITCH_CONFIG SwitchConfig0[] =
+{
+  { 0x12u, 0xF8u },
+  { 0x13u, 0xFFu },
+  { 0x0u, 0x40u },   /* Set IODIRA direction (bit 6 input, all others output) */
+  { 0x1u, 0x03u },   /* Set IODIRB direction (bit 0, 1 input, all others output) */
+};
+static SWITCH_CONFIG SwitchConfig1[] =
+{
+  { 0x12u, 0x81u },
+  { 0x13u, 0x03u },
+  { 0x0u, 0x00u },    /* Set IODIRA direction (all output) */
+  { 0x1u, 0x80u },    /* Set IODIRB direction (bit 7 input, all others output) */
+};
+
+static SOFT_SWITCH SoftSwitch[] =
+{
+  {    0u,    0x21u,    sizeof(SwitchConfig0)/sizeof(SWITCH_CONFIG),    SwitchConfig0  },
+  {    0u,    0x22u,    sizeof(SwitchConfig1)/sizeof(SWITCH_CONFIG),    SwitchConfig1  }
+};
+
 
 
 /*******************************************************************
@@ -56,6 +79,8 @@ int InitFlashParams(void)
 	uint8_t did;							/* device id */
 
 	DEBUG_HEADER( "SPI Flash Test" );
+
+	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
 
 	flash_info = &w25q32bv_info;
 
@@ -109,6 +134,8 @@ int InitFlashParams(void)
 	Result = flash_read(flash_info, ulOffset, ucBuf, 128);
 
 	flash_close(flash_info);
+
+	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
 
 	return 0;
 }

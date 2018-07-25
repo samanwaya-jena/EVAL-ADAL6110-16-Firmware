@@ -14,6 +14,7 @@
 #include "BF707_Wagner.h"
 
 #include "Guardian_ADI.h"
+#include "SoftConfig_BF707.h"
 
 #include "user_bulk.h"
 #include <ADSP-BF707_device.h>
@@ -36,8 +37,7 @@ typedef enum
 
 
 
-/* Sets the Software controlled switches */
-extern void ConfigSoftSwitches(void);
+
 
 
 /* Example result definitions */
@@ -64,7 +64,7 @@ extern void ConfigSoftSwitches(void);
 
 
 
-
+extern int InitFlashParams(void);
 
 int main(int argc, char *argv[])
 {
@@ -76,8 +76,7 @@ int main(int argc, char *argv[])
 	adi_initComponents();
 	
 	/* Set the Software controlled switches to default values */
-	ConfigSoftSwitches();
-
+	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
 
     /* Initialize Power service */
 #if defined (__ADSPBF707_FAMILY__) || defined (__ADSPSC589_FAMILY__)
@@ -97,6 +96,9 @@ int main(int argc, char *argv[])
 
 
 	InitADI();
+
+
+	InitFlashParams();
 
 
     Main_States main_state = MAIN_STATE_SYSTEM_INIT;

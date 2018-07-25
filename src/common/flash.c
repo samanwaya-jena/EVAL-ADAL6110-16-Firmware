@@ -28,11 +28,15 @@ int flash_company(const struct flash_info *fi, const char **company)
 
 int flash_open(struct flash_info *fi)
 {
+	ADI_SPI_RESULT result = adi_spi_SetWordSize( hSpi, ADI_SPI_TRANSFER_8BIT);
+
 	return fi->flash_open(fi);
 }
 
 int flash_close(struct flash_info *fi)
 {
+	ADI_SPI_RESULT result = adi_spi_SetWordSize( hSpi, ADI_SPI_TRANSFER_16BIT);
+
 	return fi->flash_close(fi);
 }
 
