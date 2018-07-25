@@ -20,10 +20,11 @@
 #include <stdio.h>
 #include "common/flash_errors.h"
 #include "common/flash.h"
-#include "common/spi.h"
+
+//#include "common/spi.h"
 #include "post_debug.h"
-#include "SoftConfig_BF707.h"
-#include "timer_isr.h"
+//#include "SoftConfig_BF707.h"
+//#include "timer_isr.h"
 
 #define SPI_NO 2
 
@@ -32,87 +33,6 @@
 extern FILE *pDebugFile;				/* debug file when directing output to a file */
 #endif
 
-/************************SoftConfig Information********************************
-	
-	~ means the signal is active low
-	
-	Please see the ADSP-BF707 EZ-BRD manual for more information on using
-	Software-Controlled Switches(SoftConfig)
-	
-********************************************************************************/
-
-/* switch 0 register settings */
-static SWITCH_CONFIG SwitchConfig0[] =
-{
-
- /*
-       U39 Port A                                  U39 Port B
-  7--------------- ~RF_SPI2_SEL2_EN       |       7--------------- ~CAN1_ERR_EN
-  | 6------------- ~RF_SPI2_SEL1_EN       |       | 6------------- ~CAN0_ERR_EN
-  | | 5----------- ~SD_WP_EN              |       | | 5----------- ~CAN1_STB
-  | | | 4--------- ~SD_CD_EN              |       | | | 4---------  CAN1_EN
-  | | | | 3------- ~RF_SPI2_SEL1_EN       |       | | | | 3------- ~CAN0_STB
-  | | | | | 2----- ~SPIFLASH_D3_EN        |       | | | | | 2-----  CAN0_EN
-  | | | | | | 1--- ~SPIFLASH_D2_EN        |       | | | | | | 1--- ~SD_WP_EN
-  | | | | | | | 0- ~SPIFLASH_CS_EN        |       | | | | | | | 0- ~SD_CD_EN
-  | | | | | | | |                         |       | | | | | | | |
-  N X N N N N N N                         |       N N N Y N Y X X     ( Active Y or N )
-  1 1 1 1 0 0 0 0                         |       1 1 1 1 1 1 1 1     ( value being set )
-*/
-  { 0x12u, 0xF8u },                               { 0x13u, 0xFFu },
-
- /*
-  * specify inputs/outputs
-  */
-
-  { 0x0u, 0x40u },   /* Set IODIRA direction (bit 6 input, all others output) */
-  { 0x1u, 0x03u },   /* Set IODIRB direction (bit 0, 1 input, all others output) */
-};
-/* switch 2 register settings */
-static SWITCH_CONFIG SwitchConfig1[] =
-{
-
-/*
-            U38 Port A                                    U38 Port B
-
-    7--------------- ~UART0CTS_RTS_LPBK    |       7---------------  Not Used
-    | 6------------- ~UART0CTS_EN          |       | 6------------- ~PUSHBUTTON2_EN
-    | | 5----------- ~UART0RTS_EN          |       | | 5----------- ~PUSHBUTTON1_EN
-    | | | 4--------- ~UART0_EN             |       | | | 4--------- ~LED3_GPIO3_EN
-    | | | | 3------- ~CAN1_RX_EN           |       | | | | 3------- ~LED2_GPIO2_EN
-    | | | | | 2----- ~CAN0_RX_EN           |       | | | | | 2----- ~LED1_GPIO1_EN
-    | | | | | | 1--- ~CAN1_TX_EN           |       | | | | | | 1--- ~UART0CTS_146_EN
-    | | | | | | | 0- ~CAN0_TX_EN           |       | | | | | | | 0- ~UART0CTS_RST_EN
-    | | | | | | | |                        |       | | | | | | | |
-    N N N Y Y Y Y N                        |       X Y Y Y Y Y N N    ( Active Y or N )
-    1 1 1 0 0 0 0 1                        |       0 0 0 0 0 0 1 1    ( value being set )
-*/
-  { 0x12u, 0xE1u },                               { 0x13u, 0x03u },
-
-  /*
-   * specify inputs/outputs
-   */
-
-  { 0x0u, 0x00u },    /* Set IODIRA direction (all output) */
-  { 0x1u, 0x80u },    /* Set IODIRB direction (bit 7 input, all others output) */
-};
-
-/* switch configuration */
-static SOFT_SWITCH SpiSoftSwitch[] =
-{
-  {
-    0u,
-    0x21u,
-    sizeof(SwitchConfig0)/sizeof(SWITCH_CONFIG),
-    SwitchConfig0
-  },
-  {
-    0u,
-    0x22u,
-    sizeof(SwitchConfig1)/sizeof(SWITCH_CONFIG),
-    SwitchConfig1
-  }
-};
 
 #define MAN_CODE		0xEF		/* winbond */
 #define DEV_CODE		0x15		/* W25Q32BV (16Mbit SPI flash) */
@@ -136,20 +56,8 @@ extern struct flash_info w25q32bv_info;
 
 static void dpia_init(void)
 {
-	spi_ctlr = &adi_spi_bf6xx_ctlr;
+//	spi_ctlr = &adi_spi_bf6xx_ctlr;
 	flash_info = &w25q32bv_info;
-
-    /* PORTx_MUX registers */
-    *pREG_PORTB_MUX = SPI2_CLK_PORTB_MUX | SPI2_MISO_PORTB_MUX
-     | SPI2_MOSI_PORTB_MUX | SPI2_D2_PORTB_MUX | SPI2_D3_PORTB_MUX;
-
-    /* PORTx_FER registers */
-    *pREG_PORTB_FER = SPI2_CLK_PORTB_FER | SPI2_MISO_PORTB_FER
-     | SPI2_MOSI_PORTB_FER | SPI2_D2_PORTB_FER | SPI2_D3_PORTB_FER;
-
-	/* We use GPIO PB15 as SPI flash /CS. */
-	*pREG_PORTB_FER_CLR = BITM_PORT_DATA_PX15;
-	*pREG_PORTB_DIR_SET = BITM_PORT_DATA_PX15;
 }
 
 /*******************************************************************
@@ -174,7 +82,7 @@ int TEST_SPI_FLASH(void)
 
 	uint32_t uiSecTmr0 = *pREG_SEC0_SCTL12;
 	*pREG_SEC0_SCTL12 = 0;
-	EnableGPTimer(false);
+//	EnableGPTimer(false);
 
 	/* sectors to be tested: we chose one sector from a few different banks, making
 	   sure we don't overwrite any sector of flash where the boot image lives */
@@ -185,19 +93,20 @@ int TEST_SPI_FLASH(void)
 
 
 	/* configure soft switches for the default */
-	uint32_t nNumber = (uint32_t)(sizeof(SpiSoftSwitch)/sizeof(SOFT_SWITCH));
-	ConfigSoftSwitches(SS_SPI, nNumber, (SOFT_SWITCH *)&SpiSoftSwitch );
+//	uint32_t nNumber = (uint32_t)(sizeof(SpiSoftSwitch)/sizeof(SOFT_SWITCH));
+//	ConfigSoftSwitches(SS_SPI, nNumber, (SOFT_SWITCH *)&SpiSoftSwitch );
 
 	/* Do board specific initialization */
 	dpia_init();
 
-	Result = spi_open(SPI_NO);
+//	Result = spi_open(SPI_NO);
 	if (Result != 0)
 		return 0;
 
 	unselect_flash();
 
-	spi_config(flash_info);
+//	spi_config(flash_info);
+
 	flash_open(flash_info);
 
 	flash_set_mode(flash_info, STANDARD);
@@ -298,14 +207,14 @@ int TEST_SPI_FLASH(void)
 	/* close driver and return result */
 	unselect_flash();
 
-	Result = spi_close();
+//	Result = spi_close();
 	if (Result != 0)
 		return 0;
 
 	flash_close(flash_info);
 
-	EnableGPTimer(true);
-	*pREG_SEC0_SCTL12 = uiSecTmr0;
+//	EnableGPTimer(true);
+//	*pREG_SEC0_SCTL12 = uiSecTmr0;
 	
 	return iPassed;
 }
