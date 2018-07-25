@@ -7,7 +7,10 @@ to the terms of the associated Analog Devices License Agreement.
 *********************************************************************************/
 
 #include "flash.h"
-#include "spi.h"
+#include <drivers\spi\adi_spi.h>
+
+extern ADI_SPI_HANDLE hSpi;
+
 
 struct flash_info *flash_info;
 
@@ -114,8 +117,8 @@ int flash_reset(const struct flash_info *fi)
 
 int flash_set_mode(struct flash_info *fi, spi_mode_t mode)
 {
-	spi_set_mode(mode);
-	fi->current_mode = mode;
+//	spi_set_mode(mode);
+//	fi->current_mode = mode;
 
 	return 0;
 }
@@ -131,13 +134,13 @@ int assign_instruction(const struct flash_info *fi, uint8_t *buf, uint8_t insn, 
 
 	case DUAL_OUTPUT:
 	case DUAL_IO:
-		unpack_dual(&insn, buf + *count, 1, fi->start_on_mosi);
+//		unpack_dual(&insn, buf + *count, 1, fi->start_on_mosi);
 		*count += 2;
 		break;
 
 	case QUAD_OUTPUT:
 	case QUAD_IO:
-		unpack_quad(&insn, buf + *count, 1, fi->start_on_mosi);
+//		unpack_quad(&insn, buf + *count, 1, fi->start_on_mosi);
 		*count += 4;
 		break;
 
@@ -168,12 +171,12 @@ int assign_address(const struct flash_info *fi, uint8_t *buf, uint32_t addr, int
 		break;
 
 	case DUAL_OUTPUT:
-		unpack_dual(addr_buf, buf + *count, 3, fi->start_on_mosi);
+//		unpack_dual(addr_buf, buf + *count, 3, fi->start_on_mosi);
 		*count += 6;
 		break;
 
 	case QUAD_OUTPUT:
-		unpack_quad(addr_buf, buf + *count, 3, fi->start_on_mosi);
+//		unpack_quad(addr_buf, buf + *count, 3, fi->start_on_mosi);
 		*count += 12;
 		break;
 
@@ -186,15 +189,15 @@ int assign_address(const struct flash_info *fi, uint8_t *buf, uint32_t addr, int
 
 int select_flash(void)
 {
-	spi_select_slave(1);
-	spi_enable();
+//	spi_select_slave(1);
+//	spi_enable();
 	return 0;
 }
 
 int unselect_flash(void)
 {
-	spi_disable();
-	spi_select_slave(0);
+//	spi_disable();
+//	spi_select_slave(0);
 	return 0;
 }
 
@@ -211,7 +214,16 @@ int generic_write_enable(const struct flash_info *fi, uint8_t insn)
 
 	count = 0;
 	assign_instruction(fi, tbuf, insn, &count);
+
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, NULL, 0u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count);
+#endif
 
 	unselect_flash();
 
@@ -231,7 +243,16 @@ int generic_write_disable(const struct flash_info *fi, uint8_t insn)
 
 	count = 0;
 	assign_instruction(fi, tbuf, insn, &count);
+
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, NULL, 0u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count);
+#endif
 
 	unselect_flash();
 
@@ -253,9 +274,19 @@ int generic_read_jedec_id(const struct flash_info *fi, uint8_t insn,
 
 	count = 0;
 	assign_instruction(fi, tbuf, insn, &count);
+
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, rbuf, 3u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count);
 
 	spi_recv(rbuf, 3);
+#endif
+
 	*mid = rbuf[0];
 	*memory_type_id = rbuf[1];
 	*capacity_id = rbuf[2];

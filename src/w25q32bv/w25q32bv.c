@@ -9,8 +9,11 @@ to the terms of the associated Analog Devices License Agreement.
 #include <stdlib.h>
 #include <string.h>
 
-#include "../common/spi.h"
+#include <drivers\spi\adi_spi.h>
+
 #include "../common/flash.h"
+
+extern ADI_SPI_HANDLE hSpi;
 
 /* The following three macros are for debug purpose */
 /* #define DUMMY_IS_ZERO */
@@ -184,9 +187,18 @@ static int w25q32bv_read_mid_did(struct flash_info *fi, uint8_t *mid, uint8_t *d
 #endif
 	}
 
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, rbuf, 2u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count);
 
 	spi_recv(rbuf, 2);
+#endif
+
 	*mid = rbuf[0];
 	*did = rbuf[1];
 
@@ -225,8 +237,18 @@ static int w25q32bv_read_uid(const struct flash_info *fi, uint64_t *uid)
 	count += 4;
 #endif
 #endif
+
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, rbuf, 8u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count);
 	spi_recv(rbuf, 8);
+#endif
+
 	*uid = ((uint64_t) rbuf[0]) << 56;
 	*uid |= ((uint64_t) rbuf[1]) << 48;
 	*uid |= ((uint64_t) rbuf[2]) << 40;
@@ -256,9 +278,19 @@ static int w25q32bv_read_jedec_id(const struct flash_info *fi, uint8_t *mid,
 
 	count = 0;
 	assign_instruction(fi, tbuf, JEDEC_ID, &count);
+
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, rbuf, 3u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count);
 
 	spi_recv(rbuf, 3);
+#endif
+
 	*mid = rbuf[0];
 	*memory_type_id = rbuf[1];
 	*capacity_id = rbuf[2];
@@ -282,9 +314,19 @@ static int w25q32bv_read_status(const struct flash_info *fi, uint8_t *status, in
 
 	count = 0;
 	assign_instruction(fi, tbuf, n == 1 ? READ_STATUS_REGISTER_1 : READ_STATUS_REGISTER_2, &count);
+
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, rbuf, 1u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count);
 
 	spi_recv(rbuf, 1);
+#endif
+
 	*status = rbuf[0];
 
 	unselect_flash();
@@ -310,6 +352,7 @@ static int w25q32bv_not_busy(const uint8_t status)
 static int w25q32bv_wait_ready(const struct flash_info *fi)
 {
 	uint8_t tbuf[1];
+	uint8_t status;
 	int count;
 
 	/* Only for STANDARD mode */
@@ -320,9 +363,22 @@ static int w25q32bv_wait_ready(const struct flash_info *fi)
 
 	count = 0;
 	assign_instruction(fi, tbuf, READ_STATUS_REGISTER_1, &count);
+
+#if 1
+	do
+	{
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, &status, 1u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+	}
+	while (status & STATUS1_BUSY);
+#else
 	spi_send(tbuf, count);
 
 	spi_recv_until(w25q32bv_not_busy);
+#endif
 
 	unselect_flash();
 
@@ -332,6 +388,7 @@ static int w25q32bv_wait_ready(const struct flash_info *fi)
 static int w25q32bv_write_status(const struct flash_info *fi, uint8_t status1, uint8_t status2)
 {
 	uint8_t tbuf[3];
+	uint8_t rbuf[3];
 	int count;
 	uint8_t old_status1;
 
@@ -351,7 +408,16 @@ static int w25q32bv_write_status(const struct flash_info *fi, uint8_t status1, u
 	assign_instruction(fi, tbuf, WRITE_STATUS_REGISTER, &count);
 	tbuf[count++] = status1;
 	tbuf[count++] = status2;
+
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, NULL, 0u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count);
+#endif
 
 	unselect_flash();
 
@@ -495,9 +561,18 @@ static int w25q32bv_read(const struct flash_info *fi, uint32_t addr, uint8_t *bu
 #endif
 		break;
 	}
+
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, buf, size};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count);
 
 	spi_recv(buf, size);
+#endif
 
 	unselect_flash();
 
@@ -556,7 +631,16 @@ static int w25q32bv_erase_1(const struct flash_info *fi,
 	assign_instruction(fi, tbuf, insn, &count);
 	if (erase_type != ERASE_CHIP)
 		assign_address(fi, tbuf, addr & addr_mask, &count);
+
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, NULL, 0u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count);
+#endif
 
 	unselect_flash();
 
@@ -629,7 +713,16 @@ static int w25q32bv_page_program(struct flash_info *fi,
 	assign_instruction(fi, tbuf, insn, &count);
 	assign_address(fi, tbuf, addr, &count);
 	memcpy(tbuf + count, buf, size);
+
+#if 1
+	ADI_SPI_RESULT result;
+
+	ADI_SPI_TRANSCEIVER trans  = {tbuf, count + size, NULL, 0u, NULL, 0u};
+
+	result = adi_spi_ReadWrite(hSpi, &trans);
+#else
 	spi_send(tbuf, count + size);
+#endif
 
 	unselect_flash();
 
@@ -684,7 +777,7 @@ struct flash_info w25q32bv_info =
 	0x15,		/* device ID */
 	0x40,		/* memory type ID */
 	0x16,		/* capacity ID */
-	STANDARD | DUAL_OUTPUT | QUAD_OUTPUT | DUAL_IO | DUAL_OUTPUT, /* supported modes */
+	STANDARD, // | DUAL_OUTPUT | QUAD_OUTPUT | DUAL_IO | DUAL_OUTPUT, /* supported modes */
 
 
 	/* The following three fields are better be
