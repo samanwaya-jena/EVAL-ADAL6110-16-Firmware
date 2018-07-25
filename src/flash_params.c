@@ -21,7 +21,7 @@
 #include "common/flash.h"
 
 //#include "common/spi.h"
-#include "post_debug.h"
+//#include "post_debug.h"
 #include "SoftConfig_BF707.h"
 //#include "timer_isr.h"
 
@@ -78,7 +78,7 @@ int InitFlashParams(void)
 	uint8_t mid;							/* manufacturer id */
 	uint8_t did;							/* device id */
 
-	DEBUG_HEADER( "SPI Flash Test" );
+//	DEBUG_HEADER( "SPI Flash Test" );
 
 	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
 
@@ -98,12 +98,12 @@ int InitFlashParams(void)
 			return 0;
 	}
 
-	DEBUG_PRINT( "\nDetected manufacturer code of 0x%x and device code of 0x%x\n", mid, did );
+//	DEBUG_PRINT( "\nDetected manufacturer code of 0x%x and device code of 0x%x\n", mid, did );
 
 	/* if codes don't match what we expect then we should fail */
 	if ( (MAN_CODE != mid) || (DEV_CODE != did) )
 	{
-		DEBUG_RESULT(TEST_FAIL, "Flash codes do not match what we expected");
+//		DEBUG_RESULT(TEST_FAIL, "Flash codes do not match what we expected");
 		return 0;
 	}
 
