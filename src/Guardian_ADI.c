@@ -635,25 +635,40 @@ void Lidar_FlashGain(uint16_t flashGain)
 
 
 //
-// Read FIFO
+// Read/Write FIFO
 //
 
-volatile int iReadFifoHead = 0;
-volatile int iReadFifoTail = 0;
+volatile int iReadWriteFifoHead = 0;
+volatile int iReadWriteFifoTail = 0;
 
-#define READFIFO_SIZE 8
-#define READFIFO_MASK (READFIFO_SIZE - 1)
-uint16_t readFifo[READFIFO_SIZE];
+#define READWRITEFIFO_SIZE 8
+#define READWRITEFIFO_MASK (READWRITEFIFO_SIZE - 1)
+uint32_t readWriteFifo[READWRITEFIFO_SIZE];
 
 
 int Lidar_ReadFifoPush(uint16_t _startAddress)
 {
-	int nextHead = (iReadFifoHead + 1) & READFIFO_MASK;
+	int nextHead = (iReadWriteFifoHead + 1) & READWRITEFIFO_MASK;
 
-	if (nextHead != iReadFifoTail)
+	if (nextHead != iReadWriteFifoTail)
 	{
-		readFifo[iReadFifoHead] = _startAddress;
-		iReadFifoHead = nextHead;
+		readWriteFifo[iReadWriteFifoHead] = ((uint32_t) _startAddress & 0x7FFF) << 16;
+		iReadWriteFifoHead = nextHead;
+
+		return 1;
+	}
+
+	return 0;
+}
+
+int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data)
+{
+	int nextHead = (iReadWriteFifoHead + 1) & READWRITEFIFO_MASK;
+
+	if (nextHead != iReadWriteFifoTail)
+	{
+		readWriteFifo[iReadWriteFifoHead] = 0x80000000 | ((uint32_t) _startAddress & 0x7FFF) << 16 | data;
+		iReadWriteFifoHead = nextHead;
 
 		return 1;
 	}
@@ -688,15 +703,21 @@ void Lidar_Acq(uint16_t *pBank)
 
 	if (BankInTransfer == 0)
 	{
-		if (iReadFifoHead != iReadFifoTail)
+		if (iReadWriteFifoHead != iReadWriteFifoTail)
 		{
-			uint16_t addr = readFifo[iReadFifoTail];
-			uint16_t data;
-			ReadParamFromSPI(addr, &data);
+			uint32_t op = readWriteFifo[iReadWriteFifoTail];
+			uint16_t addr = (op >> 16) & 0x7FFF;
+			uint16_t data =  op & 0xFFFF;
 
-			iReadFifoTail = (iReadFifoTail + 1) & READFIFO_MASK;
+			if (op & 0x80000000)
+				WriteParamToSPI(addr, data);
+			else
+			{
+				ReadParamFromSPI(addr, &data);
+				user_CANFifoPushReadResp(addr, data);
+			}
 
-			user_CANFifoPushReadResp(addr, data);
+			iReadWriteFifoTail = (iReadWriteFifoTail + 1) & READWRITEFIFO_MASK;
 		}
 
 		if (gAcq)

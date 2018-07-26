@@ -281,24 +281,32 @@ int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
 
 static int ProcessCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp)
 {
-	if (pCanReq->id == 88)
+	switch (pCanReq->id)
 	{
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "88 \n\r");
-
+	case 88:
 		if (iCANFifoHead != iCANFifoTail)
 		{
 			memcpy(pCanResp, &canFifo[iCANFifoTail], sizeof(ADI_AWLCANMessage));
 
 			iCANFifoTail = (iCANFifoTail + 1) & CANFIFO_MASK;
 		}
-	}
-	else if (pCanReq->id == 80 && pCanReq->data[0] == 0xC1 && pCanReq->data[1] == 0x03)
-	{
-		uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
+		break;
 
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, " Q \n\r");
+	case 80:
+		if (pCanReq->data[0] == 0xC0 && pCanReq->data[1] == 0x03)
+		{
+			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
+			uint16_t data = * (uint16_t *) &pCanReq->data[4];
 
-		Lidar_ReadFifoPush(registerAddress);
+			Lidar_WriteFifoPush(registerAddress, data);
+		}
+		else if (pCanReq->data[0] == 0xC1 && pCanReq->data[1] == 0x03)
+		{
+			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
+
+			Lidar_ReadFifoPush(registerAddress);
+		}
+		break;
 	}
 
 	return 0;
