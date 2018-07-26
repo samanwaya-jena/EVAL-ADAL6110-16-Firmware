@@ -81,12 +81,7 @@ void Lidar_ReleaseDataToFifo(uint16_t numFifo);
 void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
 void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
-void Lidar_QueueReadParamFromSPI(uint16_t _startAddress);
-void Lidar_QueueWriteParamToSPI(uint16_t _startAddress, uint16_t _data);
-void Lidar_GetReadParamToSPI(uint16_t * _startAddress, uint16_t * _data);
-
-bool Lidar_GetReadDone(void);
-void Lidar_GetReadParamToSPI(uint16_t * _startAddress, uint16_t * _data);
+int Lidar_ReadFifoPush(uint16_t _startAddress);
 
 extern bool gAcq;
 

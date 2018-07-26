@@ -17,6 +17,8 @@
 
 #include <ADSP-BF707_device.h>
 
+#include "user_bulk.h"
+
 #ifdef USE_ALGO
 #include "algo.h"
 #endif //USE_ALGO
@@ -633,48 +635,30 @@ void Lidar_FlashGain(uint16_t flashGain)
 
 
 //
+// Read FIFO
 //
-//
 
-bool bPendingRead = false;
-bool bPendingWrite = false;
-bool bDoneRead = false;
+volatile int iReadFifoHead = 0;
+volatile int iReadFifoTail = 0;
 
-uint16_t gAddress = 0;
-uint16_t gData = 0;
+#define READFIFO_SIZE 8
+#define READFIFO_MASK (READFIFO_SIZE - 1)
+uint16_t readFifo[READFIFO_SIZE];
 
-void Lidar_QueueReadParamFromSPI(uint16_t _startAddress)
+
+int Lidar_ReadFifoPush(uint16_t _startAddress)
 {
-	if (!bPendingRead)
+	int nextHead = (iReadFifoHead + 1) & READFIFO_MASK;
+
+	if (nextHead != iReadFifoTail)
 	{
-		gAddress = _startAddress;
-		bPendingRead = true;
-	}
-}
+		readFifo[iReadFifoHead] = _startAddress;
+		iReadFifoHead = nextHead;
 
-void Lidar_QueueWriteParamToSPI(uint16_t _startAddress, uint16_t _data)
-{
-	if (!bPendingWrite)
-	{
-		gAddress = _startAddress;
-		gData = _data;
-		bPendingWrite = true;
+		return 1;
 	}
-}
 
-bool Lidar_GetReadDone(void)
-{
-	return bDoneRead;
-}
-
-void Lidar_GetReadParamToSPI(uint16_t * _startAddress, uint16_t * _data)
-{
-	if (bDoneRead)
-	{
-		*_startAddress = gAddress;
-		*_data = gData;
-		bDoneRead = false;
-	}
+	return 0;
 }
 
 
@@ -687,8 +671,8 @@ bool gAcq = true;
 
 static uint16_t BankInTransfer = 0;
 
-static int iFifoHead = 0;
-static int iFifoTail = 0;
+volatile int iFifoHead = 0;
+volatile int iFifoTail = 0;
 
 static tDataFifo dataFifo[NUM_FIFO];
 
@@ -704,16 +688,15 @@ void Lidar_Acq(uint16_t *pBank)
 
 	if (BankInTransfer == 0)
 	{
-		if (bPendingRead)
+		if (iReadFifoHead != iReadFifoTail)
 		{
-			ReadParamFromSPI(gAddress, &gData);
-			bPendingRead = false;
-			bDoneRead = true;
-		}
-		else if (bPendingWrite)
-		{
-			WriteParamToSPI(gAddress, gData);
-			bPendingWrite = false;
+			uint16_t addr = readFifo[iReadFifoTail];
+			uint16_t data;
+			ReadParamFromSPI(addr, &data);
+
+			iReadFifoTail = (iReadFifoTail + 1) & READFIFO_MASK;
+
+			user_CANFifoPushReadResp(addr, data);
 		}
 
 		if (gAcq)

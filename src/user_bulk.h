@@ -16,6 +16,9 @@
     processors only. Nothing else gives you the right to use this software.
 
 ==============================================================================*/
+
+#include <stdint.h>
+
 typedef enum
 {
     USER_BULK_INIT_SUCCESS = 0,
@@ -26,6 +29,6 @@ typedef enum
 extern User_Bulk_Init_Return_Code user_bulk_init (void);
 extern void user_bulk_main (void);
 
-
+extern int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data);
 
 #endif /* __USER_BULK_ */

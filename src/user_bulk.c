@@ -150,6 +150,7 @@ static void user_bulk_adi_loopback_bulk_in_transfer_complete (void);
 static void user_bulk_console_rx_byte (unsigned char byte);
 static void user_bulk_usb_event (CLD_USB_Event event);
 
+
 /* Bulk IN endpoint parameters */
 static CLD_Bulk_Endpoint_Params user_bulk_in_endpoint_params =
 {
@@ -217,6 +218,97 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
 };
 
 static uint16_t numPending = 0;
+
+
+
+
+
+
+
+//
+// CAN messages FIFO out
+//
+
+volatile int iCANFifoHead = 0;
+volatile int iCANFifoTail = 0;
+
+#define CANFIFO_SIZE 32
+#define CANFIFO_MASK (CANFIFO_SIZE - 1)
+
+ADI_AWLCANMessage canFifo[CANFIFO_SIZE];
+
+
+int user_CANFifoPush(ADI_AWLCANMessage * pCANMsg)
+{
+	int nextHead = (iCANFifoHead + 1) & CANFIFO_MASK;
+
+	if (nextHead != iCANFifoTail)
+	{
+		memcpy(&canFifo[iCANFifoHead], pCANMsg, sizeof(ADI_AWLCANMessage));
+
+		iCANFifoHead = nextHead;
+
+		return 0;
+	}
+
+	return 1;
+}
+
+int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
+{
+	int nextHead = (iCANFifoHead + 1) & CANFIFO_MASK;
+
+	if (nextHead != iCANFifoTail)
+	{
+		ADI_AWLCANMessage * pCanMsg = &canFifo[iCANFifoHead];
+
+		pCanMsg->id = 80;
+		pCanMsg->len = 8;
+		pCanMsg->data[0] = 0xC2;
+		pCanMsg->data[1] = 0x03;
+		pCanMsg->data[2] = (unsigned char) (registerAddress >> 0);
+		pCanMsg->data[3] = (unsigned char) (registerAddress >> 8);
+		pCanMsg->data[4] = (unsigned char) (data >> 0);
+		pCanMsg->data[5] = (unsigned char) (data >> 8);
+
+		iCANFifoHead = nextHead;
+
+		return 0;
+	}
+
+	return 1;
+}
+
+static int ProcessCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp)
+{
+	if (pCanReq->id == 88)
+	{
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "88 \n\r");
+
+		if (iCANFifoHead != iCANFifoTail)
+		{
+			memcpy(pCanResp, &canFifo[iCANFifoTail], sizeof(ADI_AWLCANMessage));
+
+			iCANFifoTail = (iCANFifoTail + 1) & CANFIFO_MASK;
+		}
+	}
+	else if (pCanReq->id == 80 && pCanReq->data[0] == 0xC1 && pCanReq->data[1] == 0x03)
+	{
+		uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
+
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, " Q \n\r");
+
+		Lidar_ReadFifoPush(registerAddress);
+	}
+
+	return 0;
+}
+
+//
+// CAN Messages FIFO out
+//
+
+
 
 /*=============================================================================
 Function:       user_bulk_init
@@ -588,7 +680,7 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
 
         	Lidar_GetDataFromFifo(&pData, &numPendingTemp);
 
-        	bool bReadDone = Lidar_GetReadDone();
+        	bool bReadDone = (iCANFifoHead != iCANFifoTail);
 
 			/* Set the Query response data. */
         	p_lidar_query_resp->command = LIDAR_QUERY;
@@ -618,36 +710,6 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
     return CLD_USB_DATA_GOOD;
 }
 
-static int ProcessCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp)
-{
-	if (pCanReq->id == 88)
-	{
-		uint16_t registerAddress;
-		uint16_t _data;
-		Lidar_GetReadParamToSPI(&registerAddress, &_data);
-
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "88 \n\r");
-
-		pCanResp->id = 80;
-		pCanResp->len = 8;
-		pCanResp->data[0] = 0xC2;
-		pCanResp->data[1] = 0x03;
-		pCanResp->data[2] = (unsigned char) (registerAddress >> 0);
-		pCanResp->data[3] = (unsigned char) (registerAddress >> 8);
-		pCanResp->data[4] = (unsigned char) (_data >> 0);
-		pCanResp->data[5] = (unsigned char) (_data >> 8);
-	}
-	else if (pCanReq->id == 80 && pCanReq->data[0] == 0xC1 && pCanReq->data[1] == 0x03)
-	{
-		uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
-
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, " Q \n\r");
-
-		Lidar_QueueReadParamFromSPI(registerAddress);
-	}
-
-	return 0;
-}
 
 static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 {
