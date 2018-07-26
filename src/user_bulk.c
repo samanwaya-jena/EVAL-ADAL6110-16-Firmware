@@ -238,13 +238,13 @@ volatile int iCANFifoTail = 0;
 ADI_AWLCANMessage canFifo[CANFIFO_SIZE];
 
 
-int user_CANFifoPush(ADI_AWLCANMessage * pCANMsg)
+int CANFifoPushMsg(ADI_AWLCANMessage * pCanMsg)
 {
 	int nextHead = (iCANFifoHead + 1) & CANFIFO_MASK;
 
 	if (nextHead != iCANFifoTail)
 	{
-		memcpy(&canFifo[iCANFifoHead], pCANMsg, sizeof(ADI_AWLCANMessage));
+		memcpy(&canFifo[iCANFifoHead], pCanMsg, sizeof(ADI_AWLCANMessage));
 
 		iCANFifoHead = nextHead;
 
@@ -254,29 +254,63 @@ int user_CANFifoPush(ADI_AWLCANMessage * pCANMsg)
 	return 1;
 }
 
+int user_CANFifoPushCompletedFrame(void)
+{
+	ADI_AWLCANMessage canMsg;
+
+	canMsg.id = 9;
+
+	return CANFifoPushMsg(&canMsg);
+}
+
+
+int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel)
+{
+	ADI_AWLCANMessage canMsg;
+
+	canMsg.id = 10;
+	canMsg.len = 8;
+	canMsg.data[0] = ch + 1;          //trackID
+	canMsg.data[1] = 0;           //...
+	canMsg.data[2] = 0x01 << ch;  //track->trackChannels.byteData
+	canMsg.data[3] = ch;          //track->trackMainChannel
+	canMsg.data[4] = 0;           //...
+	canMsg.data[5] = 99;          //track->probability
+	canMsg.data[6] = 44;          //track->intensity
+	canMsg.data[7] = 0;           //...
+
+	CANFifoPushMsg(&canMsg);
+
+	canMsg.id = 11;
+	canMsg.len = 8;
+	canMsg.data[0] = ch + 1;
+	canMsg.data[1] = 0;
+	canMsg.data[2] = dist >> 0;
+	canMsg.data[3] = dist >> 8;
+	canMsg.data[4] = vel >> 0;
+	canMsg.data[5] = vel >> 8;
+	canMsg.data[6] = 0;
+	canMsg.data[7] = 0;
+
+	return CANFifoPushMsg(&canMsg);
+}
+
 int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
 {
-	int nextHead = (iCANFifoHead + 1) & CANFIFO_MASK;
+	ADI_AWLCANMessage canMsg;
 
-	if (nextHead != iCANFifoTail)
-	{
-		ADI_AWLCANMessage * pCanMsg = &canFifo[iCANFifoHead];
+	canMsg.id = 80;
+	canMsg.len = 8;
+	canMsg.data[0] = 0xC2;
+	canMsg.data[1] = 0x03;
+	canMsg.data[2] = (unsigned char) (registerAddress >> 0);
+	canMsg.data[3] = (unsigned char) (registerAddress >> 8);
+	canMsg.data[4] = (unsigned char) (data >> 0);
+	canMsg.data[5] = (unsigned char) (data >> 8);
+	canMsg.data[6] = 0;
+	canMsg.data[7] = 0;
 
-		pCanMsg->id = 80;
-		pCanMsg->len = 8;
-		pCanMsg->data[0] = 0xC2;
-		pCanMsg->data[1] = 0x03;
-		pCanMsg->data[2] = (unsigned char) (registerAddress >> 0);
-		pCanMsg->data[3] = (unsigned char) (registerAddress >> 8);
-		pCanMsg->data[4] = (unsigned char) (data >> 0);
-		pCanMsg->data[5] = (unsigned char) (data >> 8);
-
-		iCANFifoHead = nextHead;
-
-		return 0;
-	}
-
-	return 1;
+	return CANFifoPushMsg(&canMsg);
 }
 
 static int ProcessCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp)
