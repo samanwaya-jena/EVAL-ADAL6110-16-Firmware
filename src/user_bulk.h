@@ -33,4 +33,7 @@ extern int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data);
 extern int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel);
 extern int user_CANFifoPushCompletedFrame(void);
 
+extern int user_CANFifoPushSensorStatus(void);
+extern int user_CANFifoPushSensorBoot(void);
+
 #endif /* __USER_BULK_ */

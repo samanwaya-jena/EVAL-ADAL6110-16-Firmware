@@ -412,6 +412,9 @@ void InitADI(void) {
 	{
 		Lidar_ChannelDCBal(i, calib[i]);
 	}
+
+    user_CANFifoPushSensorStatus();
+    user_CANFifoPushSensorBoot();
 }
 
 /**

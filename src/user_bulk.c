@@ -263,14 +263,13 @@ int user_CANFifoPushCompletedFrame(void)
 	return CANFifoPushMsg(&canMsg);
 }
 
-
 int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel)
 {
 	ADI_AWLCANMessage canMsg;
 
 	canMsg.id = 10;
 	canMsg.len = 8;
-	canMsg.data[0] = ch + 1;          //trackID
+	canMsg.data[0] = ch + 1;      //trackID
 	canMsg.data[1] = 0;           //...
 	canMsg.data[2] = 0x01 << ch;  //track->trackChannels.byteData
 	canMsg.data[3] = ch;          //track->trackMainChannel
@@ -283,12 +282,12 @@ int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel)
 
 	canMsg.id = 11;
 	canMsg.len = 8;
-	canMsg.data[0] = ch + 1;
-	canMsg.data[1] = 0;
-	canMsg.data[2] = dist >> 0;
-	canMsg.data[3] = dist >> 8;
-	canMsg.data[4] = vel >> 0;
-	canMsg.data[5] = vel >> 8;
+	canMsg.data[0] = ch + 1;      //trackID
+	canMsg.data[1] = 0;           //...
+	canMsg.data[2] = dist >> 0;   //Distance
+	canMsg.data[3] = dist >> 8;   //...
+	canMsg.data[4] = vel >> 0;    //Velocity
+	canMsg.data[5] = vel >> 8;    //...
 	canMsg.data[6] = 0;
 	canMsg.data[7] = 0;
 
@@ -307,6 +306,42 @@ int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
 	canMsg.data[3] = (unsigned char) (registerAddress >> 8);
 	canMsg.data[4] = (unsigned char) (data >> 0);
 	canMsg.data[5] = (unsigned char) (data >> 8);
+	canMsg.data[6] = 0;
+	canMsg.data[7] = 0;
+
+	return CANFifoPushMsg(&canMsg);
+}
+
+int user_CANFifoPushSensorStatus(void)
+{
+	ADI_AWLCANMessage canMsg;
+
+	canMsg.id = 1;
+	canMsg.len = 8;
+	canMsg.data[0] = 234 >> 0;
+	canMsg.data[1] = 234 >> 8;
+	canMsg.data[2] = 5 >> 0;
+	canMsg.data[3] = 5 >> 8;
+	canMsg.data[4] = 100;
+	canMsg.data[5] = 0;
+	canMsg.data[6] = 0;
+	canMsg.data[7] = 0;
+
+	return CANFifoPushMsg(&canMsg);
+}
+
+int user_CANFifoPushSensorBoot(void)
+{
+	ADI_AWLCANMessage canMsg;
+
+	canMsg.id = 2;
+	canMsg.len = 8;
+	canMsg.data[0] = 1;
+	canMsg.data[1] = 0;
+	canMsg.data[2] = 0;
+	canMsg.data[3] = 0;
+	canMsg.data[4] = 0;
+	canMsg.data[5] = 0;
 	canMsg.data[6] = 0;
 	canMsg.data[7] = 0;
 
