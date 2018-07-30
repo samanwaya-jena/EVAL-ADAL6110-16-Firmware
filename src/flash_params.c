@@ -25,6 +25,8 @@
 #include "SoftConfig_BF707.h"
 //#include "timer_isr.h"
 
+#include "calc_crc.h"
+
 
 #if defined(__DEBUG_FILE__)
 #include <string.h>
@@ -35,6 +37,8 @@ extern FILE *pDebugFile;				/* debug file when directing output to a file */
 #define MAN_CODE		0xEF		/* winbond */
 #define DEV_CODE		0x15		/* W25Q32BV (16Mbit SPI flash) */
 #define NUM_SECTORS		64			/* sectors */
+
+#define FLASH_MAGIC     0x1C3B00DA
 
 
 extern struct flash_info w25q32bv_info;
@@ -64,78 +68,20 @@ static SOFT_SWITCH SoftSwitch[] =
 
 
 
-
-
-/* CRC Driver includes */
-#include <drivers/crc/adi_crc.h>
-
-/* Header file with definitions specific to CRC driver implementation */
-#include "adi_crc_def.h"
-
-/* CRC Device number to work on */
-#define	CRC_DEV_NUM					(0u)
-
-/* CRC Device Handle */
-static ADI_CRC_HANDLE   hCrcDev;
-/* Memory to handle CRC Device */
-static uint8_t          CrcDevMem[ADI_CRC_CORE_MEMORY_SIZE];
-
-/* Flag to register the current status of CRC device */
-volatile static bool    bCrcInProgress;
-
-/* CRC Polynomial to be used for this test */
-#define CRC_POLYNOMIAL_VAL          (0xEDB88320u)
-
-/* 32-bit Seed value used to generate test data for CRC Memory Scan Compute Compare */
-#define CRC_RAND_SEED_VAL           (0x32765321u)
-
-ADI_CRC_RESULT adi_crc_Start(
-    ADI_CRC_HANDLE const    hDevice
-    )
-{
-	/* CRC device to work on */
-	ADI_CRC_INFO    *pCrcInfo = (ADI_CRC_INFO *)hCrcDev;
-
-	/* Update CRC operation status */
-	pCrcInfo->pDevice->eCrcOpStatus |= ADI_CRC_OP_IN_PROGRESS;
-
-	/* Load CRC Control Register */
-	pCrcInfo->pReg->Control = (pCrcInfo->pDevice->ControlReg | (uint32_t)pCrcInfo->pDevice->eCrcMode);
-
-	/* Enable CRC Block */
-	pCrcInfo->pReg->Control |= ENUM_CRC_CTL_BLKEN_EN;
-
-	return ADI_CRC_SUCCESS;
-}
-
-ADI_CRC_RESULT adi_crc_Stop(
-    ADI_CRC_HANDLE const    hDevice
-    )
-{
-	/* CRC device to work on */
-	ADI_CRC_INFO    *pCrcInfo = (ADI_CRC_INFO *)hCrcDev;
-
-	pCrcInfo->pReg->Control &= ~ENUM_CRC_CTL_BLKEN_EN;
-
-	return ADI_CRC_SUCCESS;
-}
-
 typedef struct
 {
 	uint32_t magic;
 	uint32_t numParams;
+	uint32_t params[1]; // N params
+//	uint32_t crc;
 } tFlashParams;
 
 int Flash_LoadConfig(uint16_t * pParams, int * pNum)
 {
-	/* CRC Return code */
-	ADI_CRC_RESULT	eResult = ADI_CRC_SUCCESS;
-
 	int Result = 0;							/* result */
-	int num;
-	uint32_t ExpectedCrcVal = 0;
-	uint32_t FinalCrcVal = 0;
-	uint32_t * pParamsUint32 = (uint32_t*) pParams;
+	tFlashParams * pFlashParams = NULL;
+
+	int maxNum = *pNum;
 
 	*pNum = 0;
 
@@ -150,52 +96,46 @@ int Flash_LoadConfig(uint16_t * pParams, int * pNum)
 	/* calculate offset based on sector */
 	unsigned long ulOffset = 40 * 64*1024;	/* 64KB sectors */
 
-	tFlashParams flashParams;
+	uint32_t magic = 0;
+	uint32_t numParams = 0;
 
-	flashParams.magic = 0;
-	flashParams.numParams = 0;
+	Result = flash_read(flash_info, ulOffset, (uint8_t*) &magic, sizeof(uint32_t));
+	ulOffset += sizeof(uint32_t);
 
-	/* write a value to the flash */
-	Result = flash_read(flash_info, ulOffset, (uint8_t*) &flashParams, sizeof(flashParams));
-	ulOffset += sizeof(flashParams);
-
-	if (flashParams.magic != 0x1C3B00DA)
+	if (magic != FLASH_MAGIC)
 		goto FAIL;
 
-	num = flashParams.numParams;
+	Result = flash_read(flash_info, ulOffset, (uint8_t*) &numParams, sizeof(uint32_t));
+	ulOffset += sizeof(uint32_t);
 
-	Result = flash_read(flash_info, ulOffset, (uint8_t*) pParams, num * 2 * sizeof(uint16_t));
-	ulOffset += num * 2 * sizeof(uint16_t);
+	if (numParams > maxNum)
+		goto FAIL;
 
-	Result = flash_read(flash_info, ulOffset, (uint8_t*) &ExpectedCrcVal, sizeof(ExpectedCrcVal));
-	ulOffset += sizeof(ExpectedCrcVal);
+	pFlashParams = (tFlashParams *) malloc((numParams + 2) * sizeof(uint32_t));
 
-	/* Open a CRC device instance */
-	eResult = adi_crc_Open (CRC_DEV_NUM, &CrcDevMem[0], ADI_CRC_CORE_MEMORY_SIZE, &hCrcDev);
+	if (pFlashParams)
+	{
+		pFlashParams->magic = magic;
+		pFlashParams->numParams = numParams;
 
-	/* Set CRC polynomial */
-	eResult = adi_crc_SetPolynomialVal (hCrcDev, CRC_POLYNOMIAL_VAL);
+		uint32_t ExpectedCrcVal = 0;
 
-	/* Set CRC operating mode as Data fill */
-	eResult = adi_crc_SetOperatingMode (hCrcDev, ADI_CRC_MODE_SCAN_COMPUTE_COMPARE);
+		Result = flash_read(flash_info, ulOffset, (uint8_t*) pFlashParams->params, numParams * sizeof(uint32_t));
+		ulOffset += numParams * sizeof(uint32_t);
 
-	eResult = adi_crc_SetDataCount (hCrcDev, num + 2, 0);
+		Result = flash_read(flash_info, ulOffset, (uint8_t*) &ExpectedCrcVal, sizeof(ExpectedCrcVal));
+		ulOffset += sizeof(ExpectedCrcVal);
 
-	eResult = adi_crc_Start (hCrcDev);
+		uint32_t CalculatedCrcVal = CalcCRC((uint32_t*) pFlashParams, numParams + 2);
 
-	eResult = adi_crc_CoreWrite (hCrcDev, flashParams.magic);
+		if (CalculatedCrcVal == ExpectedCrcVal)
+		{
+			memcpy(pParams, pFlashParams->params, numParams * sizeof(uint32_t));
+			*pNum = numParams;
+		}
 
-	eResult = adi_crc_CoreWrite (hCrcDev, flashParams.numParams);
-
-	int i;
-
-    for (i=0; i<num; i++)
-    	eResult = adi_crc_CoreWrite (hCrcDev, *pParamsUint32++);
-
-	eResult = adi_crc_GetFinalCrcVal (hCrcDev, &FinalCrcVal);
-
-	if (FinalCrcVal == ExpectedCrcVal)
-		*pNum = num;
+		free(pFlashParams);
+	}
 
 FAIL:
 	flash_close(flash_info);
@@ -208,6 +148,8 @@ FAIL:
 int Flash_SaveConfig(uint16_t * pParams, int num)
 {
 	int Result = 0;							/* result */
+	tFlashParams * pFlashParams = NULL;
+	int sizeFlashParams = (num + 2) * sizeof(uint32_t);
 
 	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
 
@@ -220,52 +162,30 @@ int Flash_SaveConfig(uint16_t * pParams, int num)
 	/* calculate offset based on sector */
 	unsigned long ulOffset = 40 * 64*1024;	/* 64KB sectors */
 
-	/* erase the sector */
-	Result = flash_erase(flash_info, ulOffset, 64*1024);
+	pFlashParams = (tFlashParams *) malloc(sizeFlashParams);
 
-	tFlashParams flashParams;
+	if (pFlashParams)
+	{
+		pFlashParams->magic = FLASH_MAGIC;
+		pFlashParams->numParams = num;
 
-	flashParams.magic = 0x1C3B00DA;
-	flashParams.numParams = num;
+		memcpy(pFlashParams->params, pParams, num * sizeof(uint32_t));
 
-	/* write a value to the flash */
-	Result = flash_program(flash_info, ulOffset, (uint8_t*) &flashParams, sizeof(flashParams));
-	ulOffset += sizeof(flashParams);
+		uint32_t CalculatedCrcVal = CalcCRC((uint32_t*) pFlashParams, num + 2);
 
-	Result = flash_program(flash_info, ulOffset, (uint8_t*) pParams, num * 2 * sizeof(uint16_t));
-	ulOffset += num * 2 * sizeof(uint16_t);
+		/* erase the sector */
+		Result = flash_erase(flash_info, ulOffset, 64*1024);
 
-	/* CRC Return code */
-	ADI_CRC_RESULT	eResult = ADI_CRC_SUCCESS;
+		/* write a value to the flash */
+		Result = flash_program(flash_info, ulOffset, (uint8_t*) pFlashParams, sizeFlashParams);
+		ulOffset += sizeFlashParams;
 
-	/* Open a CRC device instance */
-	eResult = adi_crc_Open (CRC_DEV_NUM, &CrcDevMem[0], ADI_CRC_CORE_MEMORY_SIZE, &hCrcDev);
+		// Write the CRC
+		Result = flash_program(flash_info, ulOffset, (uint8_t*) &CalculatedCrcVal, sizeof(uint32_t));
+		ulOffset += sizeof(uint32_t);
 
-	/* Set CRC polynomial */
-	eResult = adi_crc_SetPolynomialVal (hCrcDev, CRC_POLYNOMIAL_VAL);
-
-	/* Set CRC operating mode as Data fill */
-	eResult = adi_crc_SetOperatingMode (hCrcDev, ADI_CRC_MODE_SCAN_COMPUTE_COMPARE);
-
-	eResult = adi_crc_SetDataCount (hCrcDev, num + 2, 0);
-
-	eResult = adi_crc_Start (hCrcDev);
-
-	eResult = adi_crc_CoreWrite (hCrcDev, flashParams.magic);
-
-	eResult = adi_crc_CoreWrite (hCrcDev, flashParams.numParams);
-
-	uint32_t * pParamsUint32 = (uint32_t*) pParams;
-	int i;
-
-    for (i=0; i<num; i++)
-    	eResult = adi_crc_CoreWrite (hCrcDev, *pParamsUint32++);
-
-	uint32_t                FinalCrcVal = 0;
-	eResult = adi_crc_GetFinalCrcVal (hCrcDev, &FinalCrcVal);
-
-	// Write the CRC
-	Result = flash_program(flash_info, ulOffset, (uint8_t*) &FinalCrcVal, sizeof(uint32_t));
+		free(pFlashParams);
+	}
 
 	flash_close(flash_info);
 
@@ -300,65 +220,7 @@ int Flash_ResetToFactoryDefault(void)
 }
 
 
-
-//
-// Test functions
-//
-void TestCRC(void)
-{
-    /* CRC Return code */
-    ADI_CRC_RESULT	eResult = ADI_CRC_SUCCESS;
-
-    /* Open a CRC device instance */
-    eResult = adi_crc_Open (CRC_DEV_NUM, &CrcDevMem[0], ADI_CRC_CORE_MEMORY_SIZE, &hCrcDev);
-
-    /* Set CRC polynomial */
-	eResult = adi_crc_SetPolynomialVal (hCrcDev, CRC_POLYNOMIAL_VAL);
-
-    /* Set CRC operating mode as Data fill */
-	eResult = adi_crc_SetOperatingMode (hCrcDev, ADI_CRC_MODE_SCAN_COMPUTE_COMPARE);
-
-	uint32_t                DataCount = 4;
-	uint32_t                ReloadDataCount = 0;
-
-	eResult = adi_crc_SetDataCount (hCrcDev, DataCount, ReloadDataCount);
-
-	uint32_t ExpectedVal = 0x5a26ea00;
-	eResult = adi_crc_SetExpectedVal (hCrcDev, ExpectedVal);
-
-	uint32_t CrcSeedVal = 0x48294756;
-	eResult = adi_crc_SetCrcSeedVal (hCrcDev, CrcSeedVal);
-
-	eResult = adi_crc_Start (hCrcDev);
-
-	bool bCrcInProgress = false;
-
-	uint32_t DataToCrcFifo = 0x12345678;
-	eResult = adi_crc_CoreWrite (hCrcDev, DataToCrcFifo++);
-
-	eResult = adi_crc_CoreWrite (hCrcDev, DataToCrcFifo++);
-
-	eResult = adi_crc_CoreWrite (hCrcDev, DataToCrcFifo++);
-
-	eResult = adi_crc_CoreWrite (hCrcDev, DataToCrcFifo++);
-
-	eResult = adi_crc_IsCrcInProgress(hCrcDev, &bCrcInProgress);
-
-	eResult = adi_crc_Stop (hCrcDev);
-
-	uint32_t                FinalCrcVal = 0;
-	eResult = adi_crc_GetFinalCrcVal (hCrcDev, &FinalCrcVal);
-
-	if (FinalCrcVal == ExpectedVal)
-		CrcSeedVal++;
-	else
-		CrcSeedVal--;
-
-	uint32_t                CurrentCrcVal = 0;
-	eResult = adi_crc_GetCurrentCrcVal (hCrcDev, &CurrentCrcVal);
-
-}
-
+#if 0
 /*******************************************************************
 *   Function:    TEST_SPI_FLASH
 *   Description: This test will test the SPI flash on the EZ-Board.
@@ -435,3 +297,4 @@ int testFlashParams(void)
 
 	return 0;
 }
+#endif

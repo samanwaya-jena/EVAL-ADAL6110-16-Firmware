@@ -332,6 +332,7 @@ int SaveConfigToFlash(void);
 void InitADI(void) {
     int i;
 
+#if 0
     uint16_t calib[16] = {
 		230,
 		180,
@@ -350,6 +351,7 @@ void InitADI(void) {
 		200,
 		200
     };
+#endif
 
 	if (hSpi == NULL)
 	{
@@ -406,26 +408,19 @@ void InitADI(void) {
 	ResetADI();
 
 	int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
+	int numParams = num;
+
+	Flash_LoadConfig(&Lidar_InitValues[0][0], &numParams);
+
+	if (numParams)
+		num = numParams;
 
 	for (i=0; i<num; i++)
 	{
 		WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
 	}
 
-	for (i=0; i<16; i++)
-	{
-		Lidar_ChannelDCBal(i, calib[i]);
-	}
-
-	int numParams = 0;
-	Flash_LoadConfig(&Lidar_InitValues[0][0], &numParams);
-
-	for (i=0; i<numParams; i++)
-	{
-		WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
-	}
-
-    user_CANFifoPushSensorStatus();
+	user_CANFifoPushSensorStatus();
     user_CANFifoPushSensorBoot();
 }
 
@@ -439,14 +434,12 @@ int SaveConfigToFlash(void)
 		ReadParamFromSPI(Lidar_InitValues[i][0], &Lidar_InitValues[i][1]);
 	}
 
-	Flash_SaveConfig(&Lidar_InitValues[0][0], num);
-
-	return 0;
+	return Flash_SaveConfig(&Lidar_InitValues[0][0], num);
 }
 
 int ResetToFactoryDefault(void)
 {
-	return 0;
+	return Flash_ResetToFactoryDefault();
 }
 
 /**
@@ -464,40 +457,6 @@ void ClearSram(void) {
 
 }
 
-/**
- * @brief Get the current status
- */
-const uint16_t bank0Full = 0x0001;
-const uint16_t bank1Full = 0x0002;
-const uint16_t maxNumberOfSameState = 20;
-int GetADIStatus(void) {
-	static uint16_t bankLastStatus = 0x00;
-	static uint16_t numberOfSameState = 0;
-	uint16_t bankCurrentStatus = 0x00;
-	uint16_t returnValue;
-
-	returnValue = ADI_Empty;
-
-	ReadParamFromSPI(BankStatusAddress, &bankCurrentStatus);
-
-	if (bankCurrentStatus == bankLastStatus) {
-		if (++numberOfSameState >= maxNumberOfSameState) {
-			numberOfSameState = 0;
-			returnValue = ADI_locked;
-		}
-	} else {
-		bankLastStatus = bankCurrentStatus;
-	}
-	if (bankCurrentStatus == bank0Full || bankCurrentStatus == bank1Full) {
-		bankLastStatus = bankCurrentStatus;
-		numberOfSameState = 0;
-		returnValue = ADI_DataPresent;
-	}
-//	if (sensorParameter.DSP.debugMode & debugInsertionAcq) {
-//		returnValue = ADI_DataPresent;
-//	}
-	return (returnValue);
-}
 
 /**
  * @brief Retreive the data from the ADI device

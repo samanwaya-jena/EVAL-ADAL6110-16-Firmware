@@ -48,11 +48,6 @@ extern tDataFifo dataFifo[NUM_FIFO];
 void InitADI(void);
 
 /**
- * Get the current status
- */
-int GetADIStatus(void);
-
-/**
  * Retreive the data from the ADI device
  */
 void GetADIData(uint16_t *pBank, uint16_t * pData);
@@ -86,6 +81,9 @@ int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data);
 
 extern bool gAcq;
 
+//
+// Testing counters
+//
 extern int iUSBnum;
 extern int iUSBnumOK;
 extern int iUSBnumEmpty;
