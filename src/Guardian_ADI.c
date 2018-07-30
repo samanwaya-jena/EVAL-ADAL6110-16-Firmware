@@ -23,6 +23,8 @@
 #include "algo.h"
 #endif //USE_ALGO
 
+#include "flash_params.h"
+
 #include "Guardian_ADI.h"
 
 
@@ -80,6 +82,77 @@ enum ADI_REGISTER_INDEX {
 	BankStatusAddress = 0xF6, // read only
 	SRAMReadOutAddress = 0xFF // read only
 };
+
+uint16_t Lidar_InitValues[][2] =
+{
+{ 1, 0x0282 },
+{ 2, 0x4040 },
+{ 4, 0x8000 },
+{ 7, 0x103D },
+{ 9, 0x3A50 },
+{ 10, 0x0001 },
+{ 13, 0xCE7F },//0
+{ 14, 0x0C07 },
+{ 15, 0xF0FF },
+{ 17, 0xCE1F },//1
+{ 18, 0x0C07 },
+{ 19, 0xC0FF },
+{ 21, 0xCE1F },//2
+{ 22, 0x0C07 },
+{ 23, 0xC0FF },
+{ 25, 0xCE1F },//3
+{ 26, 0x0C07 },
+{ 27, 0x00FF },
+{ 29, 0xCE1F },//4
+{ 30, 0x0C07 },
+{ 31, 0x00FF },
+{ 33, 0xCE1F },//5
+{ 34, 0x0C07 },
+{ 35, 0xC0FF },
+{ 37, 0xCE1F },//6
+{ 38, 0x0C07 },
+{ 39, 0xC0FF },
+{ 41, 0xCE7F },//7
+{ 42, 0x0C07 },
+{ 43, 0xF0FF },
+{ 45, 0xCE7F },//8
+{ 46, 0x0C07 },
+{ 47, 0xF0FF },
+{ 49, 0xCE1F },//9
+{ 50, 0x0C07 },
+{ 51, 0xC0FF },
+{ 53, 0xCE1F },//10
+{ 54, 0x0C07 },
+{ 55, 0xC0FF },
+{ 57, 0xCE1F },//11
+{ 58, 0x0C07 },
+{ 59, 0x00FF },
+{ 61, 0xCE1F },//12
+{ 62, 0x0C07 },
+{ 63, 0x00FF },
+{ 65, 0xCE1F },//13
+{ 66, 0x0C07 },
+{ 67, 0xC0FF },
+{ 69, 0xCE1F },//14
+{ 70, 0x0C07 },
+{ 71, 0xC0FF },
+{ 73, 0xCE7F },//15
+{ 74, 0x0C07 },
+{ 75, 0xF0FF },
+{ 77, 0x0237 },
+{ 78, 0x3333 },
+{ 84, 0x2772 },
+{ 85, 0x0B14 },
+{ 86, 0x0420 },
+{ 87, 0x3333 },
+{ 93, 0x2772 },
+{ 94, 0x0314 },
+{ 241, 0x01B0 },
+{ 243, 0x5040 },
+{ 244, 0x00C2 },
+{ 246, 0x0001 }
+};
+
 
 
 #ifdef USE_DMA
@@ -243,6 +316,7 @@ void ResetADI(void) {
 #endif
 }
 
+int SaveConfigToFlash(void);
 
 /**
  *
@@ -257,76 +331,6 @@ void ResetADI(void) {
  */
 void InitADI(void) {
     int i;
-
-    uint16_t initValues[][2] =
-	{
-	{ 1, 0x0282 },
-	{ 2, 0x4040 },
-	{ 4, 0x8000 },
-	{ 7, 0x103D },
-	{ 9, 0x3A50 },
-	{ 10, 0x0001 },
-	{ 13, 0xCE7F },//0
-	{ 14, 0x0C07 },
-	{ 15, 0xF0FF },
-	{ 17, 0xCE1F },//1
-	{ 18, 0x0C07 },
-	{ 19, 0xC0FF },
-	{ 21, 0xCE1F },//2
-	{ 22, 0x0C07 },
-	{ 23, 0xC0FF },
-	{ 25, 0xCE1F },//3
-	{ 26, 0x0C07 },
-	{ 27, 0x00FF },
-	{ 29, 0xCE1F },//4
-	{ 30, 0x0C07 },
-	{ 31, 0x00FF },
-	{ 33, 0xCE1F },//5
-	{ 34, 0x0C07 },
-	{ 35, 0xC0FF },
-	{ 37, 0xCE1F },//6
-	{ 38, 0x0C07 },
-	{ 39, 0xC0FF },
-	{ 41, 0xCE7F },//7
-	{ 42, 0x0C07 },
-	{ 43, 0xF0FF },
-	{ 45, 0xCE7F },//8
-	{ 46, 0x0C07 },
-	{ 47, 0xF0FF },
-	{ 49, 0xCE1F },//9
-	{ 50, 0x0C07 },
-	{ 51, 0xC0FF },
-	{ 53, 0xCE1F },//10
-	{ 54, 0x0C07 },
-	{ 55, 0xC0FF },
-	{ 57, 0xCE1F },//11
-	{ 58, 0x0C07 },
-	{ 59, 0x00FF },
-	{ 61, 0xCE1F },//12
-	{ 62, 0x0C07 },
-	{ 63, 0x00FF },
-	{ 65, 0xCE1F },//13
-	{ 66, 0x0C07 },
-	{ 67, 0xC0FF },
-	{ 69, 0xCE1F },//14
-	{ 70, 0x0C07 },
-	{ 71, 0xC0FF },
-	{ 73, 0xCE7F },//15
-	{ 74, 0x0C07 },
-	{ 75, 0xF0FF },
-	{ 77, 0x0237 },
-	{ 78, 0x3333 },
-	{ 84, 0x2772 },
-	{ 85, 0x0B14 },
-	{ 86, 0x0420 },
-	{ 87, 0x3333 },
-	{ 93, 0x2772 },
-	{ 94, 0x0314 },
-	{ 241, 0x01B0 },
-	{ 243, 0x5040 },
-	{ 244, 0x00C2 },
-	{ 246, 0x0001 }
-	};
 
     uint16_t calib[16] = {
 		230,
@@ -346,8 +350,6 @@ void InitADI(void) {
 		200,
 		200
     };
-
-	int num = sizeof(initValues) / sizeof(initValues[0]);
 
 	if (hSpi == NULL)
 	{
@@ -403,9 +405,11 @@ void InitADI(void) {
 
 	ResetADI();
 
+	int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
+
 	for (i=0; i<num; i++)
 	{
-		WriteParamToSPI(initValues[i][0], initValues[i][1]);
+		WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
 	}
 
 	for (i=0; i<16; i++)
@@ -413,8 +417,36 @@ void InitADI(void) {
 		Lidar_ChannelDCBal(i, calib[i]);
 	}
 
+	int numParams = 0;
+	Flash_LoadConfig(&Lidar_InitValues[0][0], &numParams);
+
+	for (i=0; i<numParams; i++)
+	{
+		WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
+	}
+
     user_CANFifoPushSensorStatus();
     user_CANFifoPushSensorBoot();
+}
+
+
+int SaveConfigToFlash(void)
+{
+	int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
+	int i;
+	for (i=0; i<num; i++)
+	{
+		ReadParamFromSPI(Lidar_InitValues[i][0], &Lidar_InitValues[i][1]);
+	}
+
+	Flash_SaveConfig(&Lidar_InitValues[0][0], num);
+
+	return 0;
+}
+
+int ResetToFactoryDefault(void)
+{
+	return 0;
 }
 
 /**
@@ -638,6 +670,33 @@ void Lidar_FlashGain(uint16_t flashGain)
 
 
 //
+// Simulation
+//
+
+void AddFakeData(void)
+{
+	static uint16_t dist = 1000;
+
+	user_CANFifoPushDetection(0, dist, 100);
+	user_CANFifoPushDetection(1, dist + 250, 100);
+	user_CANFifoPushDetection(2, dist + 500, 100);
+	user_CANFifoPushDetection(3, dist + 650, 100);
+	user_CANFifoPushDetection(4, dist + 650, 100);
+	user_CANFifoPushDetection(5, dist + 500, 100);
+	user_CANFifoPushDetection(6, dist + 250, 100);
+	user_CANFifoPushDetection(7, dist, 100);
+
+	user_CANFifoPushCompletedFrame();
+
+	dist += 100;
+
+	if (dist > 2500)
+		dist = 500;
+}
+
+
+
+//
 // Read/Write FIFO
 //
 
@@ -679,6 +738,36 @@ int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data)
 	return 0;
 }
 
+inline int ProcessReadWriteFifo(void)
+{
+	uint32_t op = readWriteFifo[iReadWriteFifoTail];
+	uint16_t addr = (op >> 16) & 0x7FFF;
+	uint16_t data =  op & 0xFFFF;
+
+	if (op & 0x80000000)
+	{
+		if (addr == 998)
+			SaveConfigToFlash();
+		else if (addr == 999)
+			ResetToFactoryDefault();
+		else
+			WriteParamToSPI(addr, data);
+
+		if (addr == 0)
+			AddFakeData();
+	}
+	else
+	{
+		ReadParamFromSPI(addr, &data);
+		user_CANFifoPushReadResp(addr, data);
+	}
+
+	iReadWriteFifoTail = (iReadWriteFifoTail + 1) & READWRITEFIFO_MASK;
+
+	return 0;
+}
+
+
 
 
 //
@@ -699,7 +788,6 @@ static tDataFifo dataFifo[NUM_FIFO];
 static float tmpAcqFloat[GUARDIAN_SAMPLING_LENGTH];
 #endif //USE_ALGO
 
-
 void Lidar_Acq(uint16_t *pBank)
 {
 	*pBank = 0;
@@ -707,21 +795,7 @@ void Lidar_Acq(uint16_t *pBank)
 	if (BankInTransfer == 0)
 	{
 		if (iReadWriteFifoHead != iReadWriteFifoTail)
-		{
-			uint32_t op = readWriteFifo[iReadWriteFifoTail];
-			uint16_t addr = (op >> 16) & 0x7FFF;
-			uint16_t data =  op & 0xFFFF;
-
-			if (op & 0x80000000)
-				WriteParamToSPI(addr, data);
-			else
-			{
-				ReadParamFromSPI(addr, &data);
-				user_CANFifoPushReadResp(addr, data);
-			}
-
-			iReadWriteFifoTail = (iReadWriteFifoTail + 1) & READWRITEFIFO_MASK;
-		}
+			ProcessReadWriteFifo();
 
 		if (gAcq)
 			GetADIData_Start(&BankInTransfer, (uint16_t*) dataFifo[iFifoHead].AcqFifo);

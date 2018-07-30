@@ -64,8 +64,6 @@ typedef enum
 
 
 
-extern int InitFlashParams(void);
-
 int main(int argc, char *argv[])
 {
 	/**
@@ -93,13 +91,7 @@ int main(int argc, char *argv[])
     }
 #endif
 
-
-
 	InitADI();
-
-
-	InitFlashParams();
-
 
     Main_States main_state = MAIN_STATE_SYSTEM_INIT;
 
