@@ -68,7 +68,12 @@ static SOFT_SWITCH SoftSwitch[] =
 };
 
 
+int Flash_Init(void)
+{
+	flash_info = &w25q32bv_info;
 
+	return 0;
+}
 
 typedef struct
 {
@@ -89,11 +94,7 @@ int Flash_LoadConfig(uint16_t * pParams, int * pNum)
 
 	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
 
-	flash_info = &w25q32bv_info;
-
 	flash_open(flash_info);
-
-	flash_set_mode(flash_info, STANDARD);
 
 	/* calculate offset based on sector */
 	unsigned long ulOffset = FLASH_PARAM_ADDR;
@@ -155,11 +156,7 @@ int Flash_SaveConfig(uint16_t * pParams, int num)
 
 	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
 
-	flash_info = &w25q32bv_info;
-
 	flash_open(flash_info);
-
-	flash_set_mode(flash_info, STANDARD);
 
 	/* calculate offset based on sector */
 	unsigned long ulOffset = FLASH_PARAM_ADDR;
@@ -202,11 +199,7 @@ int Flash_ResetToFactoryDefault(void)
 
 	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
 
-	flash_info = &w25q32bv_info;
-
 	flash_open(flash_info);
-
-	flash_set_mode(flash_info, STANDARD);
 
 	/* calculate offset based on sector */
 	unsigned long ulOffset = FLASH_PARAM_ADDR;
@@ -245,8 +238,6 @@ int testFlashParams(void)
 	flash_info = &w25q32bv_info;
 
 	flash_open(flash_info);
-
-	flash_set_mode(flash_info, STANDARD);
 
 	if (flash_info->modes & (QUAD_INPUT | QUAD_OUTPUT | QUAD_IO))
 		flash_enable_quad_mode(flash_info);

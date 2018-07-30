@@ -19,6 +19,9 @@
 #include "user_bulk.h"
 #include <ADSP-BF707_device.h>
 
+#include "flash_params.h"
+
+
 
 #define USE_USB
 
@@ -90,6 +93,8 @@ int main(int argc, char *argv[])
         return FAILED;
     }
 #endif
+
+	Flash_Init();
 
 	InitADI();
 
