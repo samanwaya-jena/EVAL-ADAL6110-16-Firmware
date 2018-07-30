@@ -40,6 +40,8 @@ extern FILE *pDebugFile;				/* debug file when directing output to a file */
 
 #define FLASH_MAGIC     0x1C3B00DA
 
+#define FLASH_PARAM_ADDR (40 * 64*1024)
+#define FLASH_PARAM_SIZE (64*1024)
 
 extern struct flash_info w25q32bv_info;
 
@@ -94,7 +96,7 @@ int Flash_LoadConfig(uint16_t * pParams, int * pNum)
 	flash_set_mode(flash_info, STANDARD);
 
 	/* calculate offset based on sector */
-	unsigned long ulOffset = 40 * 64*1024;	/* 64KB sectors */
+	unsigned long ulOffset = FLASH_PARAM_ADDR;
 
 	uint32_t magic = 0;
 	uint32_t numParams = 0;
@@ -160,7 +162,7 @@ int Flash_SaveConfig(uint16_t * pParams, int num)
 	flash_set_mode(flash_info, STANDARD);
 
 	/* calculate offset based on sector */
-	unsigned long ulOffset = 40 * 64*1024;	/* 64KB sectors */
+	unsigned long ulOffset = FLASH_PARAM_ADDR;
 
 	pFlashParams = (tFlashParams *) malloc(sizeFlashParams);
 
@@ -174,7 +176,7 @@ int Flash_SaveConfig(uint16_t * pParams, int num)
 		uint32_t CalculatedCrcVal = CalcCRC((uint32_t*) pFlashParams, num + 2);
 
 		/* erase the sector */
-		Result = flash_erase(flash_info, ulOffset, 64*1024);
+		Result = flash_erase(flash_info, ulOffset, FLASH_PARAM_SIZE);
 
 		/* write a value to the flash */
 		Result = flash_program(flash_info, ulOffset, (uint8_t*) pFlashParams, sizeFlashParams);
@@ -207,10 +209,10 @@ int Flash_ResetToFactoryDefault(void)
 	flash_set_mode(flash_info, STANDARD);
 
 	/* calculate offset based on sector */
-	unsigned long ulOffset = 40 * 64*1024;	/* 64KB sectors */
+	unsigned long ulOffset = FLASH_PARAM_ADDR;
 
 	/* erase the sector */
-	Result = flash_erase(flash_info, ulOffset, 64*1024);
+	Result = flash_erase(flash_info, ulOffset, FLASH_PARAM_SIZE);
 
 	flash_close(flash_info);
 
@@ -272,7 +274,7 @@ int testFlashParams(void)
 	unsigned long ulOffset;
 
 	/* calculate offset based on sector */
-	ulOffset = 40 * 64*1024;	/* 64KB sectors */
+	ulOffset = FLASH_PARAM_ADDR;
 
 	memset(ucBuf, 0, sizeof(ucBuf));
 
