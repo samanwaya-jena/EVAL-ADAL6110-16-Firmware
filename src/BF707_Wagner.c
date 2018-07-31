@@ -80,19 +80,11 @@ int main(int argc, char *argv[])
 	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
 
     /* Initialize Power service */
-#if defined (__ADSPBF707_FAMILY__) || defined (__ADSPSC589_FAMILY__)
     if(adi_pwr_Init(0, CLKIN) != ADI_PWR_SUCCESS)
     {
         REPORT_ERROR("Failed to initialize power service \n");
         return FAILED;
     }
-#else
-    if(adi_pwr_Init(CLKIN, CORE_MAX, SYSCLK_MAX, VCO_MIN) != ADI_PWR_SUCCESS)
-    {
-        REPORT_ERROR("Failed to initialize power service \n");
-        return FAILED;
-    }
-#endif
 
 	Flash_Init();
 
