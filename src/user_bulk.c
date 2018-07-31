@@ -348,19 +348,31 @@ int user_CANFifoPushSensorBoot(void)
 	return CANFifoPushMsg(&canMsg);
 }
 
+
+static int PollCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp, int * pNum)
+{
+	int num = pCanReq->data[0];
+	int i;
+
+	for(i=0; i<num; i++)
+	{
+		if (iCANFifoHead != iCANFifoTail)
+		{
+			memcpy(pCanResp++, &canFifo[iCANFifoTail], sizeof(ADI_AWLCANMessage));
+
+			iCANFifoTail = (iCANFifoTail + 1) & CANFIFO_MASK;
+		}
+	}
+
+	*pNum = num;
+
+	return 0;
+}
+
 static int ProcessCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp)
 {
 	switch (pCanReq->id)
 	{
-	case 88:
-		if (iCANFifoHead != iCANFifoTail)
-		{
-			memcpy(pCanResp, &canFifo[iCANFifoTail], sizeof(ADI_AWLCANMessage));
-
-			iCANFifoTail = (iCANFifoTail + 1) & CANFIFO_MASK;
-		}
-		break;
-
 	case 80:
 		if (pCanReq->data[0] == 0xC0 && pCanReq->data[1] == 0x03)
 		{
@@ -541,7 +553,6 @@ Returns:        CLD_USB_TRANSFER_ACCEPT - Store the bulk data using the p_transf
 static CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Transfer_Params * p_transfer_data)
 {
     CLD_USB_Transfer_Request_Return_Type rv = CLD_USB_TRANSFER_STALL;
-    int dgg = sizeof(ADI_AWLCANMessage);
 
     switch(user_bulk_adi_loopback_data.state)
     {
@@ -750,6 +761,9 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
         // Wagner
         case LIDAR_QUERY:
         {
+        	int _iCANFifoHead = iCANFifoHead;
+        	int _iCANFifoTail = iCANFifoTail;
+
         	p_lidar_query_resp = (ADI_Bulk_Loopback_Lidar_Query_Response *)user_bulk_adi_loopback_buffer;
 
         	tDataFifo * pData = NULL;
@@ -757,12 +771,16 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
 
         	Lidar_GetDataFromFifo(&pData, &numPendingTemp);
 
-        	bool bReadDone = (iCANFifoHead != iCANFifoTail);
+        	int numCANMsg = 0;
+        	if (_iCANFifoTail < _iCANFifoHead)
+        		numCANMsg = _iCANFifoHead - _iCANFifoTail;
+   			else if (_iCANFifoTail > _iCANFifoHead)
+  				numCANMsg = (CANFIFO_SIZE - _iCANFifoTail) + _iCANFifoHead;
 
 			/* Set the Query response data. */
         	p_lidar_query_resp->command = LIDAR_QUERY;
         	p_lidar_query_resp->nbrCycles = numPendingTemp;
-        	p_lidar_query_resp->nbrBytes = (bReadDone) ? 1 : 0;
+        	p_lidar_query_resp->nbrBytes = numCANMsg;
         	p_lidar_query_resp->next_msg_length = 0;
 
 			/* Return the query response using the Bulk IN endpoint. */
@@ -790,6 +808,8 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
 
 static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 {
+	int num = 1;
+
     /* Parameters used to send Bulk IN data in response to the
        current command. */
     static CLD_USB_Transfer_Params transfer_params =
@@ -798,23 +818,25 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
     };
 
     ADI_AWLCANMessage * pCanMsg = (ADI_AWLCANMessage *) user_bulk_adi_loopback_buffer;
-    ADI_AWLCANMessage canResp;
-    ADI_AWLCANMessage * pCanResp = &canResp;
+    ADI_AWLCANMessage canResp[32];
 
-    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CAN Msg %d: ", pCanMsg->id);
+//    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CAN Msg %d: ", pCanMsg->id);
 
-    memset(pCanResp, 0, sizeof(ADI_AWLCANMessage));
+    memset(&canResp[0], 0, sizeof(ADI_AWLCANMessage));
 
-	ProcessCanCommandMsg(pCanMsg, pCanResp);
+    if (pCanMsg->id == 88)
+    	PollCanCommandMsg(pCanMsg, canResp, &num);
+    else
+    	ProcessCanCommandMsg(pCanMsg, canResp);
 
 	/* Return the firmware version using the Bulk IN endpoint. */
-	transfer_params.num_bytes = sizeof(ADI_AWLCANMessage);
-	transfer_params.p_data_buffer = (unsigned char*)pCanResp;
+	transfer_params.num_bytes = num * sizeof(ADI_AWLCANMessage);
+	transfer_params.p_data_buffer = (unsigned char*)canResp;
 	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.transfer_timeout_ms = 1000;
 	cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
 
-   	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\n\r");
+//   	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\n\r");
 
     return CLD_USB_DATA_GOOD;
 }
