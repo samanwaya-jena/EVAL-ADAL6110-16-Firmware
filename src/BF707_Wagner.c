@@ -6,10 +6,6 @@
 #include <string.h>
 #include <sys/platform.h>
 
-#include <drivers\spi\adi_spi.h>
-#include <services\pwr\adi_pwr.h>
-#include <services/int/adi_sec.h>
-
 #include "adi_initialize.h"
 #include "BF707_Wagner.h"
 
@@ -21,6 +17,7 @@
 
 #include "flash_params.h"
 
+#include "PWR_Freq_Mode.h"
 
 
 #define USE_USB
@@ -43,31 +40,6 @@ typedef enum
 
 
 
-/* Example result definitions */
-#define FAILED              (-1)
-#define PASSED              0
-
-/* Macro for reporting errors */
-#define REPORT_ERROR        printf
-
-
-/* default power settings */
-#define MHZTOHZ       (1000000)
-
-#define DF_DEFAULT    (0x0)
-#define MSEL_DEFAULT  (0x10)
-#define SSEL_DEFAULT  (0x8)
-#define CSEL_DEFAULT  (0x4)
-
-#define CLKIN         (25 * MHZTOHZ)
-#define CORE_MAX      (500 * MHZTOHZ)
-#define SYSCLK_MAX    (250 * MHZTOHZ)
-#define SCLK_MAX      (125 * MHZTOHZ)
-#define VCO_MIN       (72 * MHZTOHZ)
-
-
-
-int main(int argc, char *argv[])
 {
 	/**
 	 * Initialize managed drivers and/or services that have been added to 
@@ -76,15 +48,11 @@ int main(int argc, char *argv[])
 	 */
 	adi_initComponents();
 	
+    /* Initialize Power service */
+    power_init();
+
 	/* Set the Software controlled switches to default values */
 	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
-
-    /* Initialize Power service */
-    if(adi_pwr_Init(0, CLKIN) != ADI_PWR_SUCCESS)
-    {
-        REPORT_ERROR("Failed to initialize power service \n");
-        return FAILED;
-    }
 
 	Flash_Init();
 
