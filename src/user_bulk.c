@@ -232,7 +232,7 @@ static uint16_t numPending = 0;
 volatile int iCANFifoHead = 0;
 volatile int iCANFifoTail = 0;
 
-#define CANFIFO_SIZE 32
+#define CANFIFO_SIZE 128
 #define CANFIFO_MASK (CANFIFO_SIZE - 1)
 
 ADI_AWLCANMessage canFifo[CANFIFO_SIZE];
@@ -265,6 +265,7 @@ int user_CANFifoPushCompletedFrame(void)
 
 int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel)
 {
+	int ret;
 	ADI_AWLCANMessage canMsg;
 
 	canMsg.id = 10;
@@ -278,7 +279,10 @@ int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel)
 	canMsg.data[6] = 44;          //track->intensity
 	canMsg.data[7] = 0;           //...
 
-	CANFifoPushMsg(&canMsg);
+	ret = CANFifoPushMsg(&canMsg);
+
+	if (ret)
+		return ret;
 
 	canMsg.id = 11;
 	canMsg.len = 8;
@@ -353,6 +357,9 @@ static int PollCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pC
 {
 	int num = pCanReq->data[0];
 	int i;
+
+	if (num > CANFIFO_MASK)
+		num = CANFIFO_MASK;
 
 	for(i=0; i<num; i++)
 	{
@@ -818,7 +825,7 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
     };
 
     ADI_AWLCANMessage * pCanMsg = (ADI_AWLCANMessage *) user_bulk_adi_loopback_buffer;
-    ADI_AWLCANMessage canResp[32];
+    ADI_AWLCANMessage canResp[CANFIFO_SIZE];
 
 //    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CAN Msg %d: ", pCanMsg->id);
 
