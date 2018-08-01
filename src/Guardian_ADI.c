@@ -19,6 +19,8 @@
 
 #include "user_bulk.h"
 
+#include "post_debug.h"
+
 #ifdef USE_ALGO
 #include "algo.h"
 #endif //USE_ALGO
@@ -358,25 +360,33 @@ void InitADI(void) {
 		ADI_SPI_RESULT result;
 
 		result = adi_spi_Open(2, spiMem, sizeof(spiMem), &hSpi);
+		CHECK_RESULT(result, "adi_spi_Open");
 
 		/* Set master */
 		result = adi_spi_SetMaster( hSpi,true);
+		CHECK_RESULT(result, "adi_spi_SetMaster");
 
 		/* Set slave select using hardware*/
 		result = adi_spi_SetHwSlaveSelect( hSpi, false);
+		CHECK_RESULT(result, "adi_spi_SetHwSlaveSelect");
 
 		result = adi_spi_SetTransmitUnderflow( hSpi, true);
+		CHECK_RESULT(result, "adi_spi_SetTransmitUnderflow");
 
 		result = adi_spi_SetClockPhase(hSpi, false);
+		CHECK_RESULT(result, "adi_spi_SetClockPhase");
 
 		/* Setting the clock frequency of spi   The frequency of the SPI clock is calculated by SCLK / 2* (Baud=3)*/
 		result = adi_spi_SetClock( hSpi, 9);
+		CHECK_RESULT(result, "adi_spi_SetClock");
 
 		/* Selecting slave1 as the device*/
 		result = adi_spi_SetSlaveSelect( hSpi, ADI_SPI_SSEL_ENABLE1);
+		CHECK_RESULT(result, "adi_spi_SetSlaveSelect");
 
 		/* Setting the word size of 8 bytes*/
 		result = adi_spi_SetWordSize( hSpi, ADI_SPI_TRANSFER_16BIT);
+		CHECK_RESULT(result, "adi_spi_SetWordSize");
 
 		/* No call backs required*/
 	//	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
@@ -384,6 +394,7 @@ void InitADI(void) {
 	//	result = adi_spi_SetTransceiverMode(hSpi, ADI_SPI_TXRX_MODE);
 
 		result = adi_spi_SetClockPolarity(hSpi, true);
+		CHECK_RESULT(result, "adi_spi_SetClockPolarity");
 
 		if (result == 0u)
 		{
@@ -393,6 +404,7 @@ void InitADI(void) {
 													  ADI_SPI_WATERMARK_50,
 													  ADI_SPI_WATERMARK_DISABLE,
 													  ADI_SPI_WATERMARK_DISABLE);
+			CHECK_RESULT(result, "adi_spi_SetTxWatermark");
 		}
 		if (result == 0u)
 		{
@@ -402,6 +414,7 @@ void InitADI(void) {
 													  ADI_SPI_WATERMARK_50,
 													  ADI_SPI_WATERMARK_DISABLE,
 													  ADI_SPI_WATERMARK_DISABLE);
+			CHECK_RESULT(result, "adi_spi_SetRxWatermark");
 		}
 	}
 

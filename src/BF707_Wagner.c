@@ -7,7 +7,6 @@
 #include <sys/platform.h>
 
 #include "adi_initialize.h"
-#include "BF707_Wagner.h"
 
 #include "Guardian_ADI.h"
 #include "SoftConfig_BF707.h"
@@ -18,6 +17,10 @@
 #include "flash_params.h"
 
 #include "PWR_Freq_Mode.h"
+#include "post_debug.h"
+
+#include "BF707_Wagner.h"
+
 
 
 #define USE_USB
@@ -32,15 +35,20 @@ typedef enum
     MAIN_STATE_ERROR
 } Main_States;
 
-
-
-
-
-
-
-
-
+int main(int argc, char *argv[])
 {
+//	DEBUG_HEADER( "Wagner ADSP-BF707 Eval Board" );
+
+    pADI_PORTA->DIR_SET = (3 << 0);
+    pADI_PORTB->DIR_SET = (1 << 1);
+
+    LED3_ON();
+    LED3_OFF();
+    LED4_ON();
+    LED4_OFF();
+    LED5_ON();
+    LED5_OFF();
+
 	/**
 	 * Initialize managed drivers and/or services that have been added to 
 	 * the project.
@@ -77,15 +85,6 @@ typedef enum
                 pADI_SEC0->CB.CCTL |= BITM_SEC_CCTL_RESET;
                 /* sec_cctl[n] - enable interrupt to be sent to core */
                 pADI_SEC0->CB.CCTL = BITM_SEC_CCTL_EN;
-                pADI_PORTA->DIR_SET = (3 << 0);
-                pADI_PORTB->DIR_SET = (1 << 1);
-
-                LED3_ON();
-                LED3_OFF();
-                LED4_ON();
-                LED4_OFF();
-                LED5_ON();
-                LED5_OFF();
 
                 main_state = MAIN_STATE_USER_INIT;
             break;

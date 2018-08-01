@@ -50,21 +50,6 @@ void ConfigSoftSwitches(eSOFTSWITCH, uint32_t, SOFT_SWITCH *);
 #endif /* _MISRA_RULES */
 
 
-#define ADI_DEBUG 1
-#if defined(ADI_DEBUG)
-#include <stdio.h>
-#define CHECK_RESULT(result, message) \
-	do { \
-		if((result) != ADI_TWI_SUCCESS) \
-		{ \
-			DEBUG_PRINT("Error %d calling %s\n", result, message); \
-		} \
-	} while (0)  /* do-while-zero needed for Misra Rule 19.4 */
-#else
-#define CHECK_RESULT(result, message)
-#endif
-
-
 void ConfigSoftSwitches(eSOFTSWITCH SS_WHO, uint32_t nNumber, SOFT_SWITCH *SoftSwitch )
 {
 	uint32_t switchNum;

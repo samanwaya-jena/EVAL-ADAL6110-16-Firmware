@@ -9,7 +9,10 @@
 
 #ifndef __POST_DEBUG_H__
 #define __POST_DEBUG_H__
+
 #include <stdio.h>
+
+#ifdef _DEBUG
 /**************************************************************
  * defining one of these methods will enabling debug printing *
  **************************************************************/
@@ -17,6 +20,8 @@
 //#define __DEBUG_UART__			/* prints are directed to the UART */
 #define __DEBUG_VIEW__ 	/* prints are directed to the view console window (MUCH SLOWER!!!) */
 /**************************************************************/
+#else //DEBUG
+#endif //DEBUG
 
 #define TEST_PASS				1
 #define TEST_FAIL				0
@@ -84,6 +89,14 @@
     	#define DEBUG_STATEMENT(statement) printf(statement);
     #endif
 
+#define CHECK_RESULT(result, message) \
+	do { \
+		if(result) \
+		{ \
+			DEBUG_PRINT("Error %d calling %s\n", result, message); \
+		} \
+	} while (0)  /* do-while-zero needed for Misra Rule 19.4 */
+
 /* else debug printing not defined */
 #else
 
@@ -94,6 +107,8 @@
     #undef  __DEBUG_FILE__
     #define DEBUG_PRINT(fmt,...)
     #define DEBUG_STATEMENT(statement)
+
+	#define CHECK_RESULT(result, message)
 #endif
 
 /* every method can use these defines */
