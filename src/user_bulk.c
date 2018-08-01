@@ -96,6 +96,9 @@ typedef struct
 } ADI_Bulk_Loopback_Data_Msg_Header;
 #pragma pack ()
 
+#define FIRMWARE_MAJOR_REV 0
+#define FIRMWARE_MINOR_REV 1
+
 /* ADI hostapp expected version response. */
 #define ADI_BULK_LOOPBACK_NUM_VERSION_STRINGS       5
 #define ADI_BULK_LOOPBACK_MAX_VERSION_STRING_LEN    32
@@ -103,7 +106,7 @@ typedef struct
 static const char user_bulk_adi_loopback_device_fw_version[ADI_BULK_LOOPBACK_NUM_VERSION_STRINGS][ADI_BULK_LOOPBACK_MAX_VERSION_STRING_LEN] = {
                                                                     __DATE__,       /* build date       */
                                                                     __TIME__,       /* build time       */
-                                                                    "01.00.00",     /* version number   */
+                                                                    "00.01",     /* version number   */
                                                                     "ADSP-BF707",   /* target processor */
                                                                     "Wagner"};    /* application name */
 
@@ -422,6 +425,9 @@ User_Bulk_Init_Return_Code user_bulk_init (void)
 
     /* Initalize the CLD Bulk Library */
     cld_rv = cld_bf70x_bulk_lib_init(&user_bulk_init_params);
+
+    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\nFirmware version: %d.%d\n\n",
+    		FIRMWARE_MAJOR_REV, FIRMWARE_MINOR_REV );
 
     if (cld_rv == CLD_SUCCESS)
     {
