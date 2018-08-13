@@ -97,7 +97,7 @@ typedef struct
 #pragma pack ()
 
 #define FIRMWARE_MAJOR_REV 0
-#define FIRMWARE_MINOR_REV 1
+#define FIRMWARE_MINOR_REV 2
 
 /* ADI hostapp expected version response. */
 #define ADI_BULK_LOOPBACK_NUM_VERSION_STRINGS       5
@@ -106,7 +106,7 @@ typedef struct
 static const char user_bulk_adi_loopback_device_fw_version[ADI_BULK_LOOPBACK_NUM_VERSION_STRINGS][ADI_BULK_LOOPBACK_MAX_VERSION_STRING_LEN] = {
                                                                     __DATE__,       /* build date       */
                                                                     __TIME__,       /* build time       */
-                                                                    "00.01",     /* version number   */
+                                                                    "00.02",     /* version number   */
                                                                     "ADSP-BF707",   /* target processor */
                                                                     "Wagner"};    /* application name */
 
