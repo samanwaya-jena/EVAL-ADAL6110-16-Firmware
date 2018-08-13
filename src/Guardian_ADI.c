@@ -7,7 +7,7 @@
 
 
 #define USE_DMA
-//#define USE_ALGO
+#define USE_ALGO
 
 
 #include <stdint.h>
@@ -793,13 +793,29 @@ void Lidar_Acq(uint16_t *pBank)
 			LED5_ON();
 
 #ifdef USE_ALGO
-			for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
 			{
-				int i;
-				for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
-					tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[ch * GUARDIAN_SAMPLING_LENGTH + i];
+				bool bOneDetection = false;
 
-				threshold2(&dataFifo[iFifoHead].detections[ch * GUARDIAN_NUM_DET_PER_CH], tmpAcqFloat, ch);
+				for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
+				{
+					int i;
+
+					detection_type* pDetections = &dataFifo[iFifoHead].detections[ch * GUARDIAN_NUM_DET_PER_CH];
+
+					for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
+						tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[ch * GUARDIAN_SAMPLING_LENGTH + i];
+
+					threshold2(pDetections, tmpAcqFloat, ch);
+
+					if (pDetections->distance)
+					{
+						bOneDetection = true;
+						user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 100);
+					}
+				}
+
+				if (bOneDetection)
+					user_CANFifoPushCompletedFrame();
 			}
 #endif //USE_ALGO
 
