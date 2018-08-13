@@ -84,8 +84,7 @@ void threshold2(detection_type* _detPtr, float* _buffer, int _ch)
 	for(i = dead_zone; i < GUARDIAN_SAMPLING_LENGTH-dead_zone; i++)
 	{
 		if(*sigPtr < (noisemean - threshold) && iNbDetected < GUARDIAN_NUM_DET_PER_CH) {
-			_detPtr[iNbDetected].distance = i;
-			//_detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
+			_detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
 			_detPtr[iNbDetected].intensity = *sigPtr;
 			++iNbDetected;
 		}
