@@ -511,7 +511,13 @@ void GetADIData(uint16_t *pBank, uint16_t * pData) {
 	}
 }
 
+#ifdef USE_FAKE_DATA
+void GetADIData_Start(uint16_t *pBank, uint16_t * pData);
+bool GetADIData_Check(void);
+#else //USE_FAKE_DATA
 void GetADIData_Start(uint16_t *pBank, uint16_t * pData) {
+
+
 	uint16_t bankStatus = 0;
 
 	*pBank = 0;
@@ -544,6 +550,7 @@ bool GetADIData_Check(void)
 {
 	return ReadDataFromSPI_Check();
 }
+#endif //USE_FAKE_DATA
 
 void GetADIData_Stop(void)
 {
@@ -843,3 +850,330 @@ void Lidar_ReleaseDataToFifo(uint16_t numFifo)
 int iUSBnum = 0;
 int iUSBnumOK = 0;
 int iUSBnumEmpty = 0;
+
+
+#ifdef USE_FAKE_DATA
+
+//
+// Fake data
+//
+
+const int16_t fakeData[2][GUARDIAN_SAMPLING_LENGTH + 32] =
+{
+{
+	-153,
+	381,
+	1261,
+	347,
+	-993,
+	1215,
+	-1201,
+	-857,
+	250,
+	1594,
+	762,
+	1144,
+	1091,
+	719,
+	-366,
+	-719,
+	-57,
+	794,
+	-1132,
+	-1575,
+	-1445,
+	-1465,
+	-540,
+	1270,
+	187,
+	95,
+	-179,
+	-1379,
+	-1344,
+	530,
+	-892,
+	-1421,
+	-1539,
+	559,
+	779,
+	-968,
+	-2000,
+	-8000,
+	-12000,
+	-13000,
+	-12000,
+	-8000,
+	-2000,
+	53,
+	1365,
+	1127,
+	-1453,
+	-1490,
+	-345,
+	-823,
+	-1627,
+	663,
+	-139,
+	1546,
+	201,
+	-1390,
+	-1323,
+	177,
+	1256,
+	1134,
+	468,
+	326,
+	256,
+	-1617,
+	1151,
+	425,
+	-700,
+	377,
+	1153,
+	-2000,
+	-4000,
+	-5000,
+	-5500,
+	-5000,
+	-4000,
+	-2000,
+	-234,
+	663,
+	-456,
+	778,
+	201,
+	38,
+	-1263,
+	1141,
+	-1091,
+	-1339,
+	-1145,
+	27,
+	-478,
+	1158,
+	1271,
+	-1512,
+	474,
+	-1328,
+	-1019,
+	1588,
+	-633,
+	-407,
+	-1184,
+	-1204
+	,
+	-1091,
+	-1339,
+	-1145,
+	27,
+	-478,
+	1158,
+	1271,
+	-1512,
+	474,
+	-1328,
+	-1019,
+	1588,
+	-633,
+	-407,
+	-1184,
+	-1204,
+	-1091,
+	-1339,
+	-1145,
+	27,
+	-478,
+	1158,
+	1271,
+	-1512,
+	474,
+	-1328,
+	-1019,
+	1588,
+	-633,
+	-407,
+	-1184,
+	-1204
+
+},
+{
+203 ,
+928  ,
+1359 ,
+-1524,
+-323 ,
+-805 ,
+-1157,
+-1545,
+-1352,
+14   ,
+114  ,
+1329 ,
+592  ,
+-1077,
+-1218,
+-231 ,
+-865 ,
+-850 ,
+-1474,
+632  ,
+796  ,
+1465 ,
+-355 ,
+-1600,
+114  ,
+-646 ,
+1434 ,
+-751 ,
+1235 ,
+858  ,
+853  ,
+-764 ,
+538  ,
+-1024,
+-1241,
+660  ,
+-2000,
+-8000,
+-12000,
+-13000,
+-12000,
+-8000,
+-2000,
+841  ,
+-637 ,
+693  ,
+442  ,
+1430 ,
+-520 ,
+1182 ,
+-1490,
+-1502,
+-857 ,
+-324 ,
+507  ,
+-1391,
+516  ,
+962  ,
+-1633,
+-1522,
+-153 ,
+-1334,
+1422 ,
+-30  ,
+1457 ,
+-245 ,
+229  ,
+-638 ,
+-830 ,
+-2000,
+-4000,
+-5000,
+-5500,
+-5000,
+-4000,
+-2000,
+1501 ,
+-752 ,
+1600 ,
+93   ,
+-81  ,
+-751 ,
+1092 ,
+-229 ,
+276  ,
+-516 ,
+-103 ,
+647  ,
+-1058,
+-1586,
+-9   ,
+1149 ,
+206  ,
+-1362,
+687  ,
+-1612,
+-802 ,
+-404 ,
+1173 ,
+293
+,
+276  ,
+-516 ,
+-103 ,
+647  ,
+-1058,
+-1586,
+-9   ,
+1149 ,
+206  ,
+-1362,
+687  ,
+-1612,
+-802 ,
+-404 ,
+1173 ,
+293,
+276  ,
+-516 ,
+-103 ,
+647  ,
+-1058,
+-1586,
+-9   ,
+1149 ,
+206  ,
+-1362,
+687  ,
+-1612,
+-802 ,
+-404 ,
+1173 ,
+293
+
+}
+
+};
+
+#include "cld_bf70x_bulk_lib.h"
+
+int iFakeData_offsetPerCycles = 0;
+int iFakeData_offsetPerChannel = 0;
+
+void GetADIData_Start(uint16_t *pBank, uint16_t * pData)
+{
+	static CLD_Time acq_time = 0;
+	static uint16_t nextBank = 0;
+
+	static CLD_Time offsetPerCycles = 0;
+
+	if (cld_time_passed_ms(acq_time) >= 1000u)
+	{
+		int ch;
+
+		acq_time = cld_time_get();
+
+		*pBank = nextBank + 1;
+
+		for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ch++)
+		{
+			int offset = (iFakeData_offsetPerChannel) ? offsetPerCycles + ch : offsetPerCycles;
+			memcpy(pData + ch * 100, &fakeData[nextBank][offset], GUARDIAN_SAMPLING_LENGTH * sizeof(int16_t));
+		}
+
+		nextBank = (nextBank + 1) & 0x1;
+	}
+
+	if (iFakeData_offsetPerCycles)
+	{
+		iFakeData_offsetPerCycles = 0;
+		offsetPerCycles = (offsetPerCycles + 1) & (32-1);
+	}
+}
+
+bool GetADIData_Check(void)
+{
+	return 1;
+}
+#endif //USE_FAKE_DATA
+
