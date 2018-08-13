@@ -41,6 +41,10 @@
  */
 
 
+#ifdef USE_ALGO
+uint16_t iAlgoNum = 1;
+uint16_t iAlgoScaler = 1;
+#endif //USE_ALGO
 
 #ifdef USE_ACCUMULATION
 uint16_t iAcqAccNum = 0;
@@ -746,6 +750,9 @@ inline int ProcessReadWriteFifo(void)
 		case 101:
 			iAcqAccShift = data;
 			break;
+		case 102:
+			iAlgoScaler = data;
+			break;
 		case 998:
 			SaveConfigToFlash();
 			break;
@@ -770,6 +777,9 @@ inline int ProcessReadWriteFifo(void)
 			break;
 		case 101:
 			data = iAcqAccShift;
+			break;
+		case 102:
+			data = iAlgoScaler;
 			break;
 		default:
 			ReadParamFromSPI(addr, &data);
@@ -862,28 +872,41 @@ void Lidar_Acq(uint16_t *pBank)
 #ifdef USE_ALGO
 			if (bAccDone)
 			{
-				bool bOneDetection = false;
-
-				for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
+				if (iAlgoScaler == 0)
 				{
-					int i;
-
-					detection_type* pDetections = &dataFifo[iFifoHead].detections[ch * GUARDIAN_NUM_DET_PER_CH];
-
-					for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
-						tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[ch * GUARDIAN_SAMPLING_LENGTH + i];
-
-					threshold2(pDetections, tmpAcqFloat, ch);
-
-					if (pDetections->distance)
-					{
-						bOneDetection = true;
-						user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 100);
-					}
+					iAlgoNum = 1;
 				}
+				else if (iAlgoNum < iAlgoScaler)
+				{
+					++iAlgoNum;
+				}
+				else
+				{
+					bool bOneDetection = false;
 
-				if (bOneDetection)
-					user_CANFifoPushCompletedFrame();
+					for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
+					{
+						int i;
+
+						detection_type* pDetections = &dataFifo[iFifoHead].detections[ch * GUARDIAN_NUM_DET_PER_CH];
+
+						for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
+							tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[ch * GUARDIAN_SAMPLING_LENGTH + i];
+
+						threshold2(pDetections, tmpAcqFloat, ch);
+
+						if (pDetections->distance)
+						{
+							bOneDetection = true;
+							user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 100);
+						}
+					}
+
+					if (bOneDetection)
+						user_CANFifoPushCompletedFrame();
+
+					iAlgoNum = 1;
+				}
 			}
 #endif //USE_ALGO
 
