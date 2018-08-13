@@ -39,6 +39,18 @@
  * Private constant and variables
  *
  */
+
+
+
+#ifdef USE_ACCUMULATION
+uint16_t iAcqAccNum = 0;
+uint16_t iAcqAccMax = 16;
+uint16_t iAcqAccShift = 4;
+int32_t AcqFifoAcc[FRAME_NUM_PTS];
+#endif //USE_ACCUMULATION
+
+
+
 enum ADI_REGISTER_INDEX {
 	DeviceIDAddress = 0x00, // Read only
 	Control0Address = 0x01,
@@ -726,19 +738,44 @@ inline int ProcessReadWriteFifo(void)
 
 	if (op & 0x80000000)
 	{
-		if (addr == 998)
+		switch (addr)
+		{
+		case 100:
+			iAcqAccMax = data;
+			break;
+		case 101:
+			iAcqAccShift = data;
+			break;
+		case 998:
 			SaveConfigToFlash();
-		else if (addr == 999)
+			break;
+		case 999:
 			ResetToFactoryDefault();
-		else
+			break;
+		default:
 			WriteParamToSPI(addr, data);
+			break;
+		}
 
+		// DGG: temp
 		if (addr == 0)
 			AddFakeData();
 	}
 	else
 	{
-		ReadParamFromSPI(addr, &data);
+		switch (addr)
+		{
+		case 100:
+			data = iAcqAccMax;
+			break;
+		case 101:
+			data = iAcqAccShift;
+			break;
+		default:
+			ReadParamFromSPI(addr, &data);
+			break;
+		}
+
 		user_CANFifoPushReadResp(addr, data);
 	}
 
@@ -762,14 +799,6 @@ volatile int iFifoHead = 0;
 volatile int iFifoTail = 0;
 
 static tDataFifo dataFifo[NUM_FIFO];
-
-#ifdef USE_ACCUMULATION
-#define MAX_ACC 16
-#define ACC_SHIFT 4
-int iAcqAccNum = 0;
-int32_t AcqFifoAcc[FRAME_NUM_PTS];
-#endif //USE_ACCUMULATION
-
 
 #ifdef USE_ALGO
 static float tmpAcqFloat[GUARDIAN_SAMPLING_LENGTH];
@@ -802,7 +831,7 @@ void Lidar_Acq(uint16_t *pBank)
 			LED5_ON();
 
 #ifdef USE_ACCUMULATION
-			if (iAcqAccNum < MAX_ACC)
+			if (iAcqAccNum < iAcqAccMax)
 			{
 				int i;
 				if (iAcqAccNum == 0)
@@ -820,7 +849,8 @@ void Lidar_Acq(uint16_t *pBank)
 				int i;
 				for(i=0; i<FRAME_NUM_PTS; i++)
 				{
-					dataFifo[iFifoHead].AcqFifo[i] = (int16_t) (AcqFifoAcc[i] >> ACC_SHIFT);
+					int16_t data =
+					dataFifo[iFifoHead].AcqFifo[i] = (int16_t) (AcqFifoAcc[i] >> iAcqAccShift);
 				}
 
 				iAcqAccNum = 0;
