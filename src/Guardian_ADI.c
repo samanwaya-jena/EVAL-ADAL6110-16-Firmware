@@ -8,6 +8,7 @@
 
 #define USE_DMA
 #define USE_ALGO
+#define USE_ACCUMULATION
 
 
 #include <stdint.h>
@@ -762,6 +763,13 @@ volatile int iFifoTail = 0;
 
 static tDataFifo dataFifo[NUM_FIFO];
 
+#ifdef USE_ACCUMULATION
+#define MAX_ACC 16
+#define ACC_SHIFT 4
+int iAcqAccNum = 0;
+int32_t AcqFifoAcc[FRAME_NUM_PTS];
+#endif //USE_ACCUMULATION
+
 
 #ifdef USE_ALGO
 static float tmpAcqFloat[GUARDIAN_SAMPLING_LENGTH];
@@ -783,6 +791,7 @@ void Lidar_Acq(uint16_t *pBank)
 	{
 		if (GetADIData_Check())
 		{
+			bool bAccDone = false;
 			int ch;
 
 			*pBank = BankInTransfer;
@@ -792,7 +801,36 @@ void Lidar_Acq(uint16_t *pBank)
 
 			LED5_ON();
 
+#ifdef USE_ACCUMULATION
+			if (iAcqAccNum < MAX_ACC)
+			{
+				int i;
+				if (iAcqAccNum == 0)
+					memset(AcqFifoAcc, 0, sizeof(AcqFifoAcc));
+
+				for(i=0; i<FRAME_NUM_PTS; i++)
+				{
+					AcqFifoAcc[i] += dataFifo[iFifoHead].AcqFifo[i];
+				}
+
+				++iAcqAccNum;
+			}
+			else
+			{
+				int i;
+				for(i=0; i<FRAME_NUM_PTS; i++)
+				{
+					dataFifo[iFifoHead].AcqFifo[i] = (int16_t) (AcqFifoAcc[i] >> ACC_SHIFT);
+				}
+
+				iAcqAccNum = 0;
+				bAccDone = true;
+			}
+#endif //USE_ACCUMULATION
+
+
 #ifdef USE_ALGO
+			if (bAccDone)
 			{
 				bool bOneDetection = false;
 
@@ -821,15 +859,15 @@ void Lidar_Acq(uint16_t *pBank)
 
             LED5_OFF();
 
-			int iFifoHeadNext = (iFifoHead + 1) & NUM_FIFO_MASK;
+            if (bAccDone)
+            {
+				int iFifoHeadNext = (iFifoHead + 1) & NUM_FIFO_MASK;
 
-			if (iFifoHeadNext != iFifoTail)
-			{
-				iFifoHead = iFifoHeadNext;
-//				LED5_OFF();
-			}
-//			else
-//				LED5_ON();
+				if (iFifoHeadNext != iFifoTail)
+				{
+					iFifoHead = iFifoHeadNext;
+				}
+            }
 		}
 	}
 }
