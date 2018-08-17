@@ -42,13 +42,6 @@ int main(int argc, char *argv[])
     pADI_PORTA->DIR_SET = (3 << 0);
     pADI_PORTB->DIR_SET = (1 << 1);
 
-    LED3_ON();
-    LED3_OFF();
-    LED4_ON();
-    LED4_OFF();
-    LED5_ON();
-    LED5_OFF();
-
 	/**
 	 * Initialize managed drivers and/or services that have been added to 
 	 * the project.
@@ -113,10 +106,7 @@ int main(int argc, char *argv[])
 #else //USE_USB
                 {
                    	uint16_t banknum = 0;
-
-					LED4_ON();
 					Lidar_Acq(&banknum);
-					LED4_OFF();
                 }
 #endif //USE_USB
             break;

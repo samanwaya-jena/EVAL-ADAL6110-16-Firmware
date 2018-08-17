@@ -222,6 +222,7 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
 
 static uint16_t numPending = 0;
 
+static CLD_Time usb_time = 0;
 
 
 
@@ -461,7 +462,7 @@ void user_bulk_main (void)
     #define SECONDS(x)      ((x/1000)%60)
     #define M_SECONDS(x)    (x%1000)
 
-//    static CLD_Time main_time = 0;
+    static CLD_Time main_time = 0;
 //    static CLD_Time msg_time = 0;
 //    static CLD_Time run_time = 0;
     static CLD_Time log_time = 0;
@@ -472,15 +473,22 @@ void user_bulk_main (void)
     static int iAcqNum2 = 0;
     static int iAcqNumX = 0;
 
-    LED3_ON();
-
     cld_bf70x_bulk_lib_main();
 
-//    if (cld_time_passed_ms(main_time) >= 250u)
-//    {
-//        main_time = cld_time_get();
-//        pADI_PORTA->DATA_TGL = (1 << 0);
-//    }
+    if (cld_time_passed_ms(main_time) >= 250u)
+    {
+        main_time = cld_time_get();
+        LED3_TGL();
+    }
+
+    if (usb_time)
+    {
+		if (cld_time_passed_ms(usb_time) >= 500u)
+		{
+			usb_time = 0;
+			LED4_OFF();
+		}
+    }
 
     Serial_Process();
 
@@ -489,9 +497,7 @@ void user_bulk_main (void)
     	uint16_t banknum = 0;
 //    	acq_time = cld_time_get();
 
-    	LED4_ON();
     	Lidar_Acq(&banknum);
-    	LED4_OFF();
 
     	if (banknum)
     	{
@@ -515,8 +521,6 @@ void user_bulk_main (void)
 			iUSBnum = iUSBnumOK = iUSBnumEmpty = 0;
 		}
 	}
-
-	LED3_OFF();
 
 //    if (cld_time_passed_ms(msg_time) >= 237u)
 //    {
@@ -566,6 +570,12 @@ Returns:        CLD_USB_TRANSFER_ACCEPT - Store the bulk data using the p_transf
 static CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Transfer_Params * p_transfer_data)
 {
     CLD_USB_Transfer_Request_Return_Type rv = CLD_USB_TRANSFER_STALL;
+
+	if (cld_time_passed_ms(usb_time) >= 25u)
+	{
+		usb_time = cld_time_get();
+		LED4_TGL();
+	}
 
     switch(user_bulk_adi_loopback_data.state)
     {

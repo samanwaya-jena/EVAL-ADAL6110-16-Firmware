@@ -838,8 +838,6 @@ void Lidar_Acq(uint16_t *pBank)
 
 			GetADIData_Stop();
 
-			LED5_ON();
-
 #ifdef USE_ACCUMULATION
 			if (iAcqAccNum < iAcqAccMax)
 			{
@@ -909,8 +907,6 @@ void Lidar_Acq(uint16_t *pBank)
 				}
 			}
 #endif //USE_ALGO
-
-            LED5_OFF();
 
             if (bAccDone)
             {
