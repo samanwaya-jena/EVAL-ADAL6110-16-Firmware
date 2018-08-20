@@ -19,6 +19,9 @@
 #include "cld_bf70x_bulk_lib.h"
 
 #include <ADSP-BF707_device.h>
+#include "BF707_Wagner.h"
+
+#include "Guardian_ADI.h"
 
 #include "Serial_cmd.h"
 
