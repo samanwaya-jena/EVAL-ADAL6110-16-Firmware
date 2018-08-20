@@ -28,6 +28,8 @@
 
 #include "flash_params.h"
 
+#include "BF707_Wagner.h"
+
 #include "Guardian_ADI.h"
 
 
@@ -336,8 +338,6 @@ void ResetADI(void) {
 #endif
 }
 
-int SaveConfigToFlash(void);
-
 /**
  *
  *  Public API
@@ -349,7 +349,7 @@ int SaveConfigToFlash(void);
 /**
  * @brief initialize SPI port for ADI communication
  */
-void InitADI(void) {
+void Lidar_InitADI(void) {
     int i;
 
 #if 0
@@ -493,7 +493,7 @@ void ClearSram(void) {
  * @brief Retreive the data from the ADI device
  */
 
-void GetADIData(uint16_t *pBank, uint16_t * pData) {
+void Lidar_GetADIData(uint16_t *pBank, uint16_t * pData) {
 	uint16_t bankStatus = 0;
 
 	*pBank = 0;
@@ -808,6 +808,9 @@ static uint16_t BankInTransfer = 0;
 
 volatile int iFifoHead = 0;
 volatile int iFifoTail = 0;
+
+#define NUM_FIFO			8
+#define NUM_FIFO_MASK		(NUM_FIFO-1)
 
 static tDataFifo dataFifo[NUM_FIFO];
 

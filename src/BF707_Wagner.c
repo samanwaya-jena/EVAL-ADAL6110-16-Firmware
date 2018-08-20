@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
 	Flash_Init();
 
-	InitADI();
+	Lidar_InitADI();
 
     Main_States main_state = MAIN_STATE_SYSTEM_INIT;
 

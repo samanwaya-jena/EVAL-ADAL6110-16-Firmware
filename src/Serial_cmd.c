@@ -102,7 +102,7 @@ void Lidar_GetData(void)
 
 	memset(buf, 0, sizeof(buf));
 
-	GetADIData(&banknum, buf);
+	Lidar_GetADIData(&banknum, buf);
 
 	uint16_t * pData = buf;
 
@@ -157,7 +157,7 @@ void Lidar_GetDataCSV(void)
 
 	memset(buf, 0, sizeof(buf));
 
-	GetADIData(&banknum, buf);
+	Lidar_GetADIData(&banknum, buf);
 
 	uint16_t * pData = buf;
 
@@ -227,7 +227,7 @@ void ProcessChar(char curChar)
     	break;
 
     case 'I':
-    	InitADI();
+    	Lidar_InitADI();
     	break;
 
     case 'G':

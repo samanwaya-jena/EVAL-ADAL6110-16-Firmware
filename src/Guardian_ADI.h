@@ -46,6 +46,9 @@ void Lidar_Acq(uint16_t *pBank);
 void Lidar_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo);
 void Lidar_ReleaseDataToFifo(uint16_t numFifo);
 
+/*
+ * Private read/write SPI functions
+ */
 void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
 void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
