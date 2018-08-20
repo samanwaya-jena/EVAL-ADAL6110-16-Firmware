@@ -79,8 +79,8 @@ typedef struct {
 typedef struct
 {
     unsigned long command;                              /* Query response function code */
-    unsigned long nbrCycles;
-    unsigned long nbrBytes;
+    unsigned long nbrDataCycles;
+    unsigned long nbrCANMsg;
     unsigned long next_msg_length;                      /* Set to 0 */
 } ADI_Bulk_Loopback_Lidar_Query_Response;
 
@@ -802,8 +802,8 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (vo
 
 			/* Set the Query response data. */
         	p_lidar_query_resp->command = LIDAR_QUERY;
-        	p_lidar_query_resp->nbrCycles = numPendingTemp;
-        	p_lidar_query_resp->nbrBytes = numCANMsg;
+        	p_lidar_query_resp->nbrDataCycles = numPendingTemp;
+        	p_lidar_query_resp->nbrCANMsg = numCANMsg;
         	p_lidar_query_resp->next_msg_length = 0;
 
 			/* Return the query response using the Bulk IN endpoint. */
