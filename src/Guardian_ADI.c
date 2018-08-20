@@ -97,6 +97,7 @@ enum ADI_REGISTER_INDEX {
 	CH15ControlReg1Address = 0x4A,
 	ADC0Controlreg0Address = 0x4D,
 	ADC1Controlreg0Address = 0x56,
+	UndocumentedF1Address = 0xF1,
 	ADCWorkingModeAddress = 0xF2,
 	BankStatusAddress = 0xF6, // read only
 	SRAMReadOutAddress = 0xFF // read only
@@ -505,7 +506,7 @@ void GetADIData(uint16_t *pBank, uint16_t * pData) {
 		*pBank = bankStatus;
 
 		//2. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x1
-		WriteParamToSPI(0xF1, 0x01B0 | 0x0002);
+		WriteParamToSPI(UndocumentedF1Address, 0x01B0 | 0x0002);
 
         //3. Immediately write to the corresponding bit in the
 		//   SRAM_READ register bit 0 for bank0 and bit 1 for
@@ -520,7 +521,7 @@ void GetADIData(uint16_t *pBank, uint16_t * pData) {
 		ReadDataFromSPI(pData, FRAME_NUM_PTS);
 
 		//5. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x0
-		WriteParamToSPI(0xF1, 0x01B0);
+		WriteParamToSPI(UndocumentedF1Address, 0x01B0);
 
 		//6. Write 0x0 to the SRAM_READ register (Address 0x3)
 		//   to disengage the transfer intent.
@@ -547,7 +548,7 @@ void GetADIData_Start(uint16_t *pBank, uint16_t * pData) {
 		*pBank = bankStatus;
 
 		//2. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x1
-		WriteParamToSPI(0xF1, 0x01B0 | 0x0002);
+		WriteParamToSPI(UndocumentedF1Address, 0x01B0 | 0x0002);
 
         //3. Immediately write to the corresponding bit in the
 		//   SRAM_READ register bit 0 for bank0 and bit 1 for
@@ -579,7 +580,7 @@ void GetADIData_Stop(void)
 #endif //USE_DMA
 
 	//5. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x0
-	WriteParamToSPI(0xF1, 0x01B0);
+	WriteParamToSPI(UndocumentedF1Address, 0x01B0);
 
 	//6. Write 0x0 to the SRAM_READ register (Address 0x3)
 	//   to disengage the transfer intent.
