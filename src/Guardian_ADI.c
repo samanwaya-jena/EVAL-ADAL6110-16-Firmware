@@ -944,7 +944,7 @@ void Lidar_Acq(uint16_t *pBank)
 						if (pDetections->distance)
 						{
 							bOneDetection = true;
-							user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 100);
+							user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 0);
 						}
 					}
 
