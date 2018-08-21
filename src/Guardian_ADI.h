@@ -16,7 +16,6 @@
 typedef struct
 {
 	int16_t AcqFifo[FRAME_NUM_PTS];
-	detection_type detections[GUARDIAN_NUM_CHANNEL * GUARDIAN_NUM_DET_PER_CH];
 } tDataFifo;
 
 

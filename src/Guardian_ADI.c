@@ -927,13 +927,14 @@ void Lidar_Acq(uint16_t *pBank)
 				}
 				else
 				{
+					detection_type detections[GUARDIAN_NUM_CHANNEL * GUARDIAN_NUM_DET_PER_CH];
 					bool bOneDetection = false;
 
 					for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
 					{
 						int i;
 
-						detection_type* pDetections = &dataFifo[iFifoHead].detections[ch * GUARDIAN_NUM_DET_PER_CH];
+						detection_type* pDetections = &detections[ch * GUARDIAN_NUM_DET_PER_CH];
 
 						for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
 							tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[ch * GUARDIAN_SAMPLING_LENGTH + i];
