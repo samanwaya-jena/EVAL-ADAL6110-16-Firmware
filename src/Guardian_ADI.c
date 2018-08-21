@@ -186,6 +186,14 @@ uint8_t spiMem[ADI_SPI_INT_MEMORY_SIZE];
 ADI_SPI_HANDLE hSpi = NULL;
 
 
+
+/*
+ * Private function prototypes
+ */
+static void ClearSram(void);
+
+
+
 /**
  *  @brief Writes param to SPI
  *
@@ -325,6 +333,13 @@ bool ReadDataFromSPI_Check(void)
 }
 
 void ResetADI(void) {
+
+	// TODO: Drive the reset pin when available
+
+	Lidar_SPITriggerMode();
+
+	ClearSram();
+
 #if 0
 	int i = 30;
 // P1.3 is used as GPIO for LED indication. Macros can be find in GPIO.h
@@ -473,21 +488,46 @@ int ResetToFactoryDefault(void)
 	return Flash_ResetToFactoryDefault();
 }
 
+void ForceGetADIData(uint16_t bankNum, uint16_t * pData) {
+	//1. Poll the Bank_Status register (Address 0xF6) until
+	//   register reads 0x1 or 0x2. This means data is ready at
+	//   that bank.
+	// N/A
+
+	//2. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x1
+	WriteParamToSPI(UndocumentedF1Address, 0x01B0 | 0x0002);
+
+	//3. Immediately write to the corresponding bit in the
+	//   SRAM_READ register bit 0 for bank0 and bit 1 for
+	//   bank1 (Address 0x3). This will tell the AFE you intend
+	//   to transfer that data.
+	WriteParamToSPI(DataControlAddress, bankNum);
+
+	//4. Read 1600 words from the SRAM by performing the
+	//   SRAM Read operation which is detailed in the figure
+	//   below. The SPI FSM will be locked into operation until
+	//   all 1600 words are read.
+	ReadDataFromSPI(pData, FRAME_NUM_PTS);
+
+	//5. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x0
+	WriteParamToSPI(UndocumentedF1Address, 0x01B0);
+
+	//6. Write 0x0 to the SRAM_READ register (Address 0x3)
+	//   to disengage the transfer intent.
+	WriteParamToSPI(DataControlAddress, 0x0000);
+}
+
 /**
  * @brief Clear the sram by reading both banks
  */
-void ClearSram(void) {
+int16_t AcqFifoReset[FRAME_NUM_PTS];
 
-//	WriteParamToSPI(DataControlAddress, 0x01);
-//	ReadDataFromSPI(&DataForSPITransaction[0]);
-//	WriteParamToSPI(DataControlAddress, 0x00);
+static void ClearSram(void) {
 
-//	WriteParamToSPI(DataControlAddress, 0x02);
-//	ReadDataFromSPI(&DataForSPITransaction[0]);
-//	WriteParamToSPI(DataControlAddress, 0x00);
+	ForceGetADIData(0x01, (uint16_t*) AcqFifoReset);
+	ForceGetADIData(0x02, (uint16_t*) AcqFifoReset);
 
 }
-
 
 /**
  * @brief Retreive the data from the ADI device
@@ -754,6 +794,9 @@ inline int ProcessReadWriteFifo(void)
 		case 102:
 			iAlgoScaler = data;
 			break;
+		case 997:
+			Lidar_Reset();
+			break;
 		case 998:
 			SaveConfigToFlash();
 			break;
@@ -949,6 +992,16 @@ void Lidar_ReleaseDataToFifo(uint16_t numFifo)
 //	LED5_OFF();
 }
 
+void Lidar_Reset(void)
+{
+	Lidar_InitADI();
+
+	iReadWriteFifoHead = 0;
+	iReadWriteFifoTail = 0;
+
+	iFifoHead = 0;
+	iFifoTail = 0;
+}
 
 //
 // USB

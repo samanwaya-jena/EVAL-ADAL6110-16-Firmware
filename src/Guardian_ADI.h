@@ -45,6 +45,7 @@ void Lidar_FlashGain(uint16_t flashGain);
 void Lidar_Acq(uint16_t *pBank);
 void Lidar_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo);
 void Lidar_ReleaseDataToFifo(uint16_t numFifo);
+void Lidar_Reset(void);
 
 /*
  * Private read/write SPI functions
