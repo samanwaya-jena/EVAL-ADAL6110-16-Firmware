@@ -26,46 +26,6 @@
 #include "Serial_cmd.h"
 
 
-/* ADI hostapp.exe commands */
-typedef enum
-{
-    NO_COMMAND = 0,                                     /* nothing doing here... */
-    GET_FW_VERSION,                                     /* get the firmware version */
-    QUERY_SUPPORT,                                      /* query for support */
-    QUERY_REPLY,                                        /* query reply */
-    QUERY_USB_PORT,                                     /* Which USB port connection is made */
-    LOOPBACK,                                           /* run loopback on the device */
-    MEMORY_READ,                                        /* read from specified memory on the device */
-    MEMORY_WRITE,                                       /* write to specified memory on the device */
-	LIDAR_QUERY,
-	LIDAR_GETDATA
-} ADI_Loopback_Command_Function_Code;
-
-#pragma pack (1)
-/* ADI loopback test command */
-typedef struct
-{
-    unsigned long command;                              /* ADI_Loopback_Command_Function_Code command */
-    unsigned long cmd_data;                             /* Command parameters */
-    unsigned long next_msg_length;                      /* Length of the next bulk in/out message */
-} ADI_Bulk_Loopback_Command;
-
-/* QUERY_SUPPORT command response */
-typedef struct
-{
-    unsigned long command;                              /* Query response function code */
-    unsigned long supported;                            /* 0x00000001 = Supported, 0x00000000 = Not supported */
-    unsigned long next_msg_length;                      /* Set to 0 */
-} ADI_Bulk_Loopback_Query_Response;
-
-/* QUERY_USB_PORT command response */
-typedef struct
-{
-    unsigned long command;                              /* Query USB Port function code */
-    unsigned long usb_port;                             /* 0x00000000 = USB0, 0x00000001 = USB1 */
-    unsigned long next_msg_length;                      /* Set to 0 */
-} ADI_Bulk_Loopback_Query_USB_Response;
-
 
 // CAN Frame
 typedef struct {
@@ -78,79 +38,17 @@ typedef struct {
     unsigned char pad2;
 } ADI_AWLCANMessage;
 
-/* QUERY_SUPPORT command response */
-typedef struct
-{
-    unsigned long command;                              /* Query response function code */
-    unsigned long nbrDataCycles;
-    unsigned long nbrCANMsg;
-    unsigned long next_msg_length;                      /* Set to 0 */
-} ADI_Bulk_Loopback_Lidar_Query_Response;
-
-
-/* The first 4-bytes of the bulk loopback transfer describe the next bulk loopback
-   transfer.
-        bits 31-24 = If set to 0 stop loopback, otherwise continue loopback.
-        bits 23-0 = Length of the next loopback transfer
- */
-typedef struct
-{
-    unsigned long next_msg_length;
-} ADI_Bulk_Loopback_Data_Msg_Header;
-#pragma pack ()
 
 #define FIRMWARE_MAJOR_REV 0
 #define FIRMWARE_MINOR_REV 3
 
-/* ADI hostapp expected version response. */
-#define ADI_BULK_LOOPBACK_NUM_VERSION_STRINGS       5
-#define ADI_BULK_LOOPBACK_MAX_VERSION_STRING_LEN    32
-#pragma align 4
-static const char user_bulk_adi_loopback_device_fw_version[ADI_BULK_LOOPBACK_NUM_VERSION_STRINGS][ADI_BULK_LOOPBACK_MAX_VERSION_STRING_LEN] = {
-                                                                    __DATE__,       /* build date       */
-                                                                    __TIME__,       /* build time       */
-                                                                    "00.03",     /* version number   */
-                                                                    "ADSP-BF707",   /* target processor */
-                                                                    "Wagner"};    /* application name */
 
-
-/* State variable used to track what loopback test is active. */
-typedef enum
-{
-    ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE = 0,
-    ADI_BULK_LOOPBACK_DEVICE_STATE_LOOPBACK,            /* Loopback test active */
-    ADI_BULK_LOOPBACK_DEVICE_STATE_WRITE_MEMORY,        /* Write memory test active */
-} ADI_Bulk_Lookback_Device_State;
-
-typedef struct
-{
-    ADI_Bulk_Lookback_Device_State state;               /* loopback test state. */
-    ADI_Bulk_Loopback_Command cmd;                      /* Current loopback command */
-    unsigned long total_num_loopback_bytes;             /* Total number of loopback bytes in the
-                                                           current loopback transfer */
-    unsigned long next_transfer_total_num_bytes;        /* Total number of bytes in the next
-                                                           data transfer. */
-    unsigned long write_mem_addr;                       /* Memory address to store the data
-                                                           during a MEMORY_WRITE command. */
-} ADI_Bulk_Loopback_Data;
-
-static ADI_Bulk_Loopback_Data user_bulk_adi_loopback_data =
-{
-    .state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE,
-};
-
-/* Loopback data buffer */
-#define ADI_BULK_LOOPBACK_BUFFER_SIZE   0x10000
-static unsigned char user_bulk_adi_loopback_buffer[ADI_BULK_LOOPBACK_BUFFER_SIZE];
+static ADI_AWLCANMessage user_bulk_adi_loopback_buffer;
 
 /* Function prototypes */
 static CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Transfer_Params * p_transfer_data);
 
-static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (void);
-static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_data_received (void);
-static CLD_USB_Data_Received_Return_Type user_bulk_adi_write_memory_data_received (void);
 static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void);
-static unsigned long user_bulk_adi_loopback_device_check_cmd_supported (ADI_Loopback_Command_Function_Code cmd);
 static void user_bulk_adi_loopback_device_transfer_error (void);
 static void user_bulk_adi_loopback_bulk_in_transfer_complete (void);
 static void user_bulk_console_rx_byte (unsigned char byte);
@@ -347,8 +245,8 @@ int user_CANFifoPushSensorBoot(void)
 
 	canMsg.id = 2;
 	canMsg.len = 8;
-	canMsg.data[0] = 1;
-	canMsg.data[1] = 0;
+	canMsg.data[0] = FIRMWARE_MAJOR_REV;
+	canMsg.data[1] = FIRMWARE_MINOR_REV;
 	canMsg.data[2] = 0;
 	canMsg.data[3] = 0;
 	canMsg.data[4] = 0;
@@ -358,7 +256,6 @@ int user_CANFifoPushSensorBoot(void)
 
 	return CANFifoPushMsg(&canMsg);
 }
-
 
 static int PollCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp, int * pNum)
 {
@@ -383,10 +280,90 @@ static int PollCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pC
 	return 0;
 }
 
+static int ProcessLidarQueryCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp)
+{
+	int _iCANFifoHead = iCANFifoHead;
+	int _iCANFifoTail = iCANFifoTail;
+
+	tDataFifo * pData = NULL;
+	uint16_t numPendingTemp = 0;
+
+	Lidar_GetDataFromFifo(&pData, &numPendingTemp);
+
+	int numCANMsg = 0;
+	if (_iCANFifoTail < _iCANFifoHead)
+		numCANMsg = _iCANFifoHead - _iCANFifoTail;
+	else if (_iCANFifoTail > _iCANFifoHead)
+		numCANMsg = (CANFIFO_SIZE - _iCANFifoTail) + _iCANFifoHead;
+
+	pCanResp->id = 89;
+
+	uint32_t * pNbrDataCycles = (uint32_t *) &pCanResp->data[0];
+	*pNbrDataCycles = numPendingTemp;
+
+	uint32_t * pNbrCANMsg = (uint32_t *) &pCanResp->data[4];
+	*pNbrCANMsg = numCANMsg;
+
+	return 0;
+}
+
+static CLD_USB_Data_Received_Return_Type ProcessGetData(ADI_AWLCANMessage * pCanReq)
+{
+	tDataFifo * pData = NULL;
+
+	/* Parameters used to send Bulk IN data in response to the
+	   current command. */
+	static CLD_USB_Transfer_Params transfer_params =
+	{
+		.fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error
+	};
+
+	++iUSBnum;
+
+	Lidar_GetDataFromFifo(&pData, &numPending);
+
+	if (numPending)
+	{
+		uint16_t numReq = pCanReq->data[0];
+
+		if (numPending > numReq)
+			numPending = numReq;
+
+		iUSBnumOK += numPending;
+
+		/* Configure the USB Bulk IN transfer to read the number of bytes
+		   specified in the Memory Read command. */
+		transfer_params.num_bytes = numPending * sizeof(tDataFifo);
+
+		/* Set the Bulk In data buffer address to the starting address specified in the
+		   Memory Read command. */
+		transfer_params.p_data_buffer = (unsigned char*) pData;
+	}
+	else
+	{
+		++iUSBnumEmpty;
+
+		transfer_params.num_bytes = 0;
+		transfer_params.p_data_buffer = 0;
+	}
+	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
+	transfer_params.transfer_timeout_ms = 1000;
+
+	CLD_USB_Data_Transmit_Return_Type res = cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
+
+	if (res != CLD_USB_TRANSMIT_SUCCESSFUL)
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Error!");
+
+    return CLD_USB_DATA_GOOD;
+}
+
 static int ProcessCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp)
 {
 	switch (pCanReq->id)
 	{
+	case 89:
+		ProcessLidarQueryCanCommandMsg(pCanReq, pCanResp);
+		break;
 	case 80:
 		if (pCanReq->data[0] == 0xC0 && pCanReq->data[1] == 0x03)
 		{
@@ -580,257 +557,19 @@ static CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD
 		LED4_TGL();
 	}
 
-    switch(user_bulk_adi_loopback_data.state)
-    {
-    case ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE:
-        /* IF the received bulk packet is an ADI_Bulk_Loopback_Command. */
-        if (p_transfer_data->num_bytes == sizeof(ADI_Bulk_Loopback_Command))
-        {
-            /* Save the received data to the user_bulk_adi_loopback_data.cmd structure,
-               and call user_bulk_adi_loopback_cmd_received once the data has been received. */
-            p_transfer_data->p_data_buffer = (unsigned char *)&user_bulk_adi_loopback_data.cmd;
-            p_transfer_data->callback.fp_usb_out_transfer_complete = user_bulk_adi_loopback_cmd_received;
-            p_transfer_data->fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error;
-            p_transfer_data->transfer_timeout_ms = 1000;
-            rv = CLD_USB_TRANSFER_ACCEPT;
-        }
-        /* IF the received bulk packet is an ADI_Bulk_Loopback_Command. */
-        else if (p_transfer_data->num_bytes == sizeof(ADI_AWLCANMessage))
-    	{
-    		/* Save the received data to the user_bulk_adi_loopback_data.cmd structure,
-    		   and call user_bulk_adi_loopback_cmd_received once the data has been received. */
-        	p_transfer_data->p_data_buffer = user_bulk_adi_loopback_buffer;
-    		p_transfer_data->callback.fp_usb_out_transfer_complete = user_bulk_adi_can_cmd_received;
-    		p_transfer_data->fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error;
-    		p_transfer_data->transfer_timeout_ms = 1000;
-    		rv = CLD_USB_TRANSFER_ACCEPT;
-    	}
-    	break;
-
-    /* If the loopback test is active. */
-    case ADI_BULK_LOOPBACK_DEVICE_STATE_LOOPBACK:
-        /* Store the entire Bulk OUT transfer in the user_bulk_adi_loopback_buffer,
-           and call user_bulk_adi_loopback_data_received once the data has been written to the buffer. */
-        p_transfer_data->p_data_buffer = (unsigned char *)&user_bulk_adi_loopback_buffer[0];
-        /* Set the p_transfer_data->num_bytes to the total number of bytes expected in the
-           Loopback transfer. */
-        p_transfer_data->num_bytes = user_bulk_adi_loopback_data.total_num_loopback_bytes;
-        p_transfer_data->callback.fp_usb_out_transfer_complete = user_bulk_adi_loopback_data_received;
-        p_transfer_data->fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error;
-        p_transfer_data->transfer_timeout_ms = 1000;
-
-        rv = CLD_USB_TRANSFER_ACCEPT;
-    	break;
-
-    /* If the memory write test is active. */
-    case ADI_BULK_LOOPBACK_DEVICE_STATE_WRITE_MEMORY:
-        /* Configure the USB Bulk OUT transfer to write the number of bytes
-            specified in the Memory Write command. */
-        p_transfer_data->num_bytes = user_bulk_adi_loopback_data.next_transfer_total_num_bytes;
-
-        /* Set the Bulk Out data buffer address to the starting address specified in the
-           Memory Write command. */
-        p_transfer_data->p_data_buffer = (unsigned char *)user_bulk_adi_loopback_data.write_mem_addr;
-
-        /* Call the user_bulk_adi_write_memory_data_received function once the
-           Write Memory operation has finished. */
-        p_transfer_data->callback.fp_usb_out_transfer_complete = user_bulk_adi_write_memory_data_received;
-        p_transfer_data->fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error;
-        p_transfer_data->transfer_timeout_ms = 1000;
-
-        rv = CLD_USB_TRANSFER_ACCEPT;
-    	break;
-    }
+    if (p_transfer_data->num_bytes == sizeof(ADI_AWLCANMessage))
+	{
+		/* Save the received data to the user_bulk_adi_loopback_data.cmd structure,
+		   and call user_bulk_adi_loopback_cmd_received once the data has been received. */
+		p_transfer_data->p_data_buffer = (unsigned char *) &user_bulk_adi_loopback_buffer;
+		p_transfer_data->callback.fp_usb_out_transfer_complete = user_bulk_adi_can_cmd_received;
+		p_transfer_data->fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error;
+		p_transfer_data->transfer_timeout_ms = 1000;
+		rv = CLD_USB_TRANSFER_ACCEPT;
+	}
 
     return rv;
 }
-
-/*=============================================================================
-Function:       user_bulk_adi_loopback_cmd_received
-
-Parameters:     None.
-
-Description:    This function is called when the user_bulk_adi_loopback_data.cmd
-                structure has been populated.
-
-Returns:        CLD_USB_DATA_GOOD - The received data is valid.
-==============================================================================*/
-static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_cmd_received (void)
-{
-    /* Parameters used to send Bulk IN data in response to the
-       current command. */
-    static CLD_USB_Transfer_Params transfer_params =
-    {
-        .fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error
-    };
-    ADI_Bulk_Loopback_Query_Response * p_query_resp;
-    ADI_Bulk_Loopback_Query_USB_Response * p_query_usb_port;
-    ADI_Bulk_Loopback_Lidar_Query_Response * p_lidar_query_resp;
-
-    if (((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != MEMORY_READ) &&
-    	((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != LIDAR_QUERY))
-    	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Bulk Command %d: ", user_bulk_adi_loopback_data.cmd.command);
-
-    /* Process the received command */
-    switch((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command)
-    {
-        case NO_COMMAND:
-            /* Do nothing */
-        break;
-
-        case GET_FW_VERSION:
-            /* Return the firmware version using the Bulk IN endpoint. */
-            transfer_params.num_bytes = sizeof(user_bulk_adi_loopback_device_fw_version);
-            transfer_params.p_data_buffer = (unsigned char*)user_bulk_adi_loopback_device_fw_version;
-            transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
-            transfer_params.transfer_timeout_ms = 1000;
-            cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Get FW Version");
-        break;
-
-        case QUERY_SUPPORT:
-            p_query_resp = (ADI_Bulk_Loopback_Query_Response *)user_bulk_adi_loopback_buffer;
-
-            /* Set the Query response data. */
-            p_query_resp->command = QUERY_REPLY;
-            p_query_resp->supported = user_bulk_adi_loopback_device_check_cmd_supported((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.cmd_data);
-            p_query_resp->next_msg_length = 0;
-
-            /* Return the query response using the Bulk IN endpoint. */
-            transfer_params.num_bytes = sizeof(ADI_Bulk_Loopback_Query_Response);
-            transfer_params.p_data_buffer = user_bulk_adi_loopback_buffer;
-            transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
-            transfer_params.transfer_timeout_ms = 1000;
-            cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Query Cmd Support");
-        break;
-
-        case QUERY_USB_PORT:
-            p_query_usb_port = (ADI_Bulk_Loopback_Query_USB_Response *)user_bulk_adi_loopback_buffer;
-
-            /* Set the Query response data. */
-            p_query_usb_port->command = QUERY_USB_PORT;
-            p_query_usb_port->usb_port = 0;  /* The BF70x has a single USB port. */
-            p_query_usb_port->next_msg_length = 0;
-
-            /* Return the query response using the Bulk IN endpoint. */
-            transfer_params.num_bytes = sizeof(ADI_Bulk_Loopback_Query_USB_Response);
-            transfer_params.p_data_buffer = user_bulk_adi_loopback_buffer;
-            transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
-            transfer_params.transfer_timeout_ms = 1000;
-            cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Query USB Cmd");
-        break;
-
-        case LOOPBACK:
-            /* The loopback test is starting. */
-            user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_LOOPBACK;
-            /* Save the total number of loopback bytes in the first loopback
-               transfer. */
-            user_bulk_adi_loopback_data.total_num_loopback_bytes = user_bulk_adi_loopback_data.cmd.next_msg_length;
-            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Loopback Data");
-        break;
-
-        case MEMORY_READ:
-        {
-        	tDataFifo * pData = NULL;
-
-        	++iUSBnum;
-
-        	Lidar_GetDataFromFifo(&pData, &numPending);
-
-        	if (numPending)
-        	{
-        		uint16_t numReq = (uint16_t) user_bulk_adi_loopback_data.cmd.cmd_data;
-
-        		if (numPending > numReq)
-        			numPending = numReq;
-
-        		iUSBnumOK += numPending;
-
-				/* Configure the USB Bulk IN transfer to read the number of bytes
-				   specified in the Memory Read command. */
-        		transfer_params.num_bytes = numPending * sizeof(tDataFifo);
-
-				/* Set the Bulk In data buffer address to the starting address specified in the
-				   Memory Read command. */
-				transfer_params.p_data_buffer = (unsigned char*) pData;
-        	}
-        	else
-        	{
-        		++iUSBnumEmpty;
-
-        		transfer_params.num_bytes = 0;
-        		transfer_params.p_data_buffer = 0;
-        	}
-			transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
-			transfer_params.transfer_timeout_ms = 1000;
-
-			CLD_USB_Data_Transmit_Return_Type res = cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-
-			if (res != CLD_USB_TRANSMIT_SUCCESSFUL)
-				cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Error!");
-
-        break;
-        }
-
-        case MEMORY_WRITE:
-            /* The write memory test is starting */
-            user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_WRITE_MEMORY;
-            /* Save the total number of bytes being written to memory. */
-            user_bulk_adi_loopback_data.next_transfer_total_num_bytes = user_bulk_adi_loopback_data.cmd.next_msg_length;
-            /* Save the specified memory starting address. */
-            user_bulk_adi_loopback_data.write_mem_addr = user_bulk_adi_loopback_data.cmd.cmd_data;
-            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Write Memory");
-        break;
-
-        // Wagner
-        case LIDAR_QUERY:
-        {
-        	int _iCANFifoHead = iCANFifoHead;
-        	int _iCANFifoTail = iCANFifoTail;
-
-        	p_lidar_query_resp = (ADI_Bulk_Loopback_Lidar_Query_Response *)user_bulk_adi_loopback_buffer;
-
-        	tDataFifo * pData = NULL;
-        	uint16_t numPendingTemp = 0;
-
-        	Lidar_GetDataFromFifo(&pData, &numPendingTemp);
-
-        	int numCANMsg = 0;
-        	if (_iCANFifoTail < _iCANFifoHead)
-        		numCANMsg = _iCANFifoHead - _iCANFifoTail;
-   			else if (_iCANFifoTail > _iCANFifoHead)
-  				numCANMsg = (CANFIFO_SIZE - _iCANFifoTail) + _iCANFifoHead;
-
-			/* Set the Query response data. */
-        	p_lidar_query_resp->command = LIDAR_QUERY;
-        	p_lidar_query_resp->nbrDataCycles = numPendingTemp;
-        	p_lidar_query_resp->nbrCANMsg = numCANMsg;
-        	p_lidar_query_resp->next_msg_length = 0;
-
-			/* Return the query response using the Bulk IN endpoint. */
-			transfer_params.num_bytes = sizeof(ADI_Bulk_Loopback_Lidar_Query_Response);
-			transfer_params.p_data_buffer = user_bulk_adi_loopback_buffer;
-			transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
-			transfer_params.transfer_timeout_ms = 1000;
-			cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-			//cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar Query");
-        }
-		break;
-
-        default:
-            /* Do nothing */
-        break;
-    }
-
-    if (((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != MEMORY_READ) &&
-        	((ADI_Loopback_Command_Function_Code)user_bulk_adi_loopback_data.cmd.command != LIDAR_QUERY))
-    	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\n\r");
-
-    return CLD_USB_DATA_GOOD;
-}
-
 
 static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 {
@@ -843,14 +582,16 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
         .fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error
     };
 
-    ADI_AWLCANMessage * pCanMsg = (ADI_AWLCANMessage *) user_bulk_adi_loopback_buffer;
+    ADI_AWLCANMessage * pCanMsg = (ADI_AWLCANMessage *) &user_bulk_adi_loopback_buffer;
     ADI_AWLCANMessage canResp[CANFIFO_SIZE];
 
 //    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CAN Msg %d: ", pCanMsg->id);
 
     memset(&canResp[0], 0, sizeof(ADI_AWLCANMessage));
 
-    if (pCanMsg->id == 88)
+    if (pCanMsg->id == 87)
+    	return ProcessGetData(pCanMsg);
+    else if (pCanMsg->id == 88)
     	PollCanCommandMsg(pCanMsg, canResp, &num);
     else
     	ProcessCanCommandMsg(pCanMsg, canResp);
@@ -867,92 +608,6 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
     return CLD_USB_DATA_GOOD;
 }
 
-/*=============================================================================
-Function:       user_bulk_adi_loopback_data_received
-
-Parameters:     None.
-
-Description:    This function is called when loopback data has been received.
-
-Returns:        CLD_USB_DATA_GOOD - The received data is valid.
-==============================================================================*/
-static CLD_USB_Data_Received_Return_Type user_bulk_adi_loopback_data_received (void)
-{
-    ADI_Bulk_Loopback_Data_Msg_Header * p_loopback_hdr;
-    /* Structure used to echo back the received Bulk OUT data on the Bulk IN
-       endpoint. */
-    static CLD_USB_Transfer_Params bulk_in_transfer_params =
-    {
-        .p_data_buffer = user_bulk_adi_loopback_buffer,
-        .callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete,
-        .fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error,
-        .transfer_timeout_ms = 1000
-    };
-
-    bulk_in_transfer_params.num_bytes = user_bulk_adi_loopback_data.total_num_loopback_bytes;
-    cld_bf70x_bulk_lib_transmit_bulk_in_data(&bulk_in_transfer_params);
-
-    /* Set p_loopback_hdr to address the first 4-bytes of the received
-       loopback data. */
-    p_loopback_hdr = (ADI_Bulk_Loopback_Data_Msg_Header *)user_bulk_adi_loopback_buffer;
-
-    /* If the loopback test should continue. */
-    if (p_loopback_hdr->next_msg_length & 0xff000000)
-    {
-        /* Save the number of bytes in the next loopback transfer. */
-        user_bulk_adi_loopback_data.total_num_loopback_bytes = (p_loopback_hdr->next_msg_length & 0x00ffffff);
-    }
-    else
-    {
-        cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Data Loopback ended\n\r");
-        /* Exit the loopback test mode. */
-        user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE;
-    }
-    return CLD_USB_DATA_GOOD;
-}
-
-/*=============================================================================
-Function:       user_bulk_adi_write_memory_data_received
-
-Parameters:     None.
-
-Description:    This function is called when memory write data has been received.
-
-Returns:        CLD_USB_DATA_GOOD - The received data is valid.
-==============================================================================*/
-static CLD_USB_Data_Received_Return_Type user_bulk_adi_write_memory_data_received (void)
-{
-    user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE;
-    return CLD_USB_DATA_GOOD;
-}
-
-/*=============================================================================
-Function:       user_bulk_adi_loopback_device_check_cmd_supported
-
-Parameters:     cmd - The received command function code.
-
-Description:    This function tests if the received function code is supported
-                by the firmware.
-
-Returns:        1 = Supported, 0 = Not supported
-==============================================================================*/
-static unsigned long user_bulk_adi_loopback_device_check_cmd_supported (ADI_Loopback_Command_Function_Code cmd)
-{
-    if ((cmd == NO_COMMAND) ||
-        (cmd == GET_FW_VERSION) ||
-        (cmd == QUERY_SUPPORT) ||
-        (cmd == QUERY_USB_PORT) ||
-        (cmd == LOOPBACK) ||
-        (cmd == MEMORY_READ) ||
-        (cmd == MEMORY_WRITE))
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
 
 /*=============================================================================
 Function:       user_bulk_adi_loopback_device_transfer_error
@@ -965,7 +620,7 @@ Returns:        None.
 ==============================================================================*/
 static void user_bulk_adi_loopback_device_transfer_error (void)
 {
-    user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE;
+//    user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE;
 }
 
 /*=============================================================================
@@ -984,14 +639,6 @@ static void user_bulk_adi_loopback_bulk_in_transfer_complete (void)
     	Lidar_ReleaseDataToFifo(numPending);
     	numPending = 0;
 	}
-
-//    static unsigned char cnt = 0;
-//    cnt++;
-//    if (cnt == 6)
-//    {
-//        cnt = 0;
-//        pADI_PORTB->DATA_TGL = (1 << 1);
-//    }
 }
 
 /*=============================================================================
@@ -1006,45 +653,6 @@ Returns:
 static void user_bulk_console_rx_byte (unsigned char byte)
 {
 	Serial_RxChar(byte);
-
-#if 0
-    static const CLD_CONSOLE_COLOR cld_console_colors[CLD_CONSOLE_NUM_COLORS] =
-    {
-        CLD_CONSOLE_RED,
-        CLD_CONSOLE_GREEN,
-        CLD_CONSOLE_YELLOW,
-        CLD_CONSOLE_BLUE,
-        CLD_CONSOLE_PURPLE,
-        CLD_CONSOLE_CYAN,
-        CLD_CONSOLE_WHITE,
-        CLD_CONSOLE_BLACK,
-    };
-    static const char * color_strings[CLD_CONSOLE_NUM_COLORS] =
-    {
-        "Red",
-        "Green",
-        "Yellow",
-        "Blue",
-        "Purple",
-        "Cyan",
-        "White",
-        "Black",
-    };
-    unsigned char i;
-
-    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\r\nUser received %c\r\n", byte);
-
-    if (byte == '!')
-    {
-        cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\n\r----- CLD Console Color Demo -----\n\r\n\r");
-        for (i = 0; i < CLD_CONSOLE_NUM_COLORS; i++)
-        {
-            cld_console(cld_console_colors[i], cld_console_colors[CLD_CONSOLE_NUM_COLORS - i - 1], "%s text with a %s background\n\r",
-                        color_strings[i], color_strings[CLD_CONSOLE_NUM_COLORS - i - 1]);
-        }
-        cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\n\r----------------------------------\n\r\n\r");
-    }
-#endif
 }
 
 /*=============================================================================
@@ -1072,7 +680,7 @@ static void user_bulk_usb_event (CLD_USB_Event event)
         case CLD_USB_UN_CONFIGURED:
         break;
         case CLD_USB_BUS_RESET:
-            user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE;
+//            user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE;
         break;
         case CLD_USB_BUS_SUSPEND:
             cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Suspend\n\r");
