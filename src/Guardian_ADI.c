@@ -107,7 +107,7 @@ enum ADI_REGISTER_INDEX {
 
 uint16_t Lidar_InitValues[][2] =
 {
-{ 1, 0x0282 },
+{ 1, 0x0102 },
 { 2, 0x4040 },
 { 4, 0x8000 },
 { 7, 0x103D },
