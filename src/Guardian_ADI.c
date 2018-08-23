@@ -175,6 +175,43 @@ uint16_t Lidar_InitValues[][2] =
 { 246, 0x0001 }
 };
 
+int aChIdxADI[16] = {
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  15,
+  14,
+  13,
+  12,
+  11,
+  10,
+  9,
+  8
+};
+
+int aChIdxArray[16] = {
+  15,
+  0,
+  14,
+  1,
+  13,
+  2,
+  12,
+  3,
+  11,
+  4,
+  10,
+  5,
+  9,
+  6,
+  8,
+  7
+};
 
 
 #ifdef USE_DMA
@@ -934,10 +971,14 @@ void Lidar_Acq(uint16_t *pBank)
 					{
 						int i;
 
+						int chIdxArray = aChIdxArray[ch];
+
+						int chIdx = aChIdxADI[chIdxArray];
+
 						detection_type* pDetections = &detections[ch * GUARDIAN_NUM_DET_PER_CH];
 
 						for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
-							tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[ch * GUARDIAN_SAMPLING_LENGTH + i];
+							tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[chIdx * GUARDIAN_SAMPLING_LENGTH + i];
 
 						threshold2(pDetections, tmpAcqFloat, ch);
 
