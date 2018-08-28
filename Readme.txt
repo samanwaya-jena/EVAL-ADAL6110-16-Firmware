@@ -1,24 +1,15 @@
+BF707_Wagner:
+-------------
 
-//
-// Spin lock
-//
+This project runs on a BF707 evaluation board connected to a Gordon chip via
+SPI on the "RF WIRELESS" connector.
 
-#include <ccblkfn.h>
-
-testset_t gFlag = 0;
-
-adi_acquire_lock(&gFlag);
-
-adi_release_lock(&gFlag);
+The "USB TO UART" connector is used as a debugging console.
 
 
+Note:
+-----
 
-//
-// Protect by disabling interrupt
-//
+At this time, only the "Debug" configuration is fonctionnal.
 
-#include <builtins.h>
-
-unsigned int _intm = cli();
-
-sti(_intm);
+The script "ProgramToFlash.bat" can be used to program the binary in the serial Flash.
