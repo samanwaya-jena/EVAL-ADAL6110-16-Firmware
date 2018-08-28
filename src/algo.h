@@ -1,5 +1,8 @@
 #ifndef _ALGO_H_
 #define _ALGO_H_
+/*
+  Copyright 2018 Phantom Intelligence Inc.
+*/
 
 /**
  * data management constants

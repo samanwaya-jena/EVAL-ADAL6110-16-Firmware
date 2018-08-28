@@ -1,10 +1,6 @@
 /*
- * Guardian_ADI.c
- *
- *  Created on: 2016-09-05
- *      Author: pc
- */
-
+  Copyright 2018 Phantom Intelligence Inc.
+*/
 
 #define USE_DMA
 #define USE_ALGO

@@ -1,9 +1,6 @@
 /*
- * Serial_cmd.h
- *
- *  Created on: Jul 10, 2018
- *      Author: danie
- */
+  Copyright 2018 Phantom Intelligence Inc.
+*/
 
 #ifndef SERIAL_CMD_H_
 #define SERIAL_CMD_H_

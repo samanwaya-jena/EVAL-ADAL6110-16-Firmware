@@ -1,3 +1,7 @@
+/*
+  Copyright 2018 Phantom Intelligence Inc.
+*/
+
 #include <math.h>
 
 #include "algo.h"

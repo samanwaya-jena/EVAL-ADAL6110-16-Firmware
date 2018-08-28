@@ -1,9 +1,6 @@
 /*
- * Serial_cmd.c
- *
- *  Created on: Jul 10, 2018
- *
- */
+  Copyright 2018 Phantom Intelligence Inc.
+*/
 
 #include <stdint.h>
 #include <string.h>

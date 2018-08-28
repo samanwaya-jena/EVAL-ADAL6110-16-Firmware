@@ -1,9 +1,6 @@
 /*
- * calc_crc.c
- *
- *  Created on: Jul 30, 2018
- *      Author: danie
- */
+  Copyright 2018 Phantom Intelligence Inc.
+*/
 
 /* CRC Driver includes */
 #include <drivers/crc/adi_crc.h>

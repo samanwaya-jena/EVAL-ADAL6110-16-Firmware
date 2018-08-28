@@ -1,9 +1,6 @@
 /*
- * Guardian_ADI.h
- *
- *  Created on: 2016-09-05
- *      Author: pc
- */
+  Copyright 2018 Phantom Intelligence Inc.
+*/
 
 #ifndef GUARDIAN_ADI_H_
 #define GUARDIAN_ADI_H_
