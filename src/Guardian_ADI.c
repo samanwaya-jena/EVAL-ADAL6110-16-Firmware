@@ -818,12 +818,14 @@ inline int ProcessReadWriteFifo(void)
 	{
 		switch (addr)
 		{
+#ifdef USE_ACCUMULATION
 		case 100:
 			iAcqAccMax = data;
 			break;
 		case 101:
 			iAcqAccShift = data;
 			break;
+#endif //USE_ACCUMULATION
 		case 102:
 			iAlgoScaler = data;
 			break;
@@ -849,12 +851,14 @@ inline int ProcessReadWriteFifo(void)
 	{
 		switch (addr)
 		{
+#ifdef USE_ACCUMULATION
 		case 100:
 			data = iAcqAccMax;
 			break;
 		case 101:
 			data = iAcqAccShift;
 			break;
+#endif //USE_ACCUMULATION
 		case 102:
 			data = iAlgoScaler;
 			break;
@@ -912,6 +916,7 @@ void Lidar_Acq(uint16_t *pBank)
 		{
 			bool bAccDone = false;
 			int ch;
+			int16_t * pAcqFifo = dataFifo[iFifoHead].AcqFifo;
 
 			*pBank = BankInTransfer;
 			BankInTransfer = 0;
@@ -919,31 +924,43 @@ void Lidar_Acq(uint16_t *pBank)
 			GetADIData_Stop();
 
 #ifdef USE_ACCUMULATION
-			if (iAcqAccNum < iAcqAccMax)
-			{
-				int i;
-				if (iAcqAccNum == 0)
-					memset(AcqFifoAcc, 0, sizeof(AcqFifoAcc));
+            if (iAcqAccNum == 0)
+            {
+                // First accumulation
+                int i;
+                for(i=0; i<FRAME_NUM_PTS; i++)
+                {
+                    AcqFifoAcc[i] = pAcqFifo[i];
+                }
 
+                ++iAcqAccNum;
+            }
+            else if ((iAcqAccNum + 1) == iAcqAccMax)
+            {
+                // Last accumulation
+                int i;
+                for(i=0; i<FRAME_NUM_PTS; i++)
+                {
+                    int32_t data = AcqFifoAcc[i] + pAcqFifo[i];
+                    pAcqFifo[i] = (int16_t) (data >> iAcqAccShift);
+                }
+
+                iAcqAccNum = 0;
+                bAccDone = true;
+            }
+            else //if (iAcqAccNum < iAcqAccMax)
+			{
+                // Intermediate accumulations
+				int i;
 				for(i=0; i<FRAME_NUM_PTS; i++)
 				{
-					AcqFifoAcc[i] += dataFifo[iFifoHead].AcqFifo[i];
+					AcqFifoAcc[i] = AcqFifoAcc[i] + pAcqFifo[i];
 				}
 
 				++iAcqAccNum;
 			}
-			else
-			{
-				int i;
-				for(i=0; i<FRAME_NUM_PTS; i++)
-				{
-					int16_t data =
-					dataFifo[iFifoHead].AcqFifo[i] = (int16_t) (AcqFifoAcc[i] >> iAcqAccShift);
-				}
-
-				iAcqAccNum = 0;
-				bAccDone = true;
-			}
+#else //USE_ACCUMULATION
+			bAccDone = true;
 #endif //USE_ACCUMULATION
 
 
