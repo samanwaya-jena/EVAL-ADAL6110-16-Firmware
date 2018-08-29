@@ -39,11 +39,6 @@
  */
 
 
-#ifdef USE_ALGO
-uint16_t iAlgoNum = 1;
-uint16_t iAlgoScaler = 1;
-#endif //USE_ALGO
-
 #ifdef USE_ACCUMULATION
 uint16_t iAcqAccNum = 0;
 uint16_t iAcqAccMax = 16;
@@ -826,9 +821,6 @@ inline int ProcessReadWriteFifo(void)
 			iAcqAccShift = data;
 			break;
 #endif //USE_ACCUMULATION
-		case 102:
-			iAlgoScaler = data;
-			break;
 		case 997:
 			Lidar_Reset();
 			break;
@@ -859,9 +851,6 @@ inline int ProcessReadWriteFifo(void)
 			data = iAcqAccShift;
 			break;
 #endif //USE_ACCUMULATION
-		case 102:
-			data = iAlgoScaler;
-			break;
 		default:
 			ReadParamFromSPI(addr, &data);
 			break;
@@ -963,51 +952,37 @@ void Lidar_Acq(uint16_t *pBank)
 			bAccDone = true;
 #endif //USE_ACCUMULATION
 
-
 #ifdef USE_ALGO
 			if (bAccDone)
 			{
-				if (iAlgoScaler == 0)
-				{
-					iAlgoNum = 1;
-				}
-				else if (iAlgoNum < iAlgoScaler)
-				{
-					++iAlgoNum;
-				}
-				else
-				{
-					detection_type detections[GUARDIAN_NUM_CHANNEL * GUARDIAN_NUM_DET_PER_CH];
-					bool bOneDetection = false;
+                detection_type detections[GUARDIAN_NUM_CHANNEL * GUARDIAN_NUM_DET_PER_CH];
 
-					for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
-					{
-						int i;
+                for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
+                {
+                    int i;
 
-						int chIdxArray = aChIdxArray[ch];
+                    int chIdxArray = aChIdxArray[ch];
 
-						int chIdx = aChIdxADI[chIdxArray];
+                    int chIdx = aChIdxADI[chIdxArray];
 
-						detection_type* pDetections = &detections[ch * GUARDIAN_NUM_DET_PER_CH];
+                    detection_type* pDetections = &detections[ch * GUARDIAN_NUM_DET_PER_CH];
 
-						for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
-							tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[chIdx * GUARDIAN_SAMPLING_LENGTH + i];
+                    for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
+                        tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[chIdx * GUARDIAN_SAMPLING_LENGTH + i];
 
-						threshold2(pDetections, tmpAcqFloat, ch);
+                    threshold2(pDetections, tmpAcqFloat, ch);
 
-						if (pDetections->distance)
-						{
-							bOneDetection = true;
-							user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 0);
-						}
-					}
+                    if (pDetections->distance)
+                    {
+                        user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 0);
+                    }
+                }
 
-					if (bOneDetection)
-						user_CANFifoPushCompletedFrame();
-
-					iAlgoNum = 1;
-				}
+                user_CANFifoPushCompletedFrame();
 			}
+#else //USE_ALGO
+			if (bAccDone)
+			    user_CANFifoPushCompletedFrame();
 #endif //USE_ALGO
 
             if (bAccDone)
