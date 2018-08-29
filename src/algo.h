@@ -11,7 +11,7 @@
 #define GUARDIAN_NUM_CHANNEL           16
 #define GUARDIAN_NUM_RAWHISTORY        4
 #define GUARDIAN_NUM_BANKS             2
-#define GUARDIAN_NUM_DET_PER_CH        6
+#define GUARDIAN_NUM_DET_PER_CH        1
 #define GUARDIAN_NUM_TRACK_PER_CH      4
 #define GUARDIAN_NUM_ALARM             16
 #define GUARDIAN_NUM_TRIGGER           2
