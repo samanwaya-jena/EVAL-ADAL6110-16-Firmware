@@ -199,7 +199,13 @@ int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
 	canMsg.id = AWLCANMSG_ID_COMMANDMESSAGE;
 	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = AWLCANMSG_ID_CMD_RESPONSE_PARAMETER;
-	canMsg.data[1] = AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER;
+
+	if (registerAddress & RW_INTERNAL_MASK)
+		canMsg.data[1] = AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER;
+	else
+		canMsg.data[1] = AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER;
+
+	registerAddress &= ~RW_INTERNAL_MASK;
 
 	canMsg.data[2] = (unsigned char) (registerAddress >> 0);
 	canMsg.data[3] = (unsigned char) (registerAddress >> 8);
@@ -357,7 +363,8 @@ static int ProcessCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanRes
 		break;
 	case AWLCANMSG_ID_COMMANDMESSAGE:
 		if (pCanReq->data[0] == AWLCANMSG_ID_CMD_SET_PARAMETER &&
-			pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER)
+			(pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER ||
+			 pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER))
 		{
 			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
 			uint16_t data = * (uint16_t *) &pCanReq->data[4];
@@ -368,7 +375,8 @@ static int ProcessCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanRes
 			Lidar_WriteFifoPush(registerAddress, data);
 		}
 		else if (pCanReq->data[0] == AWLCANMSG_ID_CMD_QUERY_PARAMETER &&
-				pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER)
+				 (pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER ||
+				  pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER))
 		{
 			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
 

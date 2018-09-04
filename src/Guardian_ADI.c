@@ -770,7 +770,7 @@ int Lidar_ReadFifoPush(uint16_t _startAddress)
 
 	if (nextHead != iReadWriteFifoTail)
 	{
-		readWriteFifo[iReadWriteFifoHead] = ((uint32_t) _startAddress & 0x7FFF) << 16;
+		readWriteFifo[iReadWriteFifoHead] = ((uint32_t)(_startAddress & ~RW_WRITE_MASK)) << 16;
 		iReadWriteFifoHead = nextHead;
 
 		return 1;
@@ -785,7 +785,8 @@ int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data)
 
 	if (nextHead != iReadWriteFifoTail)
 	{
-		readWriteFifo[iReadWriteFifoHead] = 0x80000000 | ((uint32_t) _startAddress & 0x7FFF) << 16 | data;
+		readWriteFifo[iReadWriteFifoHead] = ((uint32_t)(RW_WRITE_MASK | (_startAddress & ~RW_WRITE_MASK)) << 16) |
+				data;
 		iReadWriteFifoHead = nextHead;
 
 		return 1;
@@ -888,48 +889,46 @@ int DoAlgo(int16_t * pAcqFifo)
 inline int ProcessReadWriteFifo(void)
 {
 	uint32_t op = readWriteFifo[iReadWriteFifoTail];
-	uint16_t addr = (op >> 16) & 0x7FFF;
-	uint16_t data =  op & 0xFFFF;
+	uint16_t addrPlusRW = op >> 16;
+	uint16_t addr = addrPlusRW & ~RW_WRITE_MASK;
+	uint16_t data = op & 0xFFFF;
+	bool bWriteOp = ((addrPlusRW & RW_WRITE_MASK) != 0);
 
 	if (op & 0x80000000)
 	{
 		switch (addr)
 		{
+		case 0x4000:
+			Lidar_Reset();
+			break;
 #ifdef USE_ACCUMULATION
-		case 100:
+		case 0x4001:
 			iAcqAccMax = data;
 			break;
-		case 101:
+		case 0x4002:
 			iAcqAccShift = data;
 			break;
 #endif //USE_ACCUMULATION
-		case 997:
-			Lidar_Reset();
-			break;
-		case 998:
+		case 0x40FE:
 			SaveConfigToFlash();
 			break;
-		case 999:
+		case 0x40FF:
 			ResetToFactoryDefault();
 			break;
 		default:
 			WriteParamToSPI(addr, data);
 			break;
 		}
-
-		// DGG: temp
-		if (addr == 0)
-			AddFakeData();
 	}
 	else
 	{
 		switch (addr)
 		{
 #ifdef USE_ACCUMULATION
-		case 100:
+		case 0x4001:
 			data = iAcqAccMax;
 			break;
-		case 101:
+		case 0x4002:
 			data = iAcqAccShift;
 			break;
 #endif //USE_ACCUMULATION

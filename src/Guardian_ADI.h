@@ -16,6 +16,10 @@ typedef struct
 } tDataFifo;
 
 
+#define RW_WRITE_MASK    0x8000
+#define RW_INTERNAL_MASK 0x4000
+
+
 /**
  * initialize SPI port for ADI communication
  */
