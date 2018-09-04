@@ -25,25 +25,14 @@
 
 #include "Serial_cmd.h"
 
-
-
-// CAN Frame
-typedef struct {
-    unsigned long id;        // Message id
-    unsigned long timestamp; // timestamp in milliseconds
-    unsigned char flags;     // [extended_id|1][RTR:1][reserver:6]
-    unsigned char len;       // Frame size (0.8)
-    unsigned char data[8]; // Databytes 0..7
-    unsigned char pad1;
-    unsigned char pad2;
-} ADI_AWLCANMessage;
+#include "AWLCANMessageDef.h"
 
 
 #define FIRMWARE_MAJOR_REV 0
 #define FIRMWARE_MINOR_REV 5
 
 
-static ADI_AWLCANMessage user_bulk_adi_loopback_buffer;
+static AWLCANMessage user_bulk_adi_loopback_buffer;
 
 /* Function prototypes */
 static CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Transfer_Params * p_transfer_data);
@@ -140,16 +129,16 @@ volatile int iCANFifoTail = 0;
 #define CANFIFO_SIZE 128
 #define CANFIFO_MASK (CANFIFO_SIZE - 1)
 
-ADI_AWLCANMessage canFifo[CANFIFO_SIZE];
+AWLCANMessage canFifo[CANFIFO_SIZE];
 
 
-int CANFifoPushMsg(ADI_AWLCANMessage * pCanMsg)
+int CANFifoPushMsg(AWLCANMessage * pCanMsg)
 {
 	int nextHead = (iCANFifoHead + 1) & CANFIFO_MASK;
 
 	if (nextHead != iCANFifoTail)
 	{
-		memcpy(&canFifo[iCANFifoHead], pCanMsg, sizeof(ADI_AWLCANMessage));
+		memcpy(&canFifo[iCANFifoHead], pCanMsg, sizeof(AWLCANMessage));
 
 		iCANFifoHead = nextHead;
 
@@ -161,9 +150,9 @@ int CANFifoPushMsg(ADI_AWLCANMessage * pCanMsg)
 
 int user_CANFifoPushCompletedFrame(void)
 {
-	ADI_AWLCANMessage canMsg;
+	AWLCANMessage canMsg;
 
-	canMsg.id = 9;
+	canMsg.id = AWLCANMSG_ID_COMPLETEDFRAME;
 
 	return CANFifoPushMsg(&canMsg);
 }
@@ -171,10 +160,10 @@ int user_CANFifoPushCompletedFrame(void)
 int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel)
 {
 	int ret;
-	ADI_AWLCANMessage canMsg;
+	AWLCANMessage canMsg;
 
-	canMsg.id = 10;
-	canMsg.len = 8;
+	canMsg.id = AWLCANMSG_ID_OBSTACLETRACK;
+	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = ch + 1;      //trackID
 	canMsg.data[1] = 0;           //...
 	canMsg.data[2] = 0x01 << ch;  //track->trackChannels.byteData
@@ -189,8 +178,8 @@ int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel)
 	if (ret)
 		return ret;
 
-	canMsg.id = 11;
-	canMsg.len = 8;
+	canMsg.id = AWLCANMSG_ID_OBSTACLEVELOCITY;
+	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = ch + 1;      //trackID
 	canMsg.data[1] = 0;           //...
 	canMsg.data[2] = dist >> 0;   //Distance
@@ -205,12 +194,13 @@ int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel)
 
 int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
 {
-	ADI_AWLCANMessage canMsg;
+	AWLCANMessage canMsg;
 
-	canMsg.id = 80;
-	canMsg.len = 8;
-	canMsg.data[0] = 0xC2;
-	canMsg.data[1] = 0x03;
+	canMsg.id = AWLCANMSG_ID_COMMANDMESSAGE;
+	canMsg.len = AWLCANMSG_LEN;
+	canMsg.data[0] = AWLCANMSG_ID_CMD_RESPONSE_PARAMETER;
+	canMsg.data[1] = AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER;
+
 	canMsg.data[2] = (unsigned char) (registerAddress >> 0);
 	canMsg.data[3] = (unsigned char) (registerAddress >> 8);
 	canMsg.data[4] = (unsigned char) (data >> 0);
@@ -223,10 +213,10 @@ int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
 
 int user_CANFifoPushSensorStatus(void)
 {
-	ADI_AWLCANMessage canMsg;
+	AWLCANMessage canMsg;
 
-	canMsg.id = 1;
-	canMsg.len = 8;
+	canMsg.id = AWLCANMSG_ID_SENSORSTATUS;
+	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = 234 >> 0;
 	canMsg.data[1] = 234 >> 8;
 	canMsg.data[2] = 5 >> 0;
@@ -241,10 +231,10 @@ int user_CANFifoPushSensorStatus(void)
 
 int user_CANFifoPushSensorBoot(void)
 {
-	ADI_AWLCANMessage canMsg;
+	AWLCANMessage canMsg;
 
-	canMsg.id = 2;
-	canMsg.len = 8;
+	canMsg.id = AWLCANMSG_ID_SENSORBOOT;
+	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = FIRMWARE_MAJOR_REV;
 	canMsg.data[1] = FIRMWARE_MINOR_REV;
 	canMsg.data[2] = 0;
@@ -257,7 +247,7 @@ int user_CANFifoPushSensorBoot(void)
 	return CANFifoPushMsg(&canMsg);
 }
 
-static int PollCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp, int * pNum)
+static int PollCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanResp, int * pNum)
 {
 	int num = pCanReq->data[0];
 	int i;
@@ -269,7 +259,7 @@ static int PollCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pC
 	{
 		if (iCANFifoHead != iCANFifoTail)
 		{
-			memcpy(pCanResp++, &canFifo[iCANFifoTail], sizeof(ADI_AWLCANMessage));
+			memcpy(pCanResp++, &canFifo[iCANFifoTail], sizeof(AWLCANMessage));
 
 			iCANFifoTail = (iCANFifoTail + 1) & CANFIFO_MASK;
 		}
@@ -280,7 +270,7 @@ static int PollCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pC
 	return 0;
 }
 
-static int ProcessLidarQueryCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp)
+static int ProcessLidarQueryCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanResp)
 {
 	int _iCANFifoHead = iCANFifoHead;
 	int _iCANFifoTail = iCANFifoTail;
@@ -296,7 +286,7 @@ static int ProcessLidarQueryCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCA
 	else if (_iCANFifoTail > _iCANFifoHead)
 		numCANMsg = (CANFIFO_SIZE - _iCANFifoTail) + _iCANFifoHead;
 
-	pCanResp->id = 89;
+	pCanResp->id = AWLCANMSG_ID_LIDARQUERY;
 
 	uint32_t * pNbrDataCycles = (uint32_t *) &pCanResp->data[0];
 	*pNbrDataCycles = numPendingTemp;
@@ -307,7 +297,7 @@ static int ProcessLidarQueryCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCA
 	return 0;
 }
 
-static CLD_USB_Data_Received_Return_Type ProcessGetData(ADI_AWLCANMessage * pCanReq)
+static CLD_USB_Data_Received_Return_Type ProcessGetData(AWLCANMessage * pCanReq)
 {
 	tDataFifo * pData = NULL;
 
@@ -357,24 +347,33 @@ static CLD_USB_Data_Received_Return_Type ProcessGetData(ADI_AWLCANMessage * pCan
     return CLD_USB_DATA_GOOD;
 }
 
-static int ProcessCanCommandMsg(ADI_AWLCANMessage * pCanReq, ADI_AWLCANMessage * pCanResp)
+
+static int ProcessCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanResp)
 {
 	switch (pCanReq->id)
 	{
-	case 89:
+	case AWLCANMSG_ID_LIDARQUERY:
 		ProcessLidarQueryCanCommandMsg(pCanReq, pCanResp);
 		break;
-	case 80:
-		if (pCanReq->data[0] == 0xC0 && pCanReq->data[1] == 0x03)
+	case AWLCANMSG_ID_COMMANDMESSAGE:
+		if (pCanReq->data[0] == AWLCANMSG_ID_CMD_SET_PARAMETER &&
+			pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER)
 		{
 			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
 			uint16_t data = * (uint16_t *) &pCanReq->data[4];
 
+			if (pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER)
+				registerAddress |= RW_INTERNAL_MASK;
+
 			Lidar_WriteFifoPush(registerAddress, data);
 		}
-		else if (pCanReq->data[0] == 0xC1 && pCanReq->data[1] == 0x03)
+		else if (pCanReq->data[0] == AWLCANMSG_ID_CMD_QUERY_PARAMETER &&
+				pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER)
 		{
 			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
+
+			if (pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER)
+				registerAddress |= RW_INTERNAL_MASK;
 
 			Lidar_ReadFifoPush(registerAddress);
 		}
@@ -557,7 +556,7 @@ static CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD
 		LED4_TGL();
 	}
 
-    if (p_transfer_data->num_bytes == sizeof(ADI_AWLCANMessage))
+    if (p_transfer_data->num_bytes == sizeof(AWLCANMessage))
 	{
 		/* Save the received data to the user_bulk_adi_loopback_data.cmd structure,
 		   and call user_bulk_adi_loopback_cmd_received once the data has been received. */
@@ -582,22 +581,20 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
         .fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error
     };
 
-    ADI_AWLCANMessage * pCanMsg = (ADI_AWLCANMessage *) &user_bulk_adi_loopback_buffer;
-    ADI_AWLCANMessage canResp[CANFIFO_SIZE];
+    AWLCANMessage * pCanMsg = (AWLCANMessage *) &user_bulk_adi_loopback_buffer;
+    AWLCANMessage canResp[CANFIFO_SIZE];
 
 //    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CAN Msg %d: ", pCanMsg->id);
 
-    memset(&canResp[0], 0, sizeof(ADI_AWLCANMessage));
-
-    if (pCanMsg->id == 87)
+    if (pCanMsg->id == AWLCANMSG_ID_GETDATA)
     	return ProcessGetData(pCanMsg);
-    else if (pCanMsg->id == 88)
+    else if (pCanMsg->id == AWLCANMSG_ID_POLLMESSAGES)
     	PollCanCommandMsg(pCanMsg, canResp, &num);
     else
     	ProcessCanCommandMsg(pCanMsg, canResp);
 
 	/* Return the firmware version using the Bulk IN endpoint. */
-	transfer_params.num_bytes = num * sizeof(ADI_AWLCANMessage);
+	transfer_params.num_bytes = num * sizeof(AWLCANMessage);
 	transfer_params.p_data_buffer = (unsigned char*)canResp;
 	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.transfer_timeout_ms = 1000;
