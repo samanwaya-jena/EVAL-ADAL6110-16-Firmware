@@ -39,15 +39,6 @@
  */
 
 
-#ifdef USE_ACCUMULATION
-uint16_t iAcqAccNum = 0;
-uint16_t iAcqAccMax = 16;
-uint16_t iAcqAccShift = 4;
-int32_t AcqFifoAcc[FRAME_NUM_PTS];
-#endif //USE_ACCUMULATION
-
-
-
 enum ADI_REGISTER_INDEX {
 	DeviceIDAddress = 0x00, // Read only
 	Control0Address = 0x01,
@@ -803,6 +794,97 @@ int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data)
 	return 0;
 }
 
+
+
+#ifdef USE_ACCUMULATION
+
+uint16_t iAcqAccNum = 0;
+uint16_t iAcqAccMax = 16;
+uint16_t iAcqAccShift = 4;
+int32_t AcqFifoAcc[FRAME_NUM_PTS];
+
+bool DoAccumulation(int16_t * pAcqFifo)
+{
+	bool bAccDone = false;
+
+    if (iAcqAccNum == 0)
+    {
+        // First accumulation
+        int i;
+        for(i=0; i<FRAME_NUM_PTS; i++)
+        {
+            AcqFifoAcc[i] = pAcqFifo[i];
+        }
+
+        ++iAcqAccNum;
+    }
+    else if ((iAcqAccNum + 1) == iAcqAccMax)
+    {
+        // Last accumulation
+        int i;
+        for(i=0; i<FRAME_NUM_PTS; i++)
+        {
+            int32_t data = AcqFifoAcc[i] + pAcqFifo[i];
+            pAcqFifo[i] = (int16_t) (data >> iAcqAccShift);
+        }
+
+        iAcqAccNum = 0;
+        bAccDone = true;
+    }
+    else //if (iAcqAccNum < iAcqAccMax)
+	{
+        // Intermediate accumulations
+		int i;
+		for(i=0; i<FRAME_NUM_PTS; i++)
+		{
+			AcqFifoAcc[i] = AcqFifoAcc[i] + pAcqFifo[i];
+		}
+
+		++iAcqAccNum;
+	}
+
+    return bAccDone;
+}
+#endif //USE_ACCUMULATION
+
+
+
+#ifdef USE_ALGO
+
+static float tmpAcqFloat[GUARDIAN_SAMPLING_LENGTH];
+
+int DoAlgo(int16_t * pAcqFifo)
+{
+	int ch;
+    detection_type detections[GUARDIAN_NUM_CHANNEL * GUARDIAN_NUM_DET_PER_CH];
+
+    for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
+    {
+        int i;
+
+        int chIdxArray = aChIdxArray[ch];
+
+        int chIdx = aChIdxADI[chIdxArray];
+
+        detection_type* pDetections = &detections[ch * GUARDIAN_NUM_DET_PER_CH];
+
+        for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
+            tmpAcqFloat[i] = (float) pAcqFifo[chIdx * GUARDIAN_SAMPLING_LENGTH + i];
+
+        threshold2(pDetections, tmpAcqFloat, ch);
+
+        if (pDetections->distance)
+        {
+            user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 0);
+        }
+    }
+
+    return 0;
+}
+#endif //USE_ALGO
+
+
+
 inline int ProcessReadWriteFifo(void)
 {
 	uint32_t op = readWriteFifo[iReadWriteFifoTail];
@@ -866,7 +948,6 @@ inline int ProcessReadWriteFifo(void)
 
 
 
-
 //
 // Acquisition control
 //
@@ -883,9 +964,6 @@ volatile int iFifoTail = 0;
 
 static tDataFifo dataFifo[NUM_FIFO];
 
-#ifdef USE_ALGO
-static float tmpAcqFloat[GUARDIAN_SAMPLING_LENGTH];
-#endif //USE_ALGO
 
 void Lidar_Acq(uint16_t *pBank)
 {
@@ -903,8 +981,7 @@ void Lidar_Acq(uint16_t *pBank)
 	{
 		if (GetADIData_Check())
 		{
-			bool bAccDone = false;
-			int ch;
+			bool bAccDone = true;
 			int16_t * pAcqFifo = dataFifo[iFifoHead].AcqFifo;
 
 			*pBank = BankInTransfer;
@@ -913,77 +990,16 @@ void Lidar_Acq(uint16_t *pBank)
 			GetADIData_Stop();
 
 #ifdef USE_ACCUMULATION
-            if (iAcqAccNum == 0)
-            {
-                // First accumulation
-                int i;
-                for(i=0; i<FRAME_NUM_PTS; i++)
-                {
-                    AcqFifoAcc[i] = pAcqFifo[i];
-                }
-
-                ++iAcqAccNum;
-            }
-            else if ((iAcqAccNum + 1) == iAcqAccMax)
-            {
-                // Last accumulation
-                int i;
-                for(i=0; i<FRAME_NUM_PTS; i++)
-                {
-                    int32_t data = AcqFifoAcc[i] + pAcqFifo[i];
-                    pAcqFifo[i] = (int16_t) (data >> iAcqAccShift);
-                }
-
-                iAcqAccNum = 0;
-                bAccDone = true;
-            }
-            else //if (iAcqAccNum < iAcqAccMax)
-			{
-                // Intermediate accumulations
-				int i;
-				for(i=0; i<FRAME_NUM_PTS; i++)
-				{
-					AcqFifoAcc[i] = AcqFifoAcc[i] + pAcqFifo[i];
-				}
-
-				++iAcqAccNum;
-			}
-#else //USE_ACCUMULATION
-			bAccDone = true;
+			bAccDone = DoAccumulation(pAcqFifo);
 #endif //USE_ACCUMULATION
 
-#ifdef USE_ALGO
 			if (bAccDone)
 			{
-                detection_type detections[GUARDIAN_NUM_CHANNEL * GUARDIAN_NUM_DET_PER_CH];
-
-                for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
-                {
-                    int i;
-
-                    int chIdxArray = aChIdxArray[ch];
-
-                    int chIdx = aChIdxADI[chIdxArray];
-
-                    detection_type* pDetections = &detections[ch * GUARDIAN_NUM_DET_PER_CH];
-
-                    for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
-                        tmpAcqFloat[i] = (float) dataFifo[iFifoHead].AcqFifo[chIdx * GUARDIAN_SAMPLING_LENGTH + i];
-
-                    threshold2(pDetections, tmpAcqFloat, ch);
-
-                    if (pDetections->distance)
-                    {
-                        user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 0);
-                    }
-                }
-
-                user_CANFifoPushCompletedFrame();
-			}
-#else //USE_ALGO
-			if (bAccDone)
-			    user_CANFifoPushCompletedFrame();
+#ifdef USE_ALGO
+				DoAlgo(pAcqFifo);
 #endif //USE_ALGO
+			    user_CANFifoPushCompletedFrame();
+			}
 
             if (bAccDone)
             {
@@ -1032,6 +1048,8 @@ void Lidar_Reset(void)
 	iFifoHead = 0;
 	iFifoTail = 0;
 }
+
+
 
 //
 // USB
