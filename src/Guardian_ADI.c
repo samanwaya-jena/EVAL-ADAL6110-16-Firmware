@@ -1041,11 +1041,14 @@ void Lidar_Reset(void)
 {
 	Lidar_InitADI();
 
-	iReadWriteFifoHead = 0;
-	iReadWriteFifoTail = 0;
-
 	iFifoHead = 0;
 	iFifoTail = 0;
+
+	BankInTransfer = 0;
+
+#ifdef USE_ACCUMULATION
+	iAcqAccNum = 0;
+#endif //USE_ACCUMULATION
 }
 
 
