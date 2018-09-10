@@ -56,7 +56,7 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 int Lidar_ReadFifoPush(uint16_t _startAddress);
 int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data);
 
-extern bool gAcq;
+extern int gAcq;
 
 //
 // Testing counters

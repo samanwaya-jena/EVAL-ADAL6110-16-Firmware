@@ -33,20 +33,6 @@ void Lidar_PrintInfo(void)
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar 0x%02x/0x%02x mid:%d pid:%d rid:%d\r\n", data & 0xFF, (data >> 8) & 0xFF, mid, pid, rid);
 }
 
-void Lidar_PrintInfoLoop(void)
-{
-	int i;
-
-	while (1)
-	{
-		Lidar_PrintInfo();
-
-		for (i=0; i<3000000; i++)
-		{
-			asm("nop;");
-		}
-	}
-}
 
 const char * hex = "0123456789ABCDEF";
 
@@ -232,12 +218,12 @@ void ProcessChar(char curChar)
     	break;
 
     case 's':
-    	gAcq = false;
-    	break;
+      gAcq = 0;
+      break;
 
     case 'q':
-    	gAcq = true;
-    	break;
+      gAcq = 1;
+      break;
 
 //    case 'z':
 //		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "a %d 1:%d 2:%d\r\n", iAcqNum, iAcqNum1, iAcqNum2);

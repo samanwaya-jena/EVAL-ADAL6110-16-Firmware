@@ -951,7 +951,7 @@ inline int ProcessReadWriteFifo(void)
 // Acquisition control
 //
 
-bool gAcq = true;
+int gAcq = true;
 
 static uint16_t BankInTransfer = 0;
 
