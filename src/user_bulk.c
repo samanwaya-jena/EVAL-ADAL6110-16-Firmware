@@ -15,6 +15,7 @@
 
 ==============================================================================*/
 #include <string.h>
+#include <builtins.h>
 #include "user_bulk.h"
 #include "cld_bf70x_bulk_lib.h"
 
@@ -116,6 +117,8 @@ static CLD_Time usb_time = 0;
 
 
 
+#define DISABLE_INT() unsigned int _intm = cli()
+#define ENABLE_INT() sti(_intm)
 
 
 
@@ -131,6 +134,17 @@ volatile int iCANFifoTail = 0;
 
 AWLCANMessage canFifo[CANFIFO_SIZE];
 
+int user_CANFifoReset(void)
+{
+  DISABLE_INT();
+
+  iCANFifoHead = 0;
+  iCANFifoTail = 0;
+
+  ENABLE_INT();
+
+  return 0;
+}
 
 int CANFifoPushMsg(AWLCANMessage * pCanMsg)
 {

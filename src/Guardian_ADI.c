@@ -1039,6 +1039,8 @@ void Lidar_ReleaseDataToFifo(uint16_t numFifo)
 
 void Lidar_Reset(void)
 {
+  user_CANFifoReset();
+
 	Lidar_InitADI();
 
 	iFifoHead = 0;

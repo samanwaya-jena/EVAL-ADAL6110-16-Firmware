@@ -29,6 +29,7 @@ typedef enum
 extern User_Bulk_Init_Return_Code user_bulk_init (void);
 extern void user_bulk_main (void);
 
+extern int user_CANFifoReset(void);
 extern int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data);
 extern int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel);
 extern int user_CANFifoPushCompletedFrame(void);
