@@ -40,7 +40,6 @@ void Lidar_DumpRegs(void)
 {
 	uint8_t regs[] = { 0,1,2,3,4,7,0x4D,0x56,0xF1,0xF2 };
 	int i, ch;
-	char str[32];
 
 	int num = sizeof(regs) / sizeof(regs[0]);
 
@@ -134,9 +133,8 @@ int chIdx[16] = {
 
 void Lidar_GetDataCSV(void)
 {
-	char str[256];
 	uint16_t banknum = 0;
-	int i,j,ch,sample;
+	int ch,sample;
 
 	memset(buf, 0, sizeof(buf));
 

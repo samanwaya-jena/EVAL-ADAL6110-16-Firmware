@@ -88,7 +88,7 @@ int Flash_LoadConfig(uint16_t * pParams, int * pNum)
 	int Result = 0;							/* result */
 	tFlashParams * pFlashParams = NULL;
 
-	int maxNum = *pNum;
+	uint32_t maxNum = *pNum;
 
 	*pNum = 0;
 
