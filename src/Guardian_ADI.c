@@ -909,11 +909,12 @@ inline int ProcessReadWriteFifo(void)
 			iAcqAccShift = data;
 			break;
 #endif //USE_ACCUMULATION
-		case 0x40FE:
+    case 0x3FFE:
 			SaveConfigToFlash();
 			break;
-		case 0x40FF:
+		case 0x3FFF:
 			ResetToFactoryDefault();
+			Lidar_Reset();
 			break;
 		default:
 			WriteParamToSPI(addr, data);
