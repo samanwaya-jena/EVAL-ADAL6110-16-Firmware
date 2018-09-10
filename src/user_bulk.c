@@ -36,7 +36,7 @@
 static AWLCANMessage user_bulk_adi_loopback_buffer;
 
 /* Function prototypes */
-static CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Transfer_Params * p_transfer_data);
+CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Transfer_Params * p_transfer_data);
 
 static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void);
 static void user_bulk_adi_loopback_device_transfer_error (void);
@@ -568,7 +568,7 @@ Returns:        CLD_USB_TRANSFER_ACCEPT - Store the bulk data using the p_transf
                 CLD_USB_TRANSFER_DISCARD - Discard this bulk packet.
                 CLD_USB_TRANSFER_STALL - Stall the bulk OUT endpoint.
 ==============================================================================*/
-static CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Transfer_Params * p_transfer_data)
+CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Transfer_Params * p_transfer_data)
 {
     CLD_USB_Transfer_Request_Return_Type rv = CLD_USB_TRANSFER_STALL;
 
