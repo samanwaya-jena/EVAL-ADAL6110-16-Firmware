@@ -195,6 +195,11 @@ int aChIdxArray[16] = {
   7
 };
 
+uint16_t Int_InitValues[][2] =
+{
+  { 1, 0x0 },
+  { 2, 0x0 }
+};
 
 #ifdef USE_DMA
 uint8_t spiMem[ADI_SPI_DMA_MEMORY_SIZE];
@@ -205,6 +210,10 @@ uint8_t spiMem[ADI_SPI_INT_MEMORY_SIZE];
 ADI_SPI_HANDLE hSpi = NULL;
 
 
+#ifdef USE_ACCUMULATION
+uint16_t iAcqAccMax = 16;
+uint16_t iAcqAccShift = 4;
+#endif //USE_ACCUMULATION
 
 /*
  * Private function prototypes
@@ -475,7 +484,7 @@ void Lidar_InitADI(void) {
 	int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
 	int numParams = num;
 
-	Flash_LoadConfig(&Lidar_InitValues[0][0], &numParams);
+	Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams);
 
 	if (numParams)
 		num = numParams;
@@ -485,26 +494,62 @@ void Lidar_InitADI(void) {
 		WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
 	}
 
+  numParams = 2;
+  Flash_LoadConfig(1, &Int_InitValues[0][0], &numParams);
+
+  for (i = 0; i < numParams; i++)
+  {
+    switch (Int_InitValues[i][0])
+    {
+#ifdef USE_ACCUMULATION
+    case 1:
+      iAcqAccMax = Int_InitValues[i][1];
+      break;
+    case 2:
+      iAcqAccShift = Int_InitValues[i][1];
+      break;
+#endif //USE_ACCUMULATION
+    default:
+      break;
+    }
+  }
+
 	user_CANFifoPushSensorStatus();
     user_CANFifoPushSensorBoot();
 }
 
 
-int SaveConfigToFlash(void)
+int SaveConfigToFlash(int idx)
 {
-	int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
-	int i;
-	for (i=0; i<num; i++)
-	{
-		ReadParamFromSPI(Lidar_InitValues[i][0], &Lidar_InitValues[i][1]);
-	}
+  if (idx == 0)
+  {
+    int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
+    int i;
+    for (i = 0; i < num; i++)
+    {
+      ReadParamFromSPI(Lidar_InitValues[i][0], &Lidar_InitValues[i][1]);
+    }
 
-	return Flash_SaveConfig(&Lidar_InitValues[0][0], num);
-}
+    return Flash_SaveConfig(idx, &Lidar_InitValues[0][0], num);
+  }
+  else
+  {
+    int num;
 
-int ResetToFactoryDefault(void)
-{
-	return Flash_ResetToFactoryDefault();
+#ifdef USE_ACCUMULATION
+    num = 2;
+    Int_InitValues[0][0] = 1;
+    Int_InitValues[0][1] = iAcqAccMax;
+    Int_InitValues[1][0] = 2;
+    Int_InitValues[1][1] = iAcqAccShift;
+#else //USE_ACCUMULATION
+    num = 1;
+    Int_InitValues[0][0] = 0;
+    Int_InitValues[0][1] = 0;
+#endif //USE_ACCUMULATION
+
+    return Flash_SaveConfig(idx, &Int_InitValues[0][0], num);
+  }
 }
 
 void ForceGetADIData(uint16_t bankNum, uint16_t * pData) {
@@ -800,8 +845,6 @@ int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data)
 #ifdef USE_ACCUMULATION
 
 uint16_t iAcqAccNum = 0;
-uint16_t iAcqAccMax = 16;
-uint16_t iAcqAccShift = 4;
 int32_t AcqFifoAcc[FRAME_NUM_PTS];
 
 bool DoAccumulation(int16_t * pAcqFifo)
@@ -898,6 +941,13 @@ inline int ProcessReadWriteFifo(void)
 	{
 		switch (addr)
 		{
+    case 0x3FFE:
+			SaveConfigToFlash(0);
+			break;
+		case 0x3FFF:
+      Flash_ResetToFactoryDefault(0);
+			Lidar_Reset();
+			break;
 		case 0x4000:
 			Lidar_Reset();
 			break;
@@ -909,11 +959,11 @@ inline int ProcessReadWriteFifo(void)
 			iAcqAccShift = data;
 			break;
 #endif //USE_ACCUMULATION
-    case 0x3FFE:
-			SaveConfigToFlash();
+    case 0x7FFE:
+			SaveConfigToFlash(1);
 			break;
-		case 0x3FFF:
-			ResetToFactoryDefault();
+		case 0x7FFF:
+      Flash_ResetToFactoryDefault(1);
 			Lidar_Reset();
 			break;
 		default:
@@ -1360,7 +1410,7 @@ void GetADIData_Start(uint16_t *pBank, uint16_t * pData)
 
 	static CLD_Time offsetPerCycles = 0;
 
-	if (cld_time_passed_ms(acq_time) >= 1000u)
+	if (cld_time_passed_ms(acq_time) >= 500u)
 	{
 		int ch;
 
