@@ -370,6 +370,8 @@ static CLD_USB_Data_Received_Return_Type ProcessGetData(AWLCANMessage * pCanReq)
 
 static int ProcessCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanResp)
 {
+	memset(pCanResp, 0, sizeof(AWLCANMessage));
+
 	switch (pCanReq->id)
 	{
 	case AWLCANMSG_ID_LIDARQUERY:
