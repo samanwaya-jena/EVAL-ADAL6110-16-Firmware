@@ -234,7 +234,7 @@ static void ClearSram(void);
  */
 void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
 {
-	static uint8_t ProBuffer1[4];
+	uint8_t ProBuffer1[4];
 
 	ProBuffer1[0] = (_startAddress << 1);
 	ProBuffer1[1] = (_startAddress << 1) >> 8;
@@ -255,8 +255,8 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
  */
 void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
 {
-	static uint8_t ProBuffer1[2];
-	static uint8_t RxBuffer1[2];
+	uint8_t ProBuffer1[2];
+	uint8_t RxBuffer1[2];
 
 	ProBuffer1[0] = (_startAddress << 1) | 0x01;
 	ProBuffer1[1] = (_startAddress << 1) >> 8;
@@ -281,15 +281,22 @@ void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
  */
 void ReadDataFromSPI(uint16_t * pData, int num)
 {
+	uint8_t ProBuffer1[2] = {0xFF, 0x01};
+	ADI_SPI_TRANSCEIVER Xcv0DMA;
+
 	ADI_SPI_RESULT result;
+
+	Xcv0DMA.pPrologue = ProBuffer1;
+	Xcv0DMA.PrologueBytes = 2u;
+	Xcv0DMA.pTransmitter = NULL;
+	Xcv0DMA.TransmitterBytes = 0u;
+	Xcv0DMA.pReceiver = (uint8_t*) pData;
+	Xcv0DMA.ReceiverBytes = num * sizeof(uint16_t);
 
 	/* Disable DMA */
 //	result = adi_spi_EnableDmaMode(hSpi, true);
 
 //	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
-
-	uint8_t ProBuffer1[2] = {0xFF, 0x01};
-	ADI_SPI_TRANSCEIVER Xcv0DMA  = {ProBuffer1, 2u, NULL, 0u, (uint8_t*) pData, num * sizeof(uint16_t)};
 
 	result = adi_spi_SubmitBuffer(hSpi, &Xcv0DMA);
 
@@ -316,11 +323,11 @@ void ReadDataFromSPI(uint16_t * pData, int num)
 //	result = adi_spi_EnableDmaMode(hSpi, false);
 }
 
-static uint8_t gProBuffer1[2] = {0xFF, 0x01};
-static ADI_SPI_TRANSCEIVER gXcv0DMA;
-
 void ReadDataFromSPI_Start(uint16_t * pData, int num)
 {
+	static uint8_t gProBuffer1[2] = {0xFF, 0x01};
+	static ADI_SPI_TRANSCEIVER gXcv0DMA;
+
 	ADI_SPI_RESULT result;
 
 #ifdef USE_DMA
