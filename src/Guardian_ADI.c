@@ -211,8 +211,11 @@ ADI_SPI_HANDLE hSpi = NULL;
 
 
 #ifdef USE_ACCUMULATION
-uint16_t iAcqAccMax = 16;
-uint16_t iAcqAccShift = 4;
+bool bAcqAccUpdate = 1;
+uint16_t iAcqAccMaxNew = 16;
+
+uint16_t iAcqAccMax = 0;
+uint16_t iAcqAccShift = 0;
 #endif //USE_ACCUMULATION
 
 /*
@@ -847,11 +850,63 @@ int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data)
 uint16_t iAcqAccNum = 0;
 int32_t AcqFifoAcc[FRAME_NUM_PTS];
 
+uint16_t GetNextPowerOfTwo(uint16_t v)
+{
+  v--;
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  //v |= v >> 16;
+  v++;
+
+  return v;
+}
+
+bool IsPowerOfTwo(uint16_t x)
+{
+  return (x != 0) && ((x & (x - 1)) == 0);
+}
+
+int GetMSBit(uint16_t n)
+{
+  int pos = 0;
+  while (n)
+  {
+    n = n >> 1;
+    pos++;
+  }
+  return pos;
+}
+
+
 bool DoAccumulation(int16_t * pAcqFifo)
 {
 	bool bAccDone = false;
 
-    if (iAcqAccNum == 0)
+	if (bAcqAccUpdate)
+	{
+    if (iAcqAccMaxNew == 0)
+      iAcqAccMaxNew = 1;
+
+    if (!IsPowerOfTwo(iAcqAccMaxNew))
+    {
+      iAcqAccMaxNew = GetNextPowerOfTwo(iAcqAccMaxNew);
+    }
+
+		iAcqAccMax = iAcqAccMaxNew;
+		iAcqAccShift = GetMSBit(iAcqAccMaxNew) - 1;
+
+		iAcqAccNum = 0;
+		bAcqAccUpdate = 0;
+	}
+
+	if (iAcqAccMax == 0 || iAcqAccMax == 1)
+	{
+        // Special case: no accumulation
+        bAccDone = true;
+	}
+	else if (iAcqAccNum == 0)
     {
         // First accumulation
         int i;
@@ -862,7 +917,7 @@ bool DoAccumulation(int16_t * pAcqFifo)
 
         ++iAcqAccNum;
     }
-    else if ((iAcqAccNum + 1) == iAcqAccMax)
+    else if ((iAcqAccNum + 1) >= iAcqAccMax) // >= just in case
     {
         // Last accumulation
         int i;
@@ -953,10 +1008,8 @@ inline int ProcessReadWriteFifo(void)
 			break;
 #ifdef USE_ACCUMULATION
 		case 0x4001:
-			iAcqAccMax = data;
-			break;
-		case 0x4002:
-			iAcqAccShift = data;
+			iAcqAccMaxNew = data;
+			bAcqAccUpdate = 1;
 			break;
 #endif //USE_ACCUMULATION
     case 0x7FFE:
@@ -978,9 +1031,6 @@ inline int ProcessReadWriteFifo(void)
 #ifdef USE_ACCUMULATION
 		case 0x4001:
 			data = iAcqAccMax;
-			break;
-		case 0x4002:
-			data = iAcqAccShift;
 			break;
 #endif //USE_ACCUMULATION
 		default:
