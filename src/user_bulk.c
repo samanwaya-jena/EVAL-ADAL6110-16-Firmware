@@ -30,7 +30,7 @@
 
 
 #define FIRMWARE_MAJOR_REV 0
-#define FIRMWARE_MINOR_REV 7
+#define FIRMWARE_MINOR_REV 8
 
 
 static AWLCANMessage user_bulk_adi_loopback_buffer;
