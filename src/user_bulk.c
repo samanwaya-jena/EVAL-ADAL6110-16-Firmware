@@ -481,7 +481,7 @@ void user_bulk_main (void)
     if (cld_time_passed_ms(main_time) >= 250u)
     {
         main_time = cld_time_get();
-        LED3_TGL();
+        LED_BC2_TGL();
     }
 
     if (usb_time)
@@ -489,7 +489,7 @@ void user_bulk_main (void)
 		if (cld_time_passed_ms(usb_time) >= 500u)
 		{
 			usb_time = 0;
-			LED4_OFF();
+			LED_BC3_OFF();
 		}
     }
 
@@ -577,7 +577,7 @@ CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Tr
 	if (cld_time_passed_ms(usb_time) >= 25u)
 	{
 		usb_time = cld_time_get();
-		LED4_TGL();
+		LED_BC3_TGL();
 	}
 
     if (p_transfer_data->num_bytes == sizeof(AWLCANMessage))
