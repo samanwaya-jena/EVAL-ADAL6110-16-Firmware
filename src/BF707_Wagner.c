@@ -15,6 +15,7 @@
 #include <ADSP-BF707_device.h>
 
 #include "flash_params.h"
+#include "flash_debug.h"
 
 #include "PWR_Freq_Mode.h"
 #include "post_debug.h"
@@ -37,10 +38,49 @@ typedef enum
 
 int main(int argc, char *argv[])
 {
-//	DEBUG_HEADER( "Wagner ADSP-BF707 Eval Board" );
+	DEBUG_HEADER( "Wagner ADSP-BF707 Eval Board" );
 
+
+	//TODO ADD A INIT TO SET ALL GPIO DIRECTION
+#ifdef EZ_KIT
     pADI_PORTA->DIR_SET = (3 << 0);
     pADI_PORTB->DIR_SET = (1 << 1);
+#endif
+    //SET LED DIRECTION
+#ifndef EZ_KIT
+    LASER_PULSE1_DISABLE();
+    LASER_PULSE2_DISABLE();
+    LASER_OUTPUT_DISABLE();
+    LP_DRIVER_POWER_OFF();
+
+    pADI_PORTA->DIR_SET = (1 << 8);
+	pADI_PORTA->DIR_SET = (1 << 9);
+	pADI_PORTB->DIR_SET = (1 << 5);
+	pADI_PORTB->DIR_SET = (1 << 6);
+
+    pADI_PORTC->DIR_SET = (1 << 7); //not use in on wagner board
+    pADI_PORTC->DIR_SET = (1 << 8); //not use in on wagner board
+    pADI_PORTC->DIR_SET = (1 << 11); //not use in on wagner board
+    pADI_PORTC->DIR_SET = (1 << 12); //not use in on wagner board
+
+    //JAB DEBUG SET LED FOR TEST
+    pADI_PORTC->DATA_CLR = (1 << 7);
+    pADI_PORTC->DATA_SET = (1 << 8);
+	pADI_PORTC->DATA_CLR = (1 << 11);
+	pADI_PORTC->DATA_SET = (1 << 12);
+
+	//TRIG IN, in output mode Set @ 1
+	pADI_PORTA->DIR_SET = (1 << 15);
+	pADI_PORTA->DATA_SET = (1 << 15);
+#endif
+
+	//TEST SPI2 CS not
+//	pADI_PORTB->DIR_SET = (1 << 15); //not use in on wagner board
+//	pADI_PORTB->DATA_SET = (1 << 15);
+//	pADI_PORTB->DATA_CLR = (1 << 15); //not use in on wagner board
+//	pADI_PORTB->DATA_SET = (1 << 15);
+
+
 
 	/**
 	 * Initialize managed drivers and/or services that have been added to 
@@ -53,11 +93,17 @@ int main(int argc, char *argv[])
     power_init();
 
 	/* Set the Software controlled switches to default values */
+#ifdef EZ_KIT
 	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
+#endif
+    //flash_test();
 
 	Flash_Init();
 
 	Lidar_InitADI();
+
+
+
 
     Main_States main_state = MAIN_STATE_SYSTEM_INIT;
 
