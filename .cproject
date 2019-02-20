@@ -79,17 +79,16 @@
 								<option id="archiver.option.sirevision.1472382104" name="-si-revision" superClass="archiver.option.sirevision" value=" 1.1" valueType="string"/>
 							</tool>
 							<tool id="blackfin.toolchain.loader.1915839976" name="CrossCore Blackfin Loader" superClass="blackfin.toolchain.loader">
-								<option id="loader.option.proc.1634329211" name="-proc" superClass="loader.option.proc" value=" ADSP-BF707" valueType="string"/>
-								<option id="loader.option.sirevision.1153804454" name="-si-revision" superClass="loader.option.sirevision" value=" 1.1" valueType="string"/>
-								<option id="blackfin.loader.option.enumerated.bootmode.390904284" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
-								<option id="blackfin.loader.option.enumerated.progflag.1046068346" name="Programmable flag" superClass="blackfin.loader.option.enumerated.progflag"/>
-								<option id="blackfin.loader.option.bcode.2140728152" name="Boot code (-bcode)" superClass="blackfin.loader.option.bcode" value="1" valueType="string"/>
+								<option id="loader.option.proc.1634329211" name="-proc" superClass="loader.option.proc" useByScannerDiscovery="false" value=" ADSP-BF707" valueType="string"/>
+								<option id="loader.option.sirevision.1153804454" name="-si-revision" superClass="loader.option.sirevision" useByScannerDiscovery="false" value=" 1.1" valueType="string"/>
+								<option id="blackfin.loader.option.enumerated.bootmode.390904284" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" useByScannerDiscovery="false" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
+								<option id="blackfin.loader.option.enumerated.progflag.1046068346" name="Programmable flag" superClass="blackfin.loader.option.enumerated.progflag" useByScannerDiscovery="false"/>
+								<option id="blackfin.loader.option.bcode.2140728152" name="Boot code (-bcode)" superClass="blackfin.loader.option.bcode" useByScannerDiscovery="false" value="1" valueType="string"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="system|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="src.work|src.bak|system" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="system"/>
 					</sourceEntries>
 				</configuration>
@@ -184,7 +183,6 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="system|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="system"/>
 					</sourceEntries>
 				</configuration>

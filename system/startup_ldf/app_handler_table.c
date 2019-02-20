@@ -1,8 +1,8 @@
 
 /*
-** app_handler_table.c generated on July 6, 2018 at 14:24:03.
+** app_handler_table.c generated on February 12, 2019 at 14:29:20.
 **
-** Copyright (C) 2000-2018 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2019 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected in the
 ** Startup Code/LDF Configuration Editor. Changes to the Interrupt Handler

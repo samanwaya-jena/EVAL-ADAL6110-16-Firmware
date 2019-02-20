@@ -39,7 +39,70 @@ It provides information needed to link your code. It can be used to configure me
 	</installedComponents>
 	<configurations>
 		<configuration id="com.analog.crosscore.ssldd.pinmux.component">
-			<pinmux-configuration processor="ADSP-BF707" version="1.0"/>
+			<pinmux-configuration processor="ADSP-BF707" version="1.0">
+				<peripheral description="CAN Module" name="CAN1">
+					<signal bit="24" mux="1" name="RX" pin="12" port="A"/>
+					<signal bit="26" mux="1" name="TX" pin="13" port="A"/>
+				</peripheral>
+				<peripheral description="SPI Module" name="SPI0">
+					<signal bit="0" mux="2" name="CLK" pin="0" port="B"/>
+					<signal bit="2" mux="2" name="MISO" pin="1" port="B"/>
+					<signal bit="4" mux="2" name="MOSI" pin="2" port="B"/>
+					<signal bit="12" mux="2" name="RDY" pin="6" port="A"/>
+					<signal bit="10" mux="1" name="SEL1" pin="5" port="A"/>
+					<signal bit="6" mux="2" name="D2" pin="3" port="B"/>
+					<signal bit="18" mux="1" name="D3" pin="9" port="C"/>
+				</peripheral>
+				<peripheral description="SPI Module" name="SPI1">
+					<signal bit="0" mux="0" name="CLK" pin="0" port="A"/>
+					<signal bit="2" mux="0" name="MISO" pin="1" port="A"/>
+					<signal bit="4" mux="0" name="MOSI" pin="2" port="A"/>
+					<signal bit="8" mux="0" name="SEL1" pin="4" port="A"/>
+				</peripheral>
+				<peripheral description="SPI Module" name="SPI2">
+					<signal bit="20" mux="0" name="CLK" pin="10" port="B"/>
+					<signal bit="22" mux="0" name="MISO" pin="11" port="B"/>
+					<signal bit="24" mux="0" name="MOSI" pin="12" port="B"/>
+					<signal bit="30" mux="0" name="SEL1" pin="15" port="B"/>
+					<signal bit="26" mux="0" name="D2" pin="13" port="B"/>
+					<signal bit="28" mux="0" name="D3" pin="14" port="B"/>
+				</peripheral>
+				<peripheral description="TIMER Module" name="TM0">
+					<signal bit="14" mux="0" name="TMR2" pin="7" port="A"/>
+				</peripheral>
+				<peripheral description="UART Module" name="UART0">
+					<signal bit="16" mux="0" name="TX" pin="8" port="B"/>
+					<signal bit="18" mux="0" name="RX" pin="9" port="B"/>
+				</peripheral>
+				<gpio name="Port A">
+					<signal bit="0" name="PA00" pin="0" port="A"/>
+					<signal bit="2" name="PA01" pin="1" port="A"/>
+					<signal bit="4" name="PA02" pin="2" port="A"/>
+					<signal bit="8" name="PA04" pin="4" port="A"/>
+					<signal bit="10" name="PA05" pin="5" port="A"/>
+					<signal bit="12" name="PA06" pin="6" port="A"/>
+					<signal bit="14" name="PA07" pin="7" port="A"/>
+					<signal bit="24" name="PA12" pin="12" port="A"/>
+					<signal bit="26" name="PA13" pin="13" port="A"/>
+				</gpio>
+				<gpio name="Port B">
+					<signal bit="0" name="PB00" pin="0" port="B"/>
+					<signal bit="2" name="PB01" pin="1" port="B"/>
+					<signal bit="4" name="PB02" pin="2" port="B"/>
+					<signal bit="6" name="PB03" pin="3" port="B"/>
+					<signal bit="16" name="PB08" pin="8" port="B"/>
+					<signal bit="18" name="PB09" pin="9" port="B"/>
+					<signal bit="20" name="PB10" pin="10" port="B"/>
+					<signal bit="22" name="PB11" pin="11" port="B"/>
+					<signal bit="24" name="PB12" pin="12" port="B"/>
+					<signal bit="26" name="PB13" pin="13" port="B"/>
+					<signal bit="28" name="PB14" pin="14" port="B"/>
+					<signal bit="30" name="PB15" pin="15" port="B"/>
+				</gpio>
+				<gpio name="Port C">
+					<signal bit="18" name="PC09" pin="9" port="C"/>
+				</gpio>
+			</pinmux-configuration>
 		</configuration>
 		<configuration id="com.analog.sourcegen.component.startup_ldf">
 			<startup_ldf-configuration>
@@ -88,8 +151,8 @@ It provides information needed to link your code. It can be used to configure me
 					</crt>
 					<ldf>
 						<propertygroup name="system_heap" value="L1">
-							<property name="min_size" value="2"/>
 							<property name="size_units" value="kB"/>
+							<property name="min_size" value="2"/>
 							<property name="customized" value="false"/>
 						</propertygroup>
 						<propertygroup name="system_stack" value="L1">
@@ -100,8 +163,8 @@ It provides information needed to link your code. It can be used to configure me
 						<propertygroup name="use_sdram" value="false">
 							<property name="partitioned" value="default"/>
 							<property name="size" value="128"/>
-							<property name="size_units" value="MegaBytes"/>
 							<property name="dmc_size_0" value="128"/>
+							<property name="size_units" value="MegaBytes"/>
 						</propertygroup>
 						<propertygroup name="running_from_internal_memory" value="true"/>
 						<propertygroup name="libraries" value="true">
@@ -112,8 +175,8 @@ It provides information needed to link your code. It can be used to configure me
 							<property name="use_fixed_point_io_libs" value="false"/>
 						</propertygroup>
 						<property name="use_eh" value="true"/>
-						<property name="user_heap_src_file" value="app_heaptab.c"/>
 						<property name="use_full_cpplib" value="false"/>
+						<property name="user_heap_src_file" value="app_heaptab.c"/>
 						<property name="use_software_modules" value="false"/>
 						<property name="use_user_mod_ldf" value="true"/>
 						<property name="use_pgo_hw" value="false"/>
