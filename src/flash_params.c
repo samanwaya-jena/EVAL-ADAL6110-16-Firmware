@@ -93,8 +93,9 @@ int Flash_LoadConfig(int idx, uint16_t * pParams, int * pNum)
 
 	*pNum = 0;
 
+#ifdef EZ_KIT
 	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
-
+#endif
 	flash_open(flash_info);
 
 	/* calculate offset based on sector */
@@ -143,9 +144,9 @@ int Flash_LoadConfig(int idx, uint16_t * pParams, int * pNum)
 
 FAIL:
 	flash_close(flash_info);
-
+#ifdef EZ_KIT
 	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
-
+#endif
 	return 0;
 }
 
@@ -154,9 +155,9 @@ int Flash_SaveConfig(int idx, uint16_t * pParams, int num)
 	int Result = 0;							/* result */
 	tFlashParams * pFlashParams = NULL;
 	int sizeFlashParams = (num + 2) * sizeof(uint32_t);
-
+#ifdef EZ_KIT
 	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
-
+#endif
 	flash_open(flash_info);
 
 	/* calculate offset based on sector */
@@ -188,18 +189,18 @@ int Flash_SaveConfig(int idx, uint16_t * pParams, int num)
 	}
 
 	flash_close(flash_info);
-
+#ifdef EZ_KIT
 	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
-
+#endif
 	return 0;
 }
 
 int Flash_ResetToFactoryDefault(int idx)
 {
 	int Result = 0;							/* result */
-
+#ifdef EZ_KIT
 	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
-
+#endif
 	flash_open(flash_info);
 
 	/* calculate offset based on sector */
@@ -209,8 +210,9 @@ int Flash_ResetToFactoryDefault(int idx)
 	Result = flash_erase(flash_info, ulOffset, FLASH_PARAM_SIZE);
 
 	flash_close(flash_info);
-
+#ifdef EZ_KIT
 	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
+#endif
 
 	return 0;
 }
@@ -233,9 +235,9 @@ int testFlashParams(void)
 	uint8_t did;							/* device id */
 
 //	DEBUG_HEADER( "SPI Flash Test" );
-
+#ifdef EZ_KIT
 	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
-
+#endif
 	flash_info = &w25q32bv_info;
 
 	flash_open(flash_info);
@@ -286,9 +288,9 @@ int testFlashParams(void)
 	Result = flash_read(flash_info, ulOffset, ucBuf, 128);
 
 	flash_close(flash_info);
-
+#ifdef EZ_KIT
 	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
-
+#endif
 	return 0;
 }
 #endif
