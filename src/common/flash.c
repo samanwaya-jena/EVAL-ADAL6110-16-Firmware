@@ -6,10 +6,19 @@ to the terms of the associated Analog Devices License Agreement.
 
 *********************************************************************************/
 
+#include <stdint.h>
 #include "flash.h"
 #include <drivers\spi\adi_spi.h>
+#include "../BF707_Wagner.h"
 
-extern ADI_SPI_HANDLE hSpi;
+
+ADI_SPI_HANDLE hSpiFlash;
+
+#ifdef USE_DMA
+uint8_t flashMem[ADI_SPI_DMA_MEMORY_SIZE];
+#else //USE_DMA
+uint8_t flashMem[ADI_SPI_INT_MEMORY_SIZE];
+#endif //USE_DMA
 
 
 struct flash_info *flash_info;
@@ -28,14 +37,72 @@ int flash_company(const struct flash_info *fi, const char **company)
 
 int flash_open(struct flash_info *fi)
 {
-	ADI_SPI_RESULT result = adi_spi_SetWordSize( hSpi, ADI_SPI_TRANSFER_8BIT);
+	ADI_SPI_RESULT result = adi_spi_Open(FLASH_SPI_DEVICE, flashMem, sizeof(flashMem), &hSpiFlash);
+	if(result != ADI_SPI_SUCCESS){
+		printf("FAILDED TO OPEN FLASH SPI\n");
+	}
+
+	/* Set master */
+	result = adi_spi_SetMaster( hSpiFlash,true);
+//	CHECK_RESULT(result, "adi_spi_SetMaster");
+
+	/* Set slave select using hardware*/
+	result = adi_spi_SetHwSlaveSelect( hSpiFlash, false);
+	//CHECK_RESULT(result, "adi_spi_SetHwSlaveSelect");
+
+	result = adi_spi_SetLsbFirst( hSpiFlash, false);
+
+	result = adi_spi_SetTransmitUnderflow( hSpiFlash, true);
+	//CHECK_RESULT(result, "adi_spi_SetTransmitUnderflow");
+
+	result = adi_spi_SetClockPhase(hSpiFlash, false);
+	//CHECK_RESULT(result, "adi_spi_SetClockPhase");
+
+	/* Setting the clock frequency of spi   The frequency of the SPI clock is calculated by SCLK / 2* (Baud=3)*/
+	result = adi_spi_SetClock( hSpiFlash, 9);
+	//CHECK_RESULT(result, "adi_spi_SetClock");
+
+	/* Selecting slave1 as the device*/
+	result = adi_spi_SetSlaveSelect( hSpiFlash, ADI_SPI_SSEL_ENABLE1);
+	//CHECK_RESULT(result, "adi_spi_SetSlaveSelect");
+
+	result = adi_spi_SetWordSize( hSpiFlash, ADI_SPI_TRANSFER_8BIT);
+
+	/* No call backs required*/
+//	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
+
+//	result = adi_spi_SetTransceiverMode(hSpi, ADI_SPI_TXRX_MODE);
+
+	result = adi_spi_SetClockPolarity(hSpiFlash, true);
+
+
+	if (result == 0u)
+	{
+		/* generate tx data interrupt when watermark level breaches 50% level */
+		/* DMA watermark levels are disabled because SPI is in interrupt mode */
+		result = adi_spi_SetTxWatermark(hSpiFlash,
+												  ADI_SPI_WATERMARK_50,
+												  ADI_SPI_WATERMARK_DISABLE,
+												  ADI_SPI_WATERMARK_DISABLE);
+
+	}
+	if (result == 0u)
+	{
+		/* generate rx data interrupt when watermark level breaches 50% level */
+		/* DMA watermark levels are disabled because SPI is in interrupt mode */
+		result = adi_spi_SetRxWatermark(hSpiFlash,
+												  ADI_SPI_WATERMARK_50,
+												  ADI_SPI_WATERMARK_DISABLE,
+												  ADI_SPI_WATERMARK_DISABLE);
+
+	}
 
 	return fi->flash_open(fi);
 }
 
 int flash_close(struct flash_info *fi)
 {
-	ADI_SPI_RESULT result = adi_spi_SetWordSize( hSpi, ADI_SPI_TRANSFER_16BIT);
+	ADI_SPI_RESULT result = adi_spi_SetWordSize( hSpiFlash, ADI_SPI_TRANSFER_16BIT);
 
 	return fi->flash_close(fi);
 }
@@ -209,22 +276,23 @@ int generic_write_enable(const struct flash_info *fi, uint8_t insn)
 {
 	uint8_t tbuf[1];
 	int count;
+	ADI_SPI_RESULT result;
 
 	/* Only for STANDARD mode */
 	if (fi->current_mode != STANDARD)
 		return -1;
 
-	select_flash();
+	//select_flash();
 
 	count = 0;
 	assign_instruction(fi, tbuf, insn, &count);
 
 #if 1
-	ADI_SPI_RESULT result;
+
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, NULL, 0u};
 
-	result = adi_spi_ReadWrite(hSpi, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count);
 #endif
@@ -253,7 +321,7 @@ int generic_write_disable(const struct flash_info *fi, uint8_t insn)
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, NULL, 0u};
 
-	result = adi_spi_ReadWrite(hSpi, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count);
 #endif
@@ -284,7 +352,7 @@ int generic_read_jedec_id(const struct flash_info *fi, uint8_t insn,
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, rbuf, 3u};
 
-	result = adi_spi_ReadWrite(hSpi, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count);
 
