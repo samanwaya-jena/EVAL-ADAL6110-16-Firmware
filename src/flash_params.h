@@ -1,6 +1,8 @@
 #ifndef _FLASH_PARAMS_H_
 #define _FLASH_PARAMS_H_
 
+#include <stdint.h>
+
 int Flash_Init(void);
 int Flash_ResetToFactoryDefault(int idx);
 int Flash_SaveConfig(int idx, uint16_t * pParams, int num);
