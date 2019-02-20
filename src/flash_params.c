@@ -44,7 +44,7 @@ extern FILE *pDebugFile;				/* debug file when directing output to a file */
 #define FLASH_PARAM1_ADDR (41 * 64*1024)
 #define FLASH_PARAM_SIZE (64*1024)
 
-extern struct flash_info w25q32bv_info;
+extern struct flash_info is25lp032d_info;
 
 
 static SWITCH_CONFIG SwitchConfig0[] =
@@ -71,7 +71,7 @@ static SOFT_SWITCH SoftSwitch[] =
 
 int Flash_Init(void)
 {
-	flash_info = &w25q32bv_info;
+	flash_info = &is25lp032d_info;
 
 	return 0;
 }

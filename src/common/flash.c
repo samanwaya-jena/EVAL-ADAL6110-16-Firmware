@@ -39,7 +39,7 @@ int flash_open(struct flash_info *fi)
 {
 	ADI_SPI_RESULT result = adi_spi_Open(FLASH_SPI_DEVICE, flashMem, sizeof(flashMem), &hSpiFlash);
 	if(result != ADI_SPI_SUCCESS){
-		printf("FAILDED TO OPEN FLASH SPI\n");
+		printf("FAILED TO OPEN FLASH SPI\n");
 	}
 
 	/* Set master */

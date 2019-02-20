@@ -15,7 +15,7 @@ This file was created and modified from is25p32d.c
 
 #include "../common/flash.h"
 
-extern ADI_SPI_HANDLE hSpiFlash_d;
+extern ADI_SPI_HANDLE hSpiFlash;
 
 /* The following three macros are for debug purpose */
 /* #define DUMMY_IS_ZERO */
@@ -194,7 +194,7 @@ static int is25p32d_read_mid_did(struct flash_info *fi, uint8_t *mid, uint8_t *d
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, rbuf, 2u};
 
-	result = adi_spi_ReadWrite(hSpiFlash_d, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count);
 
@@ -245,7 +245,7 @@ static int is25p32d_read_uid(const struct flash_info *fi, uint64_t *uid)
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, rbuf, 8u};
 
-	result = adi_spi_ReadWrite(hSpiFlash_d, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count);
 	spi_recv(rbuf, 8);
@@ -286,7 +286,7 @@ static int is25p32d_read_jedec_id(const struct flash_info *fi, uint8_t *mid,
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, rbuf, 3u};
 
-	result = adi_spi_ReadWrite(hSpiFlash_d, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count);
 
@@ -322,7 +322,7 @@ static int is25p32d_read_status(const struct flash_info *fi, uint8_t *status, in
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, rbuf, 1u};
 
-	result = adi_spi_ReadWrite(hSpiFlash_d, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count);
 
@@ -373,7 +373,7 @@ static int is25p32d_wait_ready(const struct flash_info *fi)
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, &status, 1u};
 
-	result = adi_spi_ReadWrite(hSpiFlash_d, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 	}
 	while (status & STATUS1_BUSY);
 #else
@@ -416,7 +416,7 @@ static int is25p32d_write_status(const struct flash_info *fi, uint8_t status1, u
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, NULL, 0u};
 
-	result = adi_spi_ReadWrite(hSpiFlash_d, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count);
 #endif
@@ -569,7 +569,7 @@ static int is25p32d_read(const struct flash_info *fi, uint32_t addr, uint8_t *bu
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, buf, size};
 
-	result = adi_spi_ReadWrite(hSpiFlash_d, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count);
 
@@ -639,7 +639,7 @@ static int is25p32d_erase_1(const struct flash_info *fi,
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count, NULL, 0u, NULL, 0u};
 
-	result = adi_spi_ReadWrite(hSpiFlash_d, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count);
 #endif
@@ -721,7 +721,7 @@ static int is25p32d_page_program(struct flash_info *fi,
 
 	ADI_SPI_TRANSCEIVER trans  = {tbuf, count + size, NULL, 0u, NULL, 0u};
 
-	result = adi_spi_ReadWrite(hSpiFlash_d, &trans);
+	result = adi_spi_ReadWrite(hSpiFlash, &trans);
 #else
 	spi_send(tbuf, count + size);
 #endif

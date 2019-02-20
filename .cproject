@@ -81,7 +81,7 @@
 							<tool id="blackfin.toolchain.loader.1915839976" name="CrossCore Blackfin Loader" superClass="blackfin.toolchain.loader">
 								<option id="loader.option.proc.1634329211" name="-proc" superClass="loader.option.proc" useByScannerDiscovery="false" value=" ADSP-BF707" valueType="string"/>
 								<option id="loader.option.sirevision.1153804454" name="-si-revision" superClass="loader.option.sirevision" useByScannerDiscovery="false" value=" 1.1" valueType="string"/>
-								<option id="blackfin.loader.option.enumerated.bootmode.390904284" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" useByScannerDiscovery="false" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
+								<option id="blackfin.loader.option.enumerated.bootmode.390904284" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" useByScannerDiscovery="false" value="blackfin.loader.option.boot.enumerated.spislave" valueType="enumerated"/>
 								<option id="blackfin.loader.option.enumerated.progflag.1046068346" name="Programmable flag" superClass="blackfin.loader.option.enumerated.progflag" useByScannerDiscovery="false"/>
 								<option id="blackfin.loader.option.bcode.2140728152" name="Boot code (-bcode)" superClass="blackfin.loader.option.bcode" useByScannerDiscovery="false" value="1" valueType="string"/>
 							</tool>

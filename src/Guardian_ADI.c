@@ -356,11 +356,9 @@ void ResetADI(void) {
 	int i = 1200000; // 1.5ms @ 200mhz
 	DEBUG_HEADER( "Wait for Gordon RESET sequence" );
 
-	//WriteParamToSPI(Control0Address, 1);
+
 	while(i--){
 	}
-
-	//WriteParamToSPI(Control0Address, 0);
 
 	i = 1200000;
 	while(i--){
@@ -369,18 +367,6 @@ void ResetADI(void) {
 	//Lidar_SPITriggerMode();
 
 	//ClearSram();
-
-#if 0
-	int i = 30;
-// P1.3 is used as GPIO for LED indication. Macros can be find in GPIO.h
-	P1_3_set_mode(OUTPUT_PP_GP);
-	P1_3_set_driver_strength(STRONG);
-// switch these line according to polarity
-	P1_3_reset();
-	while (--i) {
-	}
-	P1_3_set();
-#endif
 }
 
 /**
@@ -469,7 +455,7 @@ void Lidar_InitADI(void) {
 	int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
 	int numParams = num;
 
-	//TODO DEBUG Disable FLASH to finish booting gordon
+
 	Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams);
 	numParams = 0;
 	if (numParams)
@@ -482,7 +468,7 @@ void Lidar_InitADI(void) {
 	}
 
   numParams = 2;
-  //TODO DEBUG Disable FLASH to finish booting gordon
+
   //Flash_LoadConfig(1, &Int_InitValues[0][0], &numParams);
 
   for (i = 0; i < numParams; i++)
@@ -604,21 +590,9 @@ void Lidar_InitADI(void) {
 
   	WriteParamToSPI(Control0Address, 0x1F82); // Set system ready to 1
 
-
+  	//TODO Reenable user_can_fifo_push
 	//user_CANFifoPushSensorStatus();
     //user_CANFifoPushSensorBoot();
-
-
-	//TODO DEBUG READ PARAMETER FROM SPI
-	ReadParamFromSPI(Control0Address, &dataToBeRead);
-	DEBUG_PRINT( "Control0Address : 0x%x", dataToBeRead);
-
-	//TODO DEBUG READ PARAMETER FROM SPI
-	ReadParamFromSPI(DeviceIDAddress, &dataToBeRead);
-	DEBUG_PRINT( "DeviceIDAddress : 0x%x", dataToBeRead);
-
-
-
 
 }
 
