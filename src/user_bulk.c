@@ -71,7 +71,7 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
                                                             will not use a UART */
     .uart_baud  = 115200,                               /* CLD Library CONSOLE print UART
                                                            baudrate. */
-    .sclk0      = 100000000u,                           /* Blackfin SCLK0 frequency */
+    .sclk0      = 200000000u,                           /* Blackfin SCLK0 frequency */
     .fp_console_rx_byte = user_bulk_console_rx_byte,    /* Function called when a byte
                                                            is received by the CONSOLE
                                                            UART. */
