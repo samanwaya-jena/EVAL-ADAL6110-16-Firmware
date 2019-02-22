@@ -4,7 +4,7 @@
 
 #define USE_DMA
 #define USE_ALGO
-#define USE_ACCUMULATION
+//#define USE_ACCUMULATION
 
 
 #include <stdint.h>
@@ -39,79 +39,6 @@
  */
 
 
-enum ADI_REGISTER_INDEX {
-	DeviceIDAddress = 0x00, // Read only
-	Control0Address = 0x01,
-	Control1Address = 0x02,
-	DataControlAddress = 0x03,
-	DelayBetweenFlashesAddress = 0x04,
-	ChannelEnableAddress = 0x05,
-	DataAcqMode = 0x06,
-	TriggerOutAddress = 0x07,
-	CH0ControlReg0Address = 0x0D,
-	CH0ControlReg1Address = 0x0E,
-	CH0ControlReg2Address = 0x0F,
-	CH1ControlReg0Address = 0x11,
-	CH1ControlReg1Address = 0x12,
-	CH1ControlReg2Address = 0x13,
-	CH2ControlReg0Address = 0x15,
-	CH2ControlReg1Address = 0x16,
-	CH2ControlReg2Address = 0x17,
-	CH3ControlReg0Address = 0x19,
-	CH3ControlReg1Address = 0x1A,
-	CH3ControlReg2Address = 0x1B,
-	CH4ControlReg0Address = 0x1D,
-	CH4ControlReg1Address = 0x1E,
-	CH4ControlReg2Address = 0x1F,
-	CH5ControlReg0Address = 0x21,
-	CH5ControlReg1Address = 0x22,
-	CH5ControlReg2Address = 0x23,
-	CH6ControlReg0Address = 0x25,
-	CH6ControlReg1Address = 0x26,
-	CH6ControlReg2Address = 0x27,
-	CH7ControlReg0Address = 0x29,
-	CH7ControlReg1Address = 0x2A,
-	CH7ControlReg2Address = 0x2B,
-	CH8ControlReg0Address = 0x2D,
-	CH8ControlReg1Address = 0x2E,
-	CH8ControlReg2Address = 0x2F,
-	CH9ControlReg0Address = 0x31,
-	CH9ControlReg1Address = 0x32,
-	CH9ControlReg2Address = 0x33,
-	CH10ControlReg0Address = 0x35,
-	CH10ControlReg1Address = 0x36,
-	CH10ControlReg2Address = 0x37,
-	CH11ControlReg0Address = 0x39,
-	CH11ControlReg1Address = 0x3A,
-	CH11ControlReg2Address = 0x3B,
-	CH12ControlReg0Address = 0x3D,
-	CH12ControlReg1Address = 0x3E,
-	CH12ControlReg2Address = 0x3F,
-	CH13ControlReg0Address = 0x41,
-	CH13ControlReg1Address = 0x42,
-	CH13ControlReg2Address = 0x43,
-	CH14ControlReg0Address = 0x45,
-	CH14ControlReg1Address = 0x46,
-	CH14ControlReg2Address = 0x47,
-	CH15ControlReg0Address = 0x49,
-	CH15ControlReg1Address = 0x4A,
-	CH15ControlReg2Address = 0x4B,
-	GPIOCFG = 0x70,
-	SPICFG = 0x73,
-	THSMAX = 0xE1,
-	THSMIN = 0xE2,
-	AGCDCBCTRL = 0xE3,
-	AGCEN = 0xE4,
-	DCEN = 0xE5,
-	AGCDCBPID0 = 0xE6,
-	AGCDCBPID1 = 0xE7,
-	FRAMEDELAY = 0xE8,
-	STARTADDRPOINTER = 0xF5,
-	BankStatusAddress = 0xF6, // read only
-	LFSRSEEDL = 0xF7,
-	LFSRSEEDH = 0xF8,
-	SRAMReadOutAddress = 0xFF // read only
-};
 
 uint16_t Lidar_InitValues[][2] =
 {
@@ -257,9 +184,9 @@ void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
  */
 void ReadDataFromSPI(uint16_t * pData, int num)
 {
-	//uint8_t ProBuffer1[2] = {0xFF, 0x01};
 	//TO CHANGE METHOD TO USE SRAMREADOUTADDR
-	uint8_t ProBuffer1[2] = {0x87, 0xF8};
+	uint8_t ProBuffer1[2] = {0xF8, 0x87}; //{LSB, MSB}
+
 	ADI_SPI_TRANSCEIVER Xcv0DMA;
 
 	ADI_SPI_RESULT result;
@@ -303,8 +230,7 @@ void ReadDataFromSPI(uint16_t * pData, int num)
 
 void ReadDataFromSPI_Start(uint16_t * pData, int num)
 {
-	//static uint8_t gProBuffer1[2] = {0xFF, 0x01};
-	static uint8_t gProBuffer1[2] = {0x87, 0xF8};
+	static uint8_t gProBuffer1[2] = {0xF8, 0x87};
 	static ADI_SPI_TRANSCEIVER gXcv0DMA;
 
 	ADI_SPI_RESULT result;
@@ -467,26 +393,26 @@ void Lidar_InitADI(void) {
 		ReadParamFromSPI(Lidar_InitValues[i][0], &dataToBeRead);
 	}
 
-  numParams = 2;
+	numParams = 2;
 
-  //Flash_LoadConfig(1, &Int_InitValues[0][0], &numParams);
+	//Flash_LoadConfig(1, &Int_InitValues[0][0], &numParams);
 
-  for (i = 0; i < numParams; i++)
-  {
-    switch (Int_InitValues[i][0])
-    {
+	for (i = 0; i < numParams; i++)
+	{
+		switch (Int_InitValues[i][0])
+		{
 #ifdef USE_ACCUMULATION
-    case 1:
-      iAcqAccMax = Int_InitValues[i][1];
-      break;
-    case 2:
-      iAcqAccShift = Int_InitValues[i][1];
-      break;
+			case 1:
+				iAcqAccMax = Int_InitValues[i][1];
+				break;
+			case 2:
+				iAcqAccShift = Int_InitValues[i][1];
+				break;
 #endif //USE_ACCUMULATION
-    default:
-      break;
-    }
-  }
+			default:
+				break;
+		}
+	}
 
 
     WriteParamToSPI(CH0ControlReg0Address, 0x001F);
@@ -582,7 +508,8 @@ void Lidar_InitADI(void) {
   	WriteParamToSPI(86, 0x823F);
   	WriteParamToSPI(ChannelEnableAddress, 0xFFFF);
   	WriteParamToSPI(AGCEN, 0x0000);
-  	WriteParamToSPI(DCEN, 0xFFFF);
+  	//WriteParamToSPI(DCEN, 0xFFFF);
+    WriteParamToSPI(DCEN, 0x0000);
   	WriteParamToSPI(185, 1);
 
   	while(waitTimer--){ // Wait 200 us
@@ -591,43 +518,43 @@ void Lidar_InitADI(void) {
   	WriteParamToSPI(Control0Address, 0x1F82); // Set system ready to 1
 
   	//TODO Reenable user_can_fifo_push
-	//user_CANFifoPushSensorStatus();
-    //user_CANFifoPushSensorBoot();
+	user_CANFifoPushSensorStatus();
+    user_CANFifoPushSensorBoot();
 
 }
 
 
 int SaveConfigToFlash(int idx)
 {
-  if (idx == 0)
-  {
-    int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
-    int i;
-    for (i = 0; i < num; i++)
-    {
-      ReadParamFromSPI(Lidar_InitValues[i][0], &Lidar_InitValues[i][1]);
-    }
+	if (idx == 0)
+	{
+		int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
+		int i;
+		for (i = 0; i < num; i++)
+		{
+			ReadParamFromSPI(Lidar_InitValues[i][0], &Lidar_InitValues[i][1]);
+		}
 
-    return Flash_SaveConfig(idx, &Lidar_InitValues[0][0], num);
-  }
-  else
-  {
-    int num;
+		return Flash_SaveConfig(idx, &Lidar_InitValues[0][0], num);
+	}
+	else
+	{
+		int num;
 
 #ifdef USE_ACCUMULATION
-    num = 2;
-    Int_InitValues[0][0] = 1;
-    Int_InitValues[0][1] = iAcqAccMax;
-    Int_InitValues[1][0] = 2;
-    Int_InitValues[1][1] = iAcqAccShift;
+		num = 2;
+		Int_InitValues[0][0] = 1;
+		Int_InitValues[0][1] = iAcqAccMax;
+		Int_InitValues[1][0] = 2;
+		Int_InitValues[1][1] = iAcqAccShift;
 #else //USE_ACCUMULATION
-    num = 1;
-    Int_InitValues[0][0] = 0;
-    Int_InitValues[0][1] = 0;
+		num = 1;
+		Int_InitValues[0][0] = 0;
+		Int_InitValues[0][1] = 0;
 #endif //USE_ACCUMULATION
 
-    return Flash_SaveConfig(idx, &Int_InitValues[0][0], num);
-  }
+		return Flash_SaveConfig(idx, &Int_InitValues[0][0], num);
+	}
 }
 
 void ForceGetADIData(uint16_t bankNum, uint16_t * pData) {
@@ -714,7 +641,9 @@ void Lidar_GetADIData(uint16_t *pBank, uint16_t * pData) {
 #ifdef USE_FAKE_DATA
 void GetADIData_Start(uint16_t *pBank, uint16_t * pData);
 bool GetADIData_Check(void);
+
 #else //USE_FAKE_DATA
+
 void GetADIData_Start(uint16_t *pBank, uint16_t * pData) {
 
 
@@ -801,24 +730,26 @@ void Lidar_ChannelEnable(int ch, int enable)
 {
 	uint16_t data;
 
-	ReadParamFromSPI(CH0ControlReg0Address + ch * 4, &data);
+	ReadParamFromSPI(ChannelEnableAddress, &data);
 
 	if (enable)
-		data |=  0x001F;
+		data |=  (1 << ch);
 	else
-		data &= ~0x001F;
+		data &= ~(1 << ch);
 
-    WriteParamToSPI(CH0ControlReg0Address + ch * 4, data);
+    WriteParamToSPI(ChannelEnableAddress, data);
 }
 
 void Lidar_ChannelTIAFeedback(int ch, uint16_t feedback)
 {
 	uint16_t data;
+	uint16_t temp = 0;
 
 	ReadParamFromSPI(CH0ControlReg1Address + ch * 4, &data);
 
-	data &= ~0x03FF;
-	data |= feedback;
+	data &= ~0x00FF;
+	temp = (uint8_t) feedback;
+	data |= temp;
 
     WriteParamToSPI(CH0ControlReg1Address + ch * 4, data);
 }
@@ -827,12 +758,12 @@ void Lidar_ChannelDCBal(int ch, uint16_t bal)
 {
 	uint16_t data;
 
-	ReadParamFromSPI(CH0ControlReg0Address + ch * 4 + 2, &data);
+	ReadParamFromSPI(CH0ControlReg2Address + ch * 4, &data);
 
 	data &= ~0x01FF;
 	data |= bal;
 
-    WriteParamToSPI(CH0ControlReg0Address + ch * 4 + 2, data);
+    WriteParamToSPI(CH0ControlReg2Address + ch * 4, data);
 }
 
 void Lidar_FlashGain(uint16_t flashGain)
@@ -841,8 +772,8 @@ void Lidar_FlashGain(uint16_t flashGain)
 
 	ReadParamFromSPI(Control0Address, &data);
 
-	data &= ~0x1F80;
-	data |= (flashGain << 7) & 0x1F80;
+	data &= ~0xFF10;
+	data |= (flashGain << 7) & 0xFF10;
 
     WriteParamToSPI(Control0Address, data);
 }
@@ -1076,11 +1007,11 @@ inline int ProcessReadWriteFifo(void)
 			SaveConfigToFlash(0);
 			break;
 		case 0x3FFF:
-      Flash_ResetToFactoryDefault(0);
-			Lidar_Reset();
+			Flash_ResetToFactoryDefault(0);
+			//Lidar_Reset();
 			break;
 		case 0x4000:
-			Lidar_Reset();
+			//Lidar_Reset();
 			break;
 #ifdef USE_ACCUMULATION
 		case 0x4001:
@@ -1092,8 +1023,8 @@ inline int ProcessReadWriteFifo(void)
 			SaveConfigToFlash(1);
 			break;
 		case 0x7FFF:
-      Flash_ResetToFactoryDefault(1);
-			Lidar_Reset();
+			Flash_ResetToFactoryDefault(1);
+			//Lidar_Reset();
 			break;
 		default:
 			WriteParamToSPI(addr, data);
@@ -1135,7 +1066,7 @@ static uint16_t BankInTransfer = 0;
 volatile int iFifoHead = 0;
 volatile int iFifoTail = 0;
 
-#define NUM_FIFO			8
+#define NUM_FIFO			4
 #define NUM_FIFO_MASK		(NUM_FIFO-1)
 
 static tDataFifo dataFifo[NUM_FIFO];
