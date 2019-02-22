@@ -24,7 +24,7 @@ void Lidar_PrintInfo(void)
 {
 	uint16_t data;
 
-	ReadParamFromSPI(0, &data);
+	ReadParamFromSPI(DeviceIDAddress, &data);
 
 	uint8_t mid = (data >> 8) & 0xFF;
 	uint8_t pid = (data >> 4) & 0x0F;
@@ -38,7 +38,7 @@ const char * hex = "0123456789ABCDEF";
 
 void Lidar_DumpRegs(void)
 {
-	uint8_t regs[] = { 0,1,2,3,4,7,0x4D,0x56,0xF1,0xF2 };
+	uint8_t regs[] = { DeviceIDAddress,Control0Address,Control1Address,DataControlAddress,DelayBetweenFlashesAddress,TriggerOutAddress};
 	int i, ch;
 
 	int num = sizeof(regs) / sizeof(regs[0]);
@@ -60,19 +60,22 @@ void Lidar_DumpRegs(void)
 	{
 		uint16_t en, tia, bal;
 		uint16_t data = 0xFFFF;
+		uint8_t tia_feedback,chx_cpd_select;
 
-		ReadParamFromSPI(13 + 4 * ch, &data);
-		en = (data & 0x001F);
+		ReadParamFromSPI(ChannelEnableAddress, &data);
+		en = (data & (1 << ch) );
 
-		ReadParamFromSPI(13 + 4 * ch + 1, &data);
-		tia = (data & 0x03FF);
+		ReadParamFromSPI(CH0ControlReg0Address + 4 * ch, &data);
+		tia = data;
 
-		ReadParamFromSPI(13 + 4 * ch + 2, &data);
+		ReadParamFromSPI(CH0ControlReg1Address + 4 * ch, &data);
+		chx_cpd_select =  (uint8_t) ((data >> 8) & 0x7);
+		tia_feedback = (uint8_t) (data & 0xFF);
+
+		ReadParamFromSPI(CH0ControlReg2Address + 4 * ch, &data);
 		bal = (data & 0x01FF);
 
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%02d: %d %c%c%c %d\r\n", ch, (en) ? 1 : 0,
-				hex[(tia>>8)&0xF], hex[(tia>>4)&0xF], hex[(tia>>0)&0xF],
-				bal);
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%02d: %d %d %d %d %d\r\n", ch, (en) ? 1 : 0, tia,chx_cpd_select , tia_feedback, bal);
 	}
 
 }
