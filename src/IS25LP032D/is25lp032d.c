@@ -27,7 +27,7 @@ extern ADI_SPI_HANDLE hSpiFlash;
 /* Instruction Set Table 1 (Erase, Program Instructions) */
 
 #define WRITE_ENABLE							0x06
-#define WRITE_ENABLE_FOR_VOLATILE_STATUS_REGISTER 0x50 8// not present in is25lp032d
+#define WRITE_ENABLE_FOR_VOLATILE_STATUS_REGISTER 0x50 // not present in is25lp032d
 #define WRITE_DISABLE							0x04
 #define READ_STATUS_REGISTER_1					0x05
 #define READ_STATUS_REGISTER_2					0x35 //Enter QPI mode
@@ -773,12 +773,12 @@ static int is25p32d_reset(const struct flash_info *fi)
 
 struct flash_info is25lp032d_info =
 {
-	"IS25LP032D",	/* name */
-	"ISSI",	/* mname */
-	0x9D,		/* manufacturer ID */
-	0x15,		/* device ID */
-	0x60,		/* memory type ID */
-	0x16,		/* capacity ID */
+		"IS25LP032D",	/* name */
+		"ISSI",	/* mname */
+		0x9D,		/* manufacturer ID */
+		0x15,		/* device ID */
+		0x60,		/* memory type ID */
+		0x16,		/* capacity ID */
 	STANDARD, // | DUAL_OUTPUT | QUAD_OUTPUT | DUAL_IO | DUAL_OUTPUT, /* supported modes */
 
 
