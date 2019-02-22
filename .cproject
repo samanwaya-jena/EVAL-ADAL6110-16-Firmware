@@ -17,12 +17,12 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="ldr" artifactName="${ProjName}" buildArtefactType="com.analog.crosscore.managedbuilder.core.buildArtefactType.ldr" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=com.analog.crosscore.managedbuilder.core.buildArtefactType.ldr,com.analog.crosscore.managedbuilder.buildType=com.analog.crosscore.managedbuilder.buildType.debug" cleanCommand="clean" description="" id="blackfin.toolchain.configuration.debug.1581875278" name="Debug" parent="blackfin.toolchain.configuration.debug">
+				<configuration artifactExtension="ldr" artifactName="${ProjName}" buildArtefactType="com.analog.crosscore.managedbuilder.core.buildArtefactType.ldr" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=com.analog.crosscore.managedbuilder.core.buildArtefactType.ldr,com.analog.crosscore.managedbuilder.buildType=com.analog.crosscore.managedbuilder.buildType.debug" cleanCommand="clean" description="" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.analog.crosscore.managedbuilder.core.errorparser" id="blackfin.toolchain.configuration.debug.1581875278" name="Debug" parent="blackfin.toolchain.configuration.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="blackfin.toolchain.configuration.debug.1581875278." name="/" resourcePath="">
-						<toolChain id="blackfin.toolchain.debug.1600078990" isAbstract="false" name="CrossCore Blackfin Toolchain" superClass="blackfin.toolchain" targetTool="blackfin.toolchain.loader">
+						<toolChain errorParsers="com.analog.crosscore.managedbuilder.core.errorparser" id="blackfin.toolchain.debug.1600078990" isAbstract="false" name="CrossCore Blackfin Toolchain" superClass="blackfin.toolchain" targetTool="blackfin.toolchain.loader">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="blackfin.platform.1585327529" name="CrossCore Blackfin Target Platform" osList="all" superClass="blackfin.platform"/>
-							<builder buildPath="${workspace_loc:/BF707_Wagner}/Debug" id="blackfin.toolchain.builder.1621097900" keepEnvironmentInBuildfile="false" name="CrossCore Blackfin Builder" superClass="blackfin.toolchain.builder"/>
-							<tool id="blackfin.toolchain.assembler.2033434094" name="CrossCore Blackfin Assembler" superClass="blackfin.toolchain.assembler">
+							<builder buildPath="${workspace_loc:/BF707_Wagner}/Debug" errorParsers="org.eclipse.cdt.core.GmakeErrorParser" id="blackfin.toolchain.builder.1621097900" keepEnvironmentInBuildfile="false" name="CrossCore Blackfin Builder" superClass="blackfin.toolchain.builder"/>
+							<tool command="easmblkfn" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="com.analog.crosscore.managedbuilder.core.errorparser" id="blackfin.toolchain.assembler.2033434094" name="CrossCore Blackfin Assembler" superClass="blackfin.toolchain.assembler">
 								<option id="assembler.option.debugcode.958668173" name="Generate debug information (-g)" superClass="assembler.option.debugcode" useByScannerDiscovery="false"/>
 								<option id="assembler.option.proc.1878145618" name="-proc" superClass="assembler.option.proc" useByScannerDiscovery="false" value=" ADSP-BF707" valueType="string"/>
 								<option id="assembler.option.sirevision.453629456" name="-si-revision" superClass="assembler.option.sirevision" useByScannerDiscovery="false" value=" 1.1" valueType="string"/>
@@ -35,7 +35,7 @@
 								</option>
 								<inputType id="assembler.input.744465879" name="Assembler Source" superClass="assembler.input"/>
 							</tool>
-							<tool id="blackfin.toolchain.compiler.620437758" name="CrossCore Blackfin C/C++ Compiler" superClass="blackfin.toolchain.compiler">
+							<tool command="ccblkfn" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="blackfin.toolchain.compiler.620437758" name="CrossCore Blackfin C/C++ Compiler" superClass="blackfin.toolchain.compiler">
 								<option id="compiler.option.optimization.893167349" name="Enable optimization (-O)" superClass="compiler.option.optimization" useByScannerDiscovery="false"/>
 								<option id="compiler.option.debugcode.1347787218" name="Generate debug information (-g)" superClass="compiler.option.debugcode" useByScannerDiscovery="false"/>
 								<option id="compiler.option.proc.1174239025" name="-proc" superClass="compiler.option.proc" useByScannerDiscovery="false" value=" ADSP-BF707" valueType="string"/>
@@ -52,7 +52,7 @@
 								</option>
 								<inputType id="compiler.inputType.656416036" name="C/C++ Source" superClass="compiler.inputType"/>
 							</tool>
-							<tool id="blackfin.toolchain.linker.1036829820" name="CrossCore Blackfin Linker" superClass="blackfin.toolchain.linker">
+							<tool command="ccblkfn" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="blackfin.toolchain.linker.1036829820" name="CrossCore Blackfin Linker" superClass="blackfin.toolchain.linker">
 								<option id="linker.option.individmap.1322048019" name="Individually map functions and data items (-ip)" superClass="linker.option.individmap" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="linker.option.eliminateunused.1505162782" name="Eliminate unused objects (-e)" superClass="linker.option.eliminateunused" useByScannerDiscovery="false"/>
 								<option id="linker.option.usedbglib.786090643" name="Use Debug System libraries (-add-debug-libpaths)" superClass="linker.option.usedbglib" useByScannerDiscovery="false"/>
@@ -78,12 +78,13 @@
 								<option id="archiver.option.proc.1572174006" name="-proc" superClass="archiver.option.proc" value=" ADSP-BF707" valueType="string"/>
 								<option id="archiver.option.sirevision.1472382104" name="-si-revision" superClass="archiver.option.sirevision" value=" 1.1" valueType="string"/>
 							</tool>
-							<tool id="blackfin.toolchain.loader.1915839976" name="CrossCore Blackfin Loader" superClass="blackfin.toolchain.loader">
+							<tool command="elfloader" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="blackfin.toolchain.loader.1915839976" name="CrossCore Blackfin Loader" superClass="blackfin.toolchain.loader">
 								<option id="loader.option.proc.1634329211" name="-proc" superClass="loader.option.proc" useByScannerDiscovery="false" value=" ADSP-BF707" valueType="string"/>
 								<option id="loader.option.sirevision.1153804454" name="-si-revision" superClass="loader.option.sirevision" useByScannerDiscovery="false" value=" 1.1" valueType="string"/>
-								<option id="blackfin.loader.option.enumerated.bootmode.390904284" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" useByScannerDiscovery="false" value="blackfin.loader.option.boot.enumerated.spislave" valueType="enumerated"/>
+								<option id="blackfin.loader.option.enumerated.bootmode.390904284" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" useByScannerDiscovery="false" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
 								<option id="blackfin.loader.option.enumerated.progflag.1046068346" name="Programmable flag" superClass="blackfin.loader.option.enumerated.progflag" useByScannerDiscovery="false"/>
 								<option id="blackfin.loader.option.bcode.2140728152" name="Boot code (-bcode)" superClass="blackfin.loader.option.bcode" useByScannerDiscovery="false" value="1" valueType="string"/>
+								<option id="loader.option.verbose.657337859" superClass="loader.option.verbose" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							</tool>
 						</toolChain>
 					</folderInfo>

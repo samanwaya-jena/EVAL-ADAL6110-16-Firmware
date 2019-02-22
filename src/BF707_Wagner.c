@@ -53,15 +53,15 @@ int main(int argc, char *argv[])
     LASER_OUTPUT_DISABLE();
     LP_DRIVER_POWER_OFF();
 
-    pADI_PORTA->DIR_SET = (1 << 8);
-	pADI_PORTA->DIR_SET = (1 << 9);
-	pADI_PORTB->DIR_SET = (1 << 5);
-	pADI_PORTB->DIR_SET = (1 << 6);
+    pADI_PORTA->DIR_SET = (1 << 8); // LASER_1
+	pADI_PORTA->DIR_SET = (1 << 9); // LASER_2
+	pADI_PORTB->DIR_SET = (1 << 5); // EN_P_N
+	pADI_PORTB->DIR_SET = (1 << 6); // PD_P
 
-    pADI_PORTC->DIR_SET = (1 << 7); //not use in on wagner board
-    pADI_PORTC->DIR_SET = (1 << 8); //not use in on wagner board
-    pADI_PORTC->DIR_SET = (1 << 11); //not use in on wagner board
-    pADI_PORTC->DIR_SET = (1 << 12); //not use in on wagner board
+    pADI_PORTC->DIR_SET = (1 << 7); 	//LED_BC2_R
+    pADI_PORTC->DIR_SET = (1 << 8); 	//LED_BC2_G
+    pADI_PORTC->DIR_SET = (1 << 11); 	//LED_BC3_R
+    pADI_PORTC->DIR_SET = (1 << 12); 	//LED_BC3_G
 
     //JAB DEBUG SET LED FOR TEST
     pADI_PORTC->DATA_CLR = (1 << 7);
@@ -75,11 +75,6 @@ int main(int argc, char *argv[])
 #endif
 
 	//TEST SPI2 CS not
-//	pADI_PORTB->DIR_SET = (1 << 15); //not use in on wagner board
-//	pADI_PORTB->DATA_SET = (1 << 15);
-//	pADI_PORTB->DATA_CLR = (1 << 15); //not use in on wagner board
-//	pADI_PORTB->DATA_SET = (1 << 15);
-
 
 
 	/**
@@ -106,6 +101,15 @@ int main(int argc, char *argv[])
 
 
     Main_States main_state = MAIN_STATE_SYSTEM_INIT;
+
+    DEBUG_HEADER( "Init Configuration Done, Entering main loop" );
+    //TODO re-enable those line
+/*
+    LP_DRIVER_POWER_ON();
+    LASER_OUTPUT_ENABLE();
+    LASER_PULSE1_ENABLE();
+    LASER_PULSE2_ENABLE();
+*/
 
     while (1)
     {
