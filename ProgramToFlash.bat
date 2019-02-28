@@ -13,8 +13,9 @@ set DriverPath=D:\Projects\sandbox\wagner_ws\bf707_w25q32bv_dpia\Debug\bf707_w25
 
 ECHO Programming %TargetName% to SPI Flash
 
-"%CCESDir%\cldp.exe" -verbose -log -proc ADSP-BF707 -emu 1000 -driver "%DriverPath%" -cmd prog -erase affected -format hex -file %Configuration%\%TargetName%%TargetExt%
-
+"%CCESDir%\cldp.exe" -proc ADSP-BF707 -emu 1000 -driver "%DriverPath%" -cmd prog -erase affected -format hex -file %Configuration%\%TargetName%%TargetExt% -verbose -log 
+REM "%CCESDir%\cldp.exe" -verbose -log -proc ADSP-BF707 -emu 1000 -driver "%DriverPath%" -cmd save -format hex -numbyte 1024 -file d:\savemem5.ldr
+REM "%CCESDir%\cldp.exe" -verbose -log -proc ADSP-BF707 -emu 1000 -driver "%DriverPath%" -cmd compare -file %Configuration%\%TargetName%%TargetExt% -format hex 
 REM popd
 
 :DONE

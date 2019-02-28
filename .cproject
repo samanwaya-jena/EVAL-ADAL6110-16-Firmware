@@ -72,6 +72,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/cld_bf70x_bulk_lib.dlb&quot;"/>
 								</option>
 								<option id="linker.option.misrachecksrcfiles.1127082766" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option id="blackfin.linker.option.memusage.102133300" name="Memory Usage" superClass="blackfin.linker.option.memusage" useByScannerDiscovery="false" value="blackfin.linker.option.memusage.enumerated.internalsramonly" valueType="enumerated"/>
 								<inputType id="linker.doj.input.1918017046" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.925817650" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
@@ -84,12 +85,12 @@
 								<option id="blackfin.loader.option.enumerated.bootmode.390904284" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" useByScannerDiscovery="false" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
 								<option id="blackfin.loader.option.enumerated.progflag.1046068346" name="Programmable flag" superClass="blackfin.loader.option.enumerated.progflag" useByScannerDiscovery="false"/>
 								<option id="blackfin.loader.option.bcode.2140728152" name="Boot code (-bcode)" superClass="blackfin.loader.option.bcode" useByScannerDiscovery="false" value="1" valueType="string"/>
-								<option id="loader.option.verbose.657337859" superClass="loader.option.verbose" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option id="loader.option.verbose.657337859" name="Output verbose loader messages (-v)" superClass="loader.option.verbose" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src.work|src.bak|system" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/w25q32bv/w25q32bv.c|src.work|src.bak|system" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="system"/>
 					</sourceEntries>
 				</configuration>
