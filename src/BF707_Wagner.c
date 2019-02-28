@@ -22,6 +22,8 @@
 
 #include "BF707_Wagner.h"
 
+#include <cdefBF70x_rom.h>
+
 
 
 #define USE_USB
@@ -39,7 +41,16 @@ typedef enum
 int main(int argc, char *argv[])
 {
 	DEBUG_HEADER( "Wagner ADSP-BF707 Eval Board" );
-
+	//TODO DEBUG FLASH
+/*
+	{
+		uint32_t * pAddress = 0x4000000;
+		uint32_t flags = 0x40000;
+		int32_t blockCount = 0;
+		uint32_t command = 0x00010207;
+		adi_rom_Boot(pAddress,flags,blockCount, 0, command);
+	}
+*/
 
 	//TODO ADD A INIT TO SET ALL GPIO DIRECTION
 #ifdef EZ_KIT
@@ -91,9 +102,10 @@ int main(int argc, char *argv[])
 #ifdef EZ_KIT
 	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
 #endif
-    //flash_test();
 
 	Flash_Init();
+
+    //flash_test();
 
 	Lidar_InitADI();
 
@@ -104,13 +116,24 @@ int main(int argc, char *argv[])
 
     DEBUG_HEADER( "Init Configuration Done, Entering main loop" );
     //TODO re-enable those line
-/*
+
     LP_DRIVER_POWER_ON();
     LASER_OUTPUT_ENABLE();
     LASER_PULSE1_ENABLE();
     LASER_PULSE2_ENABLE();
-*/
 
+//DDR TEST
+/*
+    {
+    	uint32_t* ddr2_array;
+    	ddr2_array = 0x80010000;
+
+    	for(int i=0;i<16;i++){
+    		*(ddr2_array+i*4) = i;
+    	}
+
+    }
+*/
     while (1)
     {
         switch (main_state)
