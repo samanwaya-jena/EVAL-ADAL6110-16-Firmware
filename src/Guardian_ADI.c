@@ -383,7 +383,7 @@ void Lidar_InitADI(void) {
 
 
 	Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams);
-	numParams = 0;
+	//numParams = 0;
 	if (numParams)
 		num = numParams;
 
@@ -395,7 +395,7 @@ void Lidar_InitADI(void) {
 
 	numParams = 2;
 
-	//Flash_LoadConfig(1, &Int_InitValues[0][0], &numParams);
+	Flash_LoadConfig(1, &Int_InitValues[0][0], &numParams);
 
 	for (i = 0; i < numParams; i++)
 	{
