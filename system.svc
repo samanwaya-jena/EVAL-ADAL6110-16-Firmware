@@ -73,6 +73,8 @@ It provides information needed to link your code. It can be used to configure me
 				<peripheral description="UART Module" name="UART0">
 					<signal bit="16" mux="0" name="TX" pin="8" port="B"/>
 					<signal bit="18" mux="0" name="RX" pin="9" port="B"/>
+					<signal bit="4" mux="0" name="RTS" pin="2" port="C"/>
+					<signal bit="6" mux="0" name="CTS" pin="3" port="C"/>
 				</peripheral>
 				<gpio name="Port A">
 					<signal bit="0" name="PA00" pin="0" port="A"/>
@@ -100,6 +102,8 @@ It provides information needed to link your code. It can be used to configure me
 					<signal bit="30" name="PB15" pin="15" port="B"/>
 				</gpio>
 				<gpio name="Port C">
+					<signal bit="4" name="PC02" pin="2" port="C"/>
+					<signal bit="6" name="PC03" pin="3" port="C"/>
 					<signal bit="18" name="PC09" pin="9" port="C"/>
 				</gpio>
 			</pinmux-configuration>
@@ -124,6 +128,7 @@ It provides information needed to link your code. It can be used to configure me
 							<property name="cplb_src_file" value="app_cplbtab.c"/>
 							<property name="cplb_ctrl" value="57"/>
 							<property name="cplb_obj_file" value="app_cplbtab.doj"/>
+							<property name="dcache_dcbs" value="unset"/>
 							<property name="cplb_src_alt" value="false"/>
 						</propertygroup>
 						<propertygroup name="mem_init" value="false"/>

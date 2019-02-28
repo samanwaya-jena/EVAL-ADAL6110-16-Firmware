@@ -1,6 +1,6 @@
 /*
  **
- ** Source file generated on February 15, 2019 at 10:18:57.	
+ ** Source file generated on February 28, 2019 at 11:43:43.	
  **
  ** Copyright (C) 2011-2019 Analog Devices Inc., All Rights Reserved.
  **
@@ -16,12 +16,12 @@
  ** SPI1 (CLK, MISO, MOSI, SEL1)
  ** SPI2 (CLK, MISO, MOSI, SEL1, D2, D3)
  ** TM0 (TMR2)
- ** UART0 (TX, RX)
+ ** UART0 (TX, RX, RTS, CTS)
  **
  ** GPIO (unavailable)
  ** ------------------
  ** PA00, PA01, PA02, PA04, PA05, PA06, PA07, PA12, PA13, PB00, PB01, PB02, PB03,
- ** PB08, PB09, PB10, PB11, PB12, PB13, PB14, PB15, PC09
+ ** PB08, PB09, PB10, PB11, PB12, PB13, PB14, PB15, PC02, PC03, PC09
  */
 
 #include <sys/platform.h>
@@ -49,6 +49,8 @@
 #define TM0_TMR2_PORTA_MUX  ((uint16_t) ((uint16_t) 0<<14))
 #define UART0_TX_PORTB_MUX  ((uint32_t) ((uint32_t) 0<<16))
 #define UART0_RX_PORTB_MUX  ((uint32_t) ((uint32_t) 0<<18))
+#define UART0_RTS_PORTC_MUX  ((uint16_t) ((uint16_t) 0<<4))
+#define UART0_CTS_PORTC_MUX  ((uint16_t) ((uint16_t) 0<<6))
 
 #define CAN1_RX_PORTA_FER  ((uint32_t) ((uint32_t) 1<<12))
 #define CAN1_TX_PORTA_FER  ((uint32_t) ((uint32_t) 1<<13))
@@ -72,6 +74,8 @@
 #define TM0_TMR2_PORTA_FER  ((uint16_t) ((uint16_t) 1<<7))
 #define UART0_TX_PORTB_FER  ((uint32_t) ((uint32_t) 1<<8))
 #define UART0_RX_PORTB_FER  ((uint32_t) ((uint32_t) 1<<9))
+#define UART0_RTS_PORTC_FER  ((uint16_t) ((uint16_t) 1<<2))
+#define UART0_CTS_PORTC_FER  ((uint16_t) ((uint16_t) 1<<3))
 
 int32_t adi_initpinmux(void);
 
@@ -89,7 +93,8 @@ int32_t adi_initpinmux(void) {
      | SPI2_MISO_PORTB_MUX | SPI2_MOSI_PORTB_MUX | SPI2_SEL1_PORTB_MUX
      | SPI2_D2_PORTB_MUX | SPI2_D3_PORTB_MUX | UART0_TX_PORTB_MUX
      | UART0_RX_PORTB_MUX;
-    *pREG_PORTC_MUX = SPI0_D3_PORTC_MUX;
+    *pREG_PORTC_MUX = SPI0_D3_PORTC_MUX | UART0_RTS_PORTC_MUX
+     | UART0_CTS_PORTC_MUX;
 
     /* PORTx_FER registers */
     *pREG_PORTA_FER = CAN1_RX_PORTA_FER | CAN1_TX_PORTA_FER
@@ -101,7 +106,8 @@ int32_t adi_initpinmux(void) {
      | SPI2_MISO_PORTB_FER | SPI2_MOSI_PORTB_FER | SPI2_SEL1_PORTB_FER
      | SPI2_D2_PORTB_FER | SPI2_D3_PORTB_FER | UART0_TX_PORTB_FER
      | UART0_RX_PORTB_FER;
-    *pREG_PORTC_FER = SPI0_D3_PORTC_FER;
+    *pREG_PORTC_FER = SPI0_D3_PORTC_FER | UART0_RTS_PORTC_FER
+     | UART0_CTS_PORTC_FER;
     return 0;
 }
 
