@@ -522,8 +522,8 @@ void user_bulk_main (void)
 			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (%d,%d,%d) USB %d (%d,%d)\r\n", iAcqNum, iAcqNum1, iAcqNum2, iAcqNumX, iUSBnum, iUSBnumOK, iUSBnumEmpty);
 			iAcqNum = iAcqNum1 = iAcqNum2 = iAcqNumX = 0;
 			iUSBnum = iUSBnumOK = iUSBnumEmpty = 0;
-			pADI_PORTA->DATA_TGL = (1 << 8); //TODO laser 1 test REMOVE in release code
-			pADI_PORTA->DATA_TGL = (1 << 9); //TODO laser 1 test REMOVE in release code
+			//pADI_PORTA->DATA_TGL = (1 << 8); //TODO laser 1 test REMOVE in release code
+			//pADI_PORTA->DATA_TGL = (1 << 9); //TODO laser 1 test REMOVE in release code
 		}
 	}
 
