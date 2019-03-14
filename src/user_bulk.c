@@ -71,7 +71,7 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
                                                             will not use a UART */
     .uart_baud  = 115200,                               /* CLD Library CONSOLE print UART
                                                            baudrate. */
-    .sclk0      = 200000000u,                           /* Blackfin SCLK0 frequency */
+    .sclk0      = 75000000u,                           /* Blackfin SCLK0 frequency */
     .fp_console_rx_byte = user_bulk_console_rx_byte,    /* Function called when a byte
                                                            is received by the CONSOLE
                                                            UART. */
@@ -522,8 +522,7 @@ void user_bulk_main (void)
 			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (%d,%d,%d) USB %d (%d,%d)\r\n", iAcqNum, iAcqNum1, iAcqNum2, iAcqNumX, iUSBnum, iUSBnumOK, iUSBnumEmpty);
 			iAcqNum = iAcqNum1 = iAcqNum2 = iAcqNumX = 0;
 			iUSBnum = iUSBnumOK = iUSBnumEmpty = 0;
-			//pADI_PORTA->DATA_TGL = (1 << 8); //TODO laser 1 test REMOVE in release code
-			//pADI_PORTA->DATA_TGL = (1 << 9); //TODO laser 1 test REMOVE in release code
+
 		}
 	}
 

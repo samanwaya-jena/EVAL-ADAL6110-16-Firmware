@@ -12,12 +12,8 @@
 int gLogData = 1;
 static uint16_t buf[FRAME_NUM_PTS];
 
-
-
-
 void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
 void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
-
 
 
 void Lidar_PrintInfo(void)
