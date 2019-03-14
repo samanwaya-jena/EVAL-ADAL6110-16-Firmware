@@ -10,4 +10,9 @@
 
 void flash_test();
 
+void ReadFlashSPI(uint16_t _startAddress, uint16_t *_data);
+void WriteFlashSPI(uint16_t _startAddress, uint16_t _data);
+
+
+
 #endif /* FLASH_DEBUG_H_ */
