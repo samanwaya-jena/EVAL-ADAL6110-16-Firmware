@@ -85,12 +85,20 @@
 								<option id="blackfin.loader.option.enumerated.bootmode.390904284" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" useByScannerDiscovery="false" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
 								<option id="blackfin.loader.option.enumerated.progflag.1046068346" name="Programmable flag" superClass="blackfin.loader.option.enumerated.progflag" useByScannerDiscovery="false"/>
 								<option id="blackfin.loader.option.bcode.2140728152" name="Boot code (-bcode)" superClass="blackfin.loader.option.bcode" useByScannerDiscovery="false" value="1" valueType="string"/>
-								<option id="loader.option.verbose.657337859" name="Output verbose loader messages (-v)" superClass="loader.option.verbose" useByScannerDiscovery="false" value="false" valueType="boolean"/>
+								<option id="loader.option.verbose.657337859" name="Output verbose loader messages (-v)" superClass="loader.option.verbose" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="blackfin.toolchain.configuration.debug.1581875278.1869768481" name="flash_debug.h" rcbsApplicability="disable" resourcePath="src/flash_debug.h" toolsToInvoke="">
+						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.1544646486" name="Resource Custom Build Step">
+							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.612566054" name="Resource Custom Build Step Input Type">
+								<additionalInput kind="additionalinputdependency" paths=""/>
+							</inputType>
+							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.968172465" name="Resource Custom Build Step Output Type"/>
+						</tool>
+					</fileInfo>
 					<sourceEntries>
-						<entry excluding="src/w25q32bv/w25q32bv.c|src.work|src.bak|system" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/flash_debug.h|src/flash_debug.c|src/w25q32bv/w25q32bv.c|src.work|src.bak|system" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="system"/>
 					</sourceEntries>
 				</configuration>
