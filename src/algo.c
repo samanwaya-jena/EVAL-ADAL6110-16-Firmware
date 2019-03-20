@@ -68,31 +68,67 @@ static inline void threshold(detection_type* _detPtr, float* _buffer, int _ch)
 }
 #endif
 
+//void threshold2(detection_type* _detPtr, float* _buffer, int _ch)
+//{
+//	// Threshold
+//	float * sigPtr;
+//	float noisemean, minVal, i, threshold, dx = 0.5 * LIGHTSPEED * SAMPLE_TIME;
+//	float intervalPercentage = 50; // %
+//	int iNbDetected = 0, dead_zone = 8;
+//
+//	sigPtr = _buffer;
+//
+//	noisemean = findmean(sigPtr, dead_zone); // Find noise mean (DC value)
+//	minVal = minvalue(sigPtr+dead_zone,GUARDIAN_SAMPLING_LENGTH-2*dead_zone);
+//
+//	threshold = (intervalPercentage/100)*(abs(minVal - noisemean));
+//
+//	sigPtr = _buffer + dead_zone;
+//
+//	for(i = dead_zone; i < GUARDIAN_SAMPLING_LENGTH-dead_zone; i++)
+//	{
+//		if(*sigPtr < (noisemean - threshold) && iNbDetected < GUARDIAN_NUM_DET_PER_CH) {
+//			_detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
+//			_detPtr[iNbDetected].intensity = *sigPtr;
+//			++iNbDetected;
+//		}
+//		sigPtr++;
+//	}
+//
+//	for (; iNbDetected < GUARDIAN_NUM_DET_PER_CH; iNbDetected++) {
+//		_detPtr[iNbDetected].distance = 0.00;
+//		_detPtr[iNbDetected].intensity = 0.00;
+//	}
+//}
+
 void threshold2(detection_type* _detPtr, float* _buffer, int _ch)
 {
 	// Threshold
 	float * sigPtr;
 	float noisemean, minVal, i, threshold, dx = 0.5 * LIGHTSPEED * SAMPLE_TIME;
 	float intervalPercentage = 50; // %
-	int iNbDetected = 0, dead_zone = 8;
+	float minimum_Viable_Value = 200;
+	int iNbDetected = 0, dead_zone = 100;
 
 	sigPtr = _buffer;
 
-	noisemean = findmean(sigPtr, dead_zone); // Find noise mean (DC value)
-	minVal = minvalue(sigPtr+dead_zone,GUARDIAN_SAMPLING_LENGTH-2*dead_zone);
+	noisemean = findmean(sigPtr, GUARDIAN_SAMPLING_LENGTH); // Find noise mean (DC value)
+	minVal = minvalue(sigPtr,GUARDIAN_SAMPLING_LENGTH);
 
-	threshold = (intervalPercentage/100)*(abs(minVal - noisemean));
+	if(abs(minVal - noisemean) > minimum_Viable_Value){
 
-	sigPtr = _buffer + dead_zone;
+		threshold = (intervalPercentage/100)*(abs(minVal - noisemean));
 
-	for(i = dead_zone; i < GUARDIAN_SAMPLING_LENGTH-dead_zone; i++)
-	{
-		if(*sigPtr < (noisemean - threshold) && iNbDetected < GUARDIAN_NUM_DET_PER_CH) {
-			_detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
-			_detPtr[iNbDetected].intensity = *sigPtr;
-			++iNbDetected;
+		for(i = 0; i < GUARDIAN_SAMPLING_LENGTH; i++)
+		{
+			if(*sigPtr < (noisemean - threshold) && iNbDetected < GUARDIAN_NUM_DET_PER_CH) {
+				_detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
+				_detPtr[iNbDetected].intensity = *sigPtr;
+				++iNbDetected;
+			}
+			sigPtr++;
 		}
-		sigPtr++;
+
 	}
 
 	for (; iNbDetected < GUARDIAN_NUM_DET_PER_CH; iNbDetected++) {

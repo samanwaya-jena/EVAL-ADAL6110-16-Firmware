@@ -69,33 +69,33 @@ int aChIdxADI[16] = {
   5,
   6,
   7,
-  15,
-  14,
-  13,
-  12,
-  11,
-  10,
+  8,
   9,
-  8
+  10,
+  11,
+  12,
+  13,
+  14,
+  15
 };
 
 int aChIdxArray[16] = {
-  15,
-  0,
-  14,
-  1,
-  13,
-  2,
-  12,
-  3,
-  11,
-  4,
-  10,
-  5,
-  9,
-  6,
+  7,
   8,
-  7
+  6,
+  9,
+  5,
+  10,
+  4,
+  11,
+  3,
+  12,
+  2,
+  13,
+  1,
+  14,
+  0,
+  15
 };
 
 uint16_t Int_InitValues[][2] =
@@ -508,8 +508,7 @@ void Lidar_InitADI(void) {
   	WriteParamToSPI(86, 0x823F);
   	WriteParamToSPI(ChannelEnableAddress, 0xFFFF);
   	WriteParamToSPI(AGCEN, 0x0000);
-  	//WriteParamToSPI(DCEN, 0xFFFF);
-    WriteParamToSPI(DCEN, 0x0000);
+  	WriteParamToSPI(DCEN, 0xFFFF);
   	WriteParamToSPI(185, 1);
 
   	while(waitTimer--){ // Wait 200 us
@@ -967,6 +966,7 @@ int DoAlgo(int16_t * pAcqFifo)
     for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
     {
         int i;
+
 
         int chIdxArray = aChIdxArray[ch];
 

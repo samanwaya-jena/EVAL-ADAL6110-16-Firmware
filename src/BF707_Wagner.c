@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     //TODO re-enable those line
 
     LP_DRIVER_POWER_ON();
-    //LASER_OUTPUT_ENABLE();
+    LASER_OUTPUT_ENABLE();
     LASER_PULSE1_ENABLE();
     LASER_PULSE2_ENABLE();
 
