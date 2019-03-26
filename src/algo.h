@@ -21,9 +21,9 @@
  */
 #define LIGHTSPEED 299792458  // m/s
 
-#define SAMPLE_TIME (1.0 / (50000000.0 * 6.25))
+#define SAMPLE_TIME (1.0 / (250000000))
 
-#define DISTANCE_OFFSET 0.001
+#define DISTANCE_OFFSET 4
 
 
 /**
@@ -41,6 +41,7 @@ typedef struct{
 
 
 void threshold2(detection_type* _detPtr, float* _buffer, int _ch);
+void threshold3(detection_type* _detPtr, float* _buffer, int _ch);
 
 
 #endif //_ALGO_H_

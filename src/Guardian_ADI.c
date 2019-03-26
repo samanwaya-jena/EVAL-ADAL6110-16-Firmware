@@ -287,6 +287,7 @@ void ResetADI(void) {
 	}
 
 	i = 1200000;
+
 	while(i--){
 	}
 
@@ -448,7 +449,7 @@ void Lidar_InitADI(void) {
   	WriteParamToSPI(Control1Address, 0x8040);
   	WriteParamToSPI(TriggerOutAddress, 0x1021);//0x1021
   	WriteParamToSPI(DataAcqMode, 0x0001);
-  	WriteParamToSPI(DelayBetweenFlashesAddress, 0x8000); //0x8000 (52 us)
+  	WriteParamToSPI(DelayBetweenFlashesAddress, 0x4000);
   	WriteParamToSPI(CH0ControlReg0Address, 0x2E1F); // 0x5F9F
   	WriteParamToSPI(CH1ControlReg0Address, 0x2E1F);
   	WriteParamToSPI(CH2ControlReg0Address, 0x2E1F);
@@ -500,8 +501,8 @@ void Lidar_InitADI(void) {
   	WriteParamToSPI(CH14ControlReg2Address, 0x00FF);
   	WriteParamToSPI(CH15ControlReg2Address, 0x00FF);
 
-  	WriteParamToSPI(FRAMEDELAY, 0xFFFF); // Slow it down to max (3.86 ms gordon frame period with 64 accumulation)
-  	WriteParamToSPI(AGCDCBCTRL, 0x0104);
+  	WriteParamToSPI(FRAMEDELAY, 0x0000); // Slow it down to max (3.86 ms gordon frame period with 64 accumulation)
+  	WriteParamToSPI(AGCDCBCTRL, 0x0104); // Default: 0x0104, Enable AGC to change anything: 0x0115
 
   	WriteParamToSPI(185, 0);
   	WriteParamToSPI(77, 0xC23F);
@@ -977,7 +978,8 @@ int DoAlgo(int16_t * pAcqFifo)
         for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
             tmpAcqFloat[i] = (float) pAcqFifo[chIdx * GUARDIAN_SAMPLING_LENGTH + i];
 
-        threshold2(pDetections, tmpAcqFloat, ch);
+        //threshold2(pDetections, tmpAcqFloat, ch);
+        threshold3(pDetections, tmpAcqFloat, ch);
 
         if (pDetections->distance)
         {
