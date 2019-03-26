@@ -171,7 +171,7 @@ int user_CANFifoPushCompletedFrame(void)
 	return CANFifoPushMsg(&canMsg);
 }
 
-int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel)
+int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel, uint16_t snr)
 {
 	int ret;
 	AWLCANMessage canMsg;
@@ -184,8 +184,8 @@ int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel)
 	canMsg.data[3] = ch;          //track->trackMainChannel
 	canMsg.data[4] = 0;           //...
 	canMsg.data[5] = 99;          //track->probability
-	canMsg.data[6] = 44;          //track->intensity
-	canMsg.data[7] = 0;           //...
+	canMsg.data[6] = snr >> 0;          //track->intensity
+	canMsg.data[7] = snr >> 8;           //...
 
 	ret = CANFifoPushMsg(&canMsg);
 

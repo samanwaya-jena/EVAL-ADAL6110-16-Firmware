@@ -508,7 +508,7 @@ void Lidar_InitADI(void) {
   	WriteParamToSPI(77, 0xC23F);
   	WriteParamToSPI(86, 0x823F);
   	WriteParamToSPI(ChannelEnableAddress, 0xFFFF);
-  	WriteParamToSPI(AGCEN, 0x0000);
+  	WriteParamToSPI(AGCEN, 0xFFFF);
   	WriteParamToSPI(DCEN, 0xFFFF);
   	WriteParamToSPI(185, 1);
 
@@ -788,14 +788,14 @@ void AddFakeData(void)
 {
 	static uint16_t dist = 1000;
 
-	user_CANFifoPushDetection(0, dist, 100);
-	user_CANFifoPushDetection(1, dist + 250, 100);
-	user_CANFifoPushDetection(2, dist + 500, 100);
-	user_CANFifoPushDetection(3, dist + 650, 100);
-	user_CANFifoPushDetection(4, dist + 650, 100);
-	user_CANFifoPushDetection(5, dist + 500, 100);
-	user_CANFifoPushDetection(6, dist + 250, 100);
-	user_CANFifoPushDetection(7, dist, 100);
+	user_CANFifoPushDetection(0, dist, 100, 44);
+	user_CANFifoPushDetection(1, dist + 250, 100, 44);
+	user_CANFifoPushDetection(2, dist + 500, 100, 44);
+	user_CANFifoPushDetection(3, dist + 650, 100, 44);
+	user_CANFifoPushDetection(4, dist + 650, 100, 44);
+	user_CANFifoPushDetection(5, dist + 500, 100, 44);
+	user_CANFifoPushDetection(6, dist + 250, 100, 44);
+	user_CANFifoPushDetection(7, dist, 100, 44);
 
 	user_CANFifoPushCompletedFrame();
 
@@ -983,7 +983,7 @@ int DoAlgo(int16_t * pAcqFifo)
 
         if (pDetections->distance)
         {
-            user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 0);
+            user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 0, (uint16_t) ((pDetections->intensity + 21)*2));
         }
     }
 

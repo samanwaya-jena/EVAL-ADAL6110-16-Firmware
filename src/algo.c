@@ -164,15 +164,17 @@ void threshold3(detection_type* _detPtr, float* _buffer, int _ch)
 	// Threshold
 	float * sigPtr;
 	float noisemean, minVal, threshold, dx = 0.5 * LIGHTSPEED * SAMPLE_TIME;
-	float minimum_Viable_Value = 500;
+	float minimum_Viable_Value = 1000;
 	int iNbDetected = 0;
 	int i, minPos;
 
 	sigPtr = _buffer;
 
-	noisemean = findmean(sigPtr, 100); // Find noise mean (DC value)
-	minVal = minvalue(sigPtr,20);
+	noisemean = findmean(sigPtr, 100); // Find signal mean
+	minVal = minvalue(sigPtr,100); // Find signal min value
+	minPos = minpos(sigPtr, 100); // find signal min value pos
 
+	/*
 	if( minVal <= -3000 ) {
 		minVal = minvalue(sigPtr,100);
 		minPos = minpos(sigPtr, 100);
@@ -181,8 +183,9 @@ void threshold3(detection_type* _detPtr, float* _buffer, int _ch)
 		minPos = minpos(sigPtr+19, 100-20);
 		minPos = minPos + 19;
 	}
+	*/
 
-	if(abs(minVal - noisemean) > minimum_Viable_Value){
+	if(abs(minVal - noisemean) > minimum_Viable_Value) {
 
 		_detPtr[iNbDetected].distance = minPos*dx - DISTANCE_OFFSET;
 		_detPtr[iNbDetected].intensity = minVal;

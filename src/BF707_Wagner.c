@@ -40,6 +40,7 @@ typedef enum
 
 int main(int argc, char *argv[])
 {
+
 	DEBUG_HEADER( "Wagner ADSP-BF707 Eval Board" );
 
 
