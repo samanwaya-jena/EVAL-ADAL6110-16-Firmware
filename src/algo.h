@@ -23,7 +23,7 @@
 
 #define SAMPLE_TIME (1.0 / (250000000))
 
-#define DISTANCE_OFFSET 4
+#define DISTANCE_OFFSET 6.4
 
 
 /**
