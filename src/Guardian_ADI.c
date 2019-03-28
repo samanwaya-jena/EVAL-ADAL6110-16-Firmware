@@ -508,7 +508,7 @@ void Lidar_InitADI(void) {
   	WriteParamToSPI(77, 0xC23F);
   	WriteParamToSPI(86, 0x823F);
   	WriteParamToSPI(ChannelEnableAddress, 0xFFFF);
-  	WriteParamToSPI(AGCEN, 0xFFFF);
+  	WriteParamToSPI(AGCEN, 0x3FFF);
   	WriteParamToSPI(DCEN, 0xFFFF);
   	WriteParamToSPI(185, 1);
 
