@@ -1,0 +1,104 @@
+
+<html>
+	<head>
+		<title>readme</title>
+		<style type="text/css">
+			body { padding:20px;font:14px Arial, Helvetica, Verdana; }
+			pre { border:1px solid gray;padding:10px;background-color:#f0f0f0; }
+			td { padding:5px; }
+			td.heading { background-color:#f0f0f0;border:1px solid #d0d0d0; padding:5px;}
+			h1 { color:#003366; width:100%; border-bottom:1px solid #003366; margin-top:40px; margin-bottom:40px }
+			h2 { color:#000000; border:0px; }
+			li { padding:3px; }
+			#header { background-color:#003366; width:100% }
+		</style>
+	</head>
+	<body>
+	
+		<div id="header">&nbsp;</div>
+
+		<h1>W25Q32BV device programmer interface app (DPIA)</h1>
+
+		<p>
+		<ol>
+			<li><a href="#OV">Overview </a></li>
+			<li><a href="#SC">Software configuration </a></li>
+			<li><a href="#HC">Hardware requirements and setup </a></li>
+			<li><a href="#OD">Operation Description</a></li>
+		</ol>
+		</p>
+
+		<h1>1. <a name="OV">Overview </a></h1>
+
+			<p>
+				The device programmer interface application (DPIA) implements the interface
+				between the CrossCore Embedded Studio Device Programmer utility and the 
+				on-board device.
+			</p>
+
+			
+		<h1>2. <a name="SC"> Software configuration </a></h1>
+		
+		<ul>
+		 <li><b> Board revision      </b>      : <em> _BF707_EZBOARD_REV_X_Y_</em> is the format used where X is the major rev and Y is the minor
+												rev.  This is defined in the Project Properties dialog which can be accessed by going to 
+												the "Project" menu and choosing "Properties", then "C/C++ Build", then "Settings",
+												then "Tool Settings" tab, then "CrossCore Blackfin C/C++ Compiler", then "Preprocessor".  There you
+												will find the "Preprocessor definitions".  If your exact board rev is not referenced in the source
+												then just use the closest revision.</li>
+		 </ul>
+					
+
+					
+		<h1>3. <a name="HC">Hardware Requirements and Setup </a></h1>
+
+			<h2>3.1 Supported platforms </h2>
+				
+				<ol>
+					<li>ADSP-BF707 EZ-Board rev 1.0 or higher </li>
+				</ol>
+
+			<h2>3.2 Hardware Setup </h2>
+
+			The following jumper settings should be used for this example.  Some tests require changes to be made and those will be pointed
+			out in the test specific sections.  If not specified, these default settings should be used.<br>
+			
+					<table border="1">
+						<tr>
+							<td class="heading" colspan="9"><b>ADSP-BF707 EZ-Board</b></td>
+						</tr>
+						<tr><th><b>Jumpers</b></th><th>1-2</th></tr>
+						<tr><td>P8</td><td>ON</td></tr>
+						<tr><td>P9</td><td>ON</td></tr>
+						<tr><td>P10</td><td>ON</td></tr>
+						<tr><td>P11</td><td>ON</td></tr>
+						<tr><td>P12</td><td>ON</td></tr>
+						<tr><td>P14</td><td>ON</td></tr>
+						<tr><td>P15</td><td>ON</td></tr>
+						<tr><td>P16</td><td>ON</td></tr>
+						<tr><td>P17</td><td>ON</td></tr>
+						<tr><td>P18</td><td>ON</td></tr>
+					</table>
+
+					
+		<h1>4.<a name="OD"> Operation Description</a></h1>
+		
+			<b>WARNING:</b>The CLDP cannot be used if CCES is actively connected to a target board.
+			<BR><BR>
+			
+			<li>A pre-built dpia already exists in the same location as this readme.  Otherwise, start CCES and using the Example Browser select the W25Q32BV DPIA.</li>
+			<li>Build the project to create the executable that will be used by the command line device programmer(CLDP.exe).</li>
+			<em><b>NOTE: The cldp.exe utility can be found in the root of the CrossCore Embedded Studio folder.</b></em>
+			<BR><BR>
+			<li>Now the CLDP along with the DPIA can be used to communicate with the flash device.</li>
+			<li>For more information on the CLDP, search for <b>device programmer</b> in CCES Help.</li>
+			<li>Note, there are many options when using the CLDP (including defining your connection type, driver file, loader file, etc.
+				Here is a sample command line to program the a POST loader file to the parallel flash on the EZ-Board using an HPUSB-ICE emulator:</li>
+			<BR>
+			<em>cldp -proc ADSP-BF707 -emu 1000 -driver "C:\BF707_EZ-Board\Examples\Device_Programmer\serial\bf707_w25q32bv_dpia.dxe" -cmd prog -erase affected -format hex -file "C:\BF707_EZ-Board\Examples\Power_On_Self_Test\Debug\bf707_post.ldr"</em>
+			<BR>
+
+		
+	</body>
+</html>
+
