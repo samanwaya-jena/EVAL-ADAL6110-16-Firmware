@@ -1,0 +1,56 @@
+<?xml version="1.0" standalone="yes"?>
+
+<custom-cces-proc-xml
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="\Analog Devices\CrossCore Embedded Studio 2.8.1\System\ArchDef\ADSP-custom-board.xsd"
+	processor-family="Blackfin"
+    file="Wagner_bf707_custom.xml">
+
+
+<custom-register-reset-definitions>
+
+   	<!-- Init clocks( CCLK = 400Mhz, SYSCLK = 200Mhz, SCLK0 = 100Mhz -->
+	<!--              SCLK1 = 200Mhz, DCLK = 200Mhz, PLLCLK = 800Mhz -->
+	<!-- WARNING: Do not change the order of these registers as the -->
+	<!-- WARNING: debugger expects them in a certain order so that  -->
+	<!-- WARNING: it can poll on status bits to make sure the init  -->
+	<!-- WARNING: has completed    -->
+    
+    <!-- Setting for wagner -->
+    <register name="CGU0_DIV" reset-value="0x42042442" core="Common" />
+	<register name="CGU0_CTL" reset-value="0x00001000" core="Common" />
+	
+	<!-- Init DDR0 based on the clock settings above -->
+	<!-- WARNING: Do not change the order of these registers as the -->
+	<!-- WARNING: debugger expects them in a certain order so that  -->
+	<!-- WARNING: it can poll on status bits to make sure the init  -->
+	<!-- WARNING: has completed  									-->
+	<register name="DMC0_PHY_CTL4" reset-value="0x00000001" core="Common" />
+    <register name="DMC0_PHY_CTL3" reset-value="0x0A0000C0" core="Common" />
+	<register name="DMC0_PHY_CTL1" reset-value="0x00000000" core="Common" />
+	<!-- <register name="DMC0_CAL_PADCTL2" reset-value="0x0078283C" core="Common" /> -->
+    <register name="DMC0_CAL_PADCTL2" reset-value="0x00000000" core="Common" />
+	<register name="DMC0_CAL_PADCTL0" reset-value="0xF0000000" core="Common" />
+	<register name="DMC0_CFG" reset-value="0x00000522" core="Common" />
+	<register name="DMC0_TR0" reset-value="0x20B08323" core="Common" />
+	<register name="DMC0_TR1" reset-value="0x20270618" core="Common" />
+	<register name="DMC0_TR2" reset-value="0x00323209" core="Common" />
+	<register name="DMC0_MR" reset-value="0x00000032" core="Common" />
+    <register name="DMC0_EMR1" reset-value="0x00000000" core="Common" />
+	<register name="DMC0_EMR2" reset-value="0x00000000" core="Common" />
+	<register name="DMC0_CTL" reset-value="0x00002404" core="Common" />
+	<register name="DMC0_DLLCTL" reset-value="0x0000054B" core="Common" />
+	
+	<!-- Turn off cache, parity, and cplbs -->
+	<register name="L1IM_ICTL" reset-value="0x00000000" core="Common" />
+    
+    	<!-- Reset USB peripheral -->
+	<register name="USB0_SOFT_RST" reset-value="0x03" core="Common" />
+	
+	<!-- Reset EPPI peripheral -->
+	<register name="EPPI0_CTL" reset-value="0x00000000" core="Common" />
+		
+	
+</custom-register-reset-definitions>
+
+</custom-cces-proc-xml>
