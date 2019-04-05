@@ -1,5 +1,5 @@
 /*
-** ADSP-BF707 linker description file generated on Mar 13, 2019 at 13:52:31.
+** ADSP-BF707 linker description file generated on Apr 04, 2019 at 15:15:22.
 */
 /*
 ** Copyright (C) 2000-2017 Analog Devices Inc., All Rights Reserved.
@@ -183,6 +183,22 @@ MEMORY
    MEM_L2_SRAM_UNCACHED    { TYPE(RAM) START(0x080F0000) END(0x080FFFFF) WIDTH(8) }
    MEM_L2_ROM              { TYPE(ROM) START(0x04010000) END(0x0407FFFF) WIDTH(8) }
    MEM_SPI_FLASH           { TYPE(RAM) START(0x40000000) END(0x47FFFFFF) WIDTH(8) }
+
+   /*
+   ** DMC memory (DDR2 SDRAM).
+   **
+   ** We spread the code and data between different banks of memory to try and
+   ** minimize memory access stall cycles.
+   **
+   **  bank0: stack/heap if configured to be in SDRAM, otherwise code
+   **  bank1: data
+   **  bank2: data
+   **  bank3: code
+   */
+   MEM_DMC_SDRAM_BANK0     { TYPE(RAM) START(0x80000000) END(0x81ffffff) WIDTH(8) } 
+   MEM_DMC_SDRAM_BANK1     { TYPE(RAM) START(0x82000000) END(0x83ffffff) WIDTH(8) } 
+   MEM_DMC_SDRAM_BANK2     { TYPE(RAM) START(0x84000000) END(0x85ffffff) WIDTH(8) } 
+   MEM_DMC_SDRAM_BANK3     { TYPE(RAM) START(0x86000000) END(0x87ffffff) WIDTH(8) } 
 
    /*
    ** Static Memory Controller (SMC) memory.
@@ -841,7 +857,80 @@ PROCESSOR P0
          /*$VDSG<input-sections-L2_prio0>                       */
          
          INPUT_SECTIONS( $OBJS_LIBS(L2_sram l2_sram) )
-         EXECUTABLE_NAME(__executable_name)
+      } > MEM_L2_SRAM
+      
+      /* When using SDRAM we need to try and use internal memory
+      ** for the highest priority inputs first.
+      ** First input sections that contain data and code for objects that should
+      ** preferably end up in internal memory.
+      */
+      L2_bsz_prio1 ZERO_INIT
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<input-sections-L2_bszdata_prio1>               */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<input-sections-L2_bszdata_prio1>               */
+         
+         INPUT_SECTIONS( $OBJS_LIBS_INTERNAL(bsz) )
+      } > MEM_L2_SRAM
+      
+      L2_no_init_prio1 NO_INIT
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<input-sections-L2_noinit_data_prio1>           */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<input-sections-L2_noinit_data_prio1>           */
+         
+         INPUT_SECTIONS( $OBJS_LIBS_INTERNAL(noinit_data) )
+      } > MEM_L2_SRAM
+      
+      L2_prio1 DEF_SECTION_QUAL
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<input-sections-L2_general_prio1>               */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<input-sections-L2_general_prio1>               */
+         
+         INPUT_SECTIONS( $OBJS_LIBS_INTERNAL(program data1 voldata vtbl constdata) )
+      } > MEM_L2_SRAM
+      
+      /* Next input sections that contain data and code for objects that we
+      ** don't preferably want to end up in external memory.
+      */
+      L2_bsz_prio2 ZERO_INIT
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<input-sections-L2_bszdata_prio2>               */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<input-sections-L2_bszdata_prio2>               */
+         
+         INPUT_SECTIONS( $OBJS_LIBS_NOT_EXTERNAL(bsz) )
+      } > MEM_L2_SRAM
+      
+      L2_no_init_prio2 NO_INIT
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<input-sections-L2_noinit_data_prio2>           */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<input-sections-L2_noinit_data_prio2>           */
+         
+         INPUT_SECTIONS( $OBJS_LIBS_NOT_EXTERNAL(noinit_data) )
+      } > MEM_L2_SRAM
+      
+      L2_prio2 DEF_SECTION_QUAL
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<input-sections-L2_general_prio2>               */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<input-sections-L2_general_prio2>               */
+         
+         INPUT_SECTIONS( $OBJS_LIBS_NOT_EXTERNAL(program data1 voldata vtbl constdata) )
       } > MEM_L2_SRAM
       
       /* Next use any unused memory for any remaining unmapped inputs. */
@@ -911,6 +1000,144 @@ PROCESSOR P0
       /*$VDSG<insert-new-sections-after-MEM_L2_SRAM>            */
       /* Text inserted between these $VDSG comments will be preserved */
       /*$VDSG<insert-new-sections-after-MEM_L2_SRAM>            */
+      
+      /*
+      ** Input sections to the SDRAM memory.
+      */
+      dmc_sdram_bank0
+      {
+         INPUT_SECTION_ALIGN(4)
+         INPUT_SECTIONS( $OBJS_LIBS(dmc_bank0 sdram_bank0 sdram0_bank0) )
+         INPUT_SECTIONS( $OBJS_LIBS(sdram0 program) )
+         EXECUTABLE_NAME(__executable_name)
+         
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram0_bank0>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram0_bank0>  */
+         
+      } > MEM_DMC_SDRAM_BANK0
+      
+      dmc_sdram_bank0_stack_heap NO_INIT
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<insert-input-sections-at-the-start-of-stack_heap_sdram_bank0>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-start-of-stack_heap_sdram_bank0>  */
+         
+      } > MEM_DMC_SDRAM_BANK0
+      
+      dmc_sdram_bank1 DEF_SECTION_QUAL
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank1>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank1>  */
+         
+         INPUT_SECTIONS( $OBJS_LIBS(dmc_bank1 sdram_bank1 sdram0_bank1 dmc_data sdram_data data1 voldata cplb_data vtbl constdata .edt .cht .rtti) )
+         
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank1>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank1>  */
+         
+      } > MEM_DMC_SDRAM_BANK1
+      
+      dmc_sdram_bank1_bsz ZERO_INIT
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank1_bsz>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank1_bsz>  */
+         
+         INPUT_SECTIONS( $OBJS_LIBS(dmc_bsz sdram_bsz bsz) )
+         
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank1_bsz>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank1_bsz>  */
+         
+      } > MEM_DMC_SDRAM_BANK1
+      
+      dmc_sdram_bank1_no_init NO_INIT
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank1_no_init>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank1_no_init>  */
+         
+         INPUT_SECTIONS( $OBJS_LIBS(dmc_noinit_data sdram_noinit_data noinit_data) )
+         
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank1_no_init>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank1_no_init>  */
+         
+      } > MEM_DMC_SDRAM_BANK1
+      
+      dmc_sdram_bank2 DEF_SECTION_QUAL
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank2>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank2>  */
+         
+         INPUT_SECTIONS( $OBJS_LIBS(dmc_bank2 sdram_bank2 sdram0_bank2 dmc_data sdram_data data1 voldata cplb_data vtbl constdata .edt .cht .rtti) )
+         
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank2>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank2>  */
+         
+      } > MEM_DMC_SDRAM_BANK2
+      
+      dmc_sdram_bank2_bsz ZERO_INIT
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank2_bsz>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank2_bsz>  */
+         
+         INPUT_SECTIONS( $OBJS_LIBS(dmc_bsz sdram_bsz bsz) )
+         
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank2_bsz>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank2_bsz>  */
+         
+      } > MEM_DMC_SDRAM_BANK2
+      
+      dmc_sdram_bank2_no_init NO_INIT
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank2_no_init>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank2_no_init>  */
+         
+         INPUT_SECTIONS( $OBJS_LIBS(dmc_noinit_data sdram_noinit_data noinit_data) )
+         
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank2_no_init>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank2_no_init>  */
+         
+      } > MEM_DMC_SDRAM_BANK2
+      
+      dmc_sdram_bank3 DEF_SECTION_QUAL
+      {
+         INPUT_SECTION_ALIGN(4)
+         
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank3>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-start-of-sdram_bank3>  */
+         
+         INPUT_SECTIONS( $OBJS_LIBS(dmc_bank3 sdram_bank3 sdram0_bank3 noncache_code program) )
+         
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank3>  */
+         /* Text inserted between these $VDSG comments will be preserved */
+         /*$VDSG<insert-input-sections-at-the-end-of-sdram_bank3>  */
+         
+      } > MEM_DMC_SDRAM_BANK3
       
       
       /*$VDSG<insert-new-sections-after-SDRAM>                  */

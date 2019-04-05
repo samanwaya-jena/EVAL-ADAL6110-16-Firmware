@@ -61,6 +61,7 @@ uint32_t power_init(  )
 	uint32_t   fsclk1 = 0u;
 	uint32_t   coreclk;
 	uint32_t   systemclk;
+	uint32_t   ddr_clk = 0u;
 
 	ADI_PWR_RESULT result;
 	ADI_PWR_MODE  mode;
@@ -73,10 +74,11 @@ uint32_t power_init(  )
 	result = adi_pwr_InstallCallback(DEV_NUM, PWRCallback);
 	CHECK_RESULT(result, "adi_pwr_InstallCallback");
 
-	result = adi_pwr_SetClkDivideRegister(DEV_NUM, ADI_PWR_CLK_DIV_DSEL, 3);
+	result = adi_pwr_SetClkDivideRegister(DEV_NUM, ADI_PWR_CLK_DIV_DSEL, 4);
 	CHECK_RESULT(result, "adi_pwr_SetClkDivideRegister");
 
 	/* set max freq */
+	/* Set GCU0_CTL.DF, GCU0_CTL.MSEL,GCU0_DIV.SYSSEL, GCU0_DIV.CSEL */
 	result = adi_pwr_SetFreq(DEV_NUM, CORE_MAX, SYSCLK_MAX);
 	CHECK_RESULT(result, "adi_pwr_SetFreq");
 
@@ -85,6 +87,9 @@ uint32_t power_init(  )
 
 	result = adi_pwr_GetSystemFreq(DEV_NUM, &fsysclk, &fsclk0, &fsclk1);
 	CHECK_RESULT(result, "adi_pwr_GetSystemFreq");
+
+	result = adi_pwr_GetDDRClkFreq(DEV_NUM, &ddr_clk);
+	//CHECK_RESULT(ADI_PWR_FAILURE, "adi_pwr_GetDDRClkFreq");
 
 	if ((fcclk < (CORE_MAX-CLKIN)) || (fsysclk < (SYSCLK_MAX-CLKIN)))
 	{

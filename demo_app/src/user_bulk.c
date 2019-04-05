@@ -25,12 +25,13 @@
 #include "Guardian_ADI.h"
 
 #include "Serial_cmd.h"
-
+#include "post_debug.h"
 #include "AWLCANMessageDef.h"
 
 
 #define FIRMWARE_MAJOR_REV 0
 #define FIRMWARE_MINOR_REV 8
+
 
 
 static AWLCANMessage user_bulk_adi_loopback_buffer;
@@ -43,6 +44,9 @@ static void user_bulk_adi_loopback_device_transfer_error (void);
 static void user_bulk_adi_loopback_bulk_in_transfer_complete (void);
 static void user_bulk_console_rx_byte (unsigned char byte);
 static void user_bulk_usb_event (CLD_USB_Event event);
+
+//TODO DEBUG
+void test_ddr();
 
 
 /* Bulk IN endpoint parameters */
@@ -71,7 +75,7 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
                                                             will not use a UART */
     .uart_baud  = 115200,                               /* CLD Library CONSOLE print UART
                                                            baudrate. */
-    .sclk0      = 75000000u,                           /* Blackfin SCLK0 frequency */
+    .sclk0      = 100000000u,                           /* Blackfin SCLK0 frequency */
     .fp_console_rx_byte = user_bulk_console_rx_byte,    /* Function called when a byte
                                                            is received by the CONSOLE
                                                            UART. */
@@ -482,6 +486,7 @@ void user_bulk_main (void)
     {
         main_time = cld_time_get();
         LED_BC2_TGL();
+		test_ddr();
     }
 
     if (usb_time)
@@ -490,6 +495,8 @@ void user_bulk_main (void)
 		{
 			usb_time = 0;
 			LED_BC3_OFF();
+			//TODO DEBUG REMOVE WHEN TESTING IS COMPLETED
+
 		}
     }
 
@@ -526,15 +533,6 @@ void user_bulk_main (void)
 		}
 	}
 
-//    if (cld_time_passed_ms(msg_time) >= 237u)
-//    {
-//        msg_time = cld_time_get();
-//        run_time = cld_time_passed_ms(0);
-//        cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Run time: %2.2d:%2.2d:%3.3d\r",
-//            MINUTES(run_time),
-//            SECONDS(run_time),
-//            M_SECONDS(run_time));
-//    }
 }
 
 /*=============================================================================
@@ -691,24 +689,60 @@ static void user_bulk_usb_event (CLD_USB_Event event)
     switch (event)
     {
         case CLD_USB_CABLE_CONNECTED:
-//            pADI_PORTA->DATA_SET = (1 << 1);
-        break;
+        	break;
         case CLD_USB_CABLE_DISCONNECTED:
-//            pADI_PORTA->DATA_CLR = (1 << 1);
-        break;
+        	break;
         case CLD_USB_ENUMERATED_CONFIGURED:
             cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Enumerated\n\r");
-        break;
+            break;
         case CLD_USB_UN_CONFIGURED:
-        break;
+        	break;
         case CLD_USB_BUS_RESET:
 //            user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE;
-        break;
+        	break;
         case CLD_USB_BUS_SUSPEND:
             cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Suspend\n\r");
-        break;
+            break;
         case CLD_USB_BUS_RESUME:
             cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Resume\n\r");
-        break;
+            break;
     }
+}
+
+void test_ddr()
+{
+	static uint8_t test_done = 1;
+
+	if(test_done == 1)
+	{
+		uint32_t * ddrBaseAddr;
+
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Test DDR Memory\n\r");
+
+		ddrBaseAddr = 0x80000000;
+		for(int i=0; i<256; i++)
+		{
+			*(ddrBaseAddr) = i;
+			ddrBaseAddr += 1;
+		}
+		//Check for REad error
+		ddrBaseAddr = 0x80000000;
+		for(int i=0; i<256; i++)
+		{
+			if(i%4 == 0)
+			{
+				cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "DDR VALUE @ ddrBaseAddr : x%x is %d\n\r",ddrBaseAddr,*(ddrBaseAddr));
+			}
+			if(*(ddrBaseAddr) != i)
+			{
+				cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "MeMory error - Read Value : %d not Equal Write Value : %d\n\r",*(ddrBaseAddr),i);
+				break;
+			}
+			ddrBaseAddr += 1;
+		}
+
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Stop here to check DDR Memory\n\r" );
+		test_done = 0;
+	}
+
 }

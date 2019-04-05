@@ -31,7 +31,7 @@ uint32_t ChangeFreq( uint32_t, uint32_t );
 
 #define MHZTOHZ       (1000000u)
 
-#define CLKIN         (50 * MHZTOHZ)
+#define CLKIN         (25 * MHZTOHZ)
 #define CORE_MAX      (400 * MHZTOHZ)
 #define SYSCLK_MAX    (200 * MHZTOHZ)
 #define SCLK_MAX      (100 * MHZTOHZ)

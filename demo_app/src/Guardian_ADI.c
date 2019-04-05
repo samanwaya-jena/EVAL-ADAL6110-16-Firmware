@@ -29,10 +29,6 @@
 #include "Guardian_ADI.h"
 
 
-//#include "Guardian_basics.h"
-//#include "rawdata.h"
-//#include "GPIO.h"
-
 /**
  * Private constant and variables
  *
@@ -266,10 +262,6 @@ bool ReadDataFromSPI_Check(void)
 
 		result =  adi_spi_GetBuffer(hSpi, &pTransceiver);
 
-//		if (pTransceiver)
-//		{
-//			++pTransceiver->TransmitterBytes;
-//		}
 	}
 
 	return bAvailSpi;
@@ -280,8 +272,6 @@ void ResetADI(void) {
 	// TODO: Drive the reset pin when available
 	//We dont have reset ctrl need to wait a certain delay
 	int i = 1200000; // 1.5ms @ 200mhz
-	DEBUG_HEADER( "Wait for Gordon RESET sequence" );
-
 
 	while(i--){
 	}
