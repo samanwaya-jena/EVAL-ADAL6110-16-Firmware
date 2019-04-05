@@ -113,11 +113,11 @@
 
 /* every method can use these defines */
 
-#define DEBUG_HEADER(header)  		DEBUG_STATEMENT("\n\n"); \
+#define DEBUG_HEADER(header)  		/*DEBUG_STATEMENT("\n\n"); \
    									DEBUG_STATEMENT(""_BOLDTEXT_"*******************************************************\n"); \
                                		DEBUG_STATEMENT("*** "); \
                                		DEBUG_STATEMENT(""_BOLDTEXT_""_YELLOWTEXT_""header""_NORMALTEXT_"\n"); \
-                               		DEBUG_STATEMENT(""_BOLDTEXT_"********************************************************"_NORMALTEXT_"\n");
+                               		DEBUG_STATEMENT(""_BOLDTEXT_"********************************************************"_NORMALTEXT_"\n");*/
 #define DEBUG_SUBHEADER(subheader)	DEBUG_STATEMENT("\n\n"); \
 									DEBUG_STATEMENT("\n"_BOLDTEXT_"----------------------------------------"); \
                                		DEBUG_STATEMENT("\n--- "); \

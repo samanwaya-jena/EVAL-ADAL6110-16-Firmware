@@ -15,16 +15,13 @@
 #include <ADSP-BF707_device.h>
 
 #include "flash_params.h"
-//#include "flash_debug.h"
 
 #include "PWR_Freq_Mode.h"
-#include "post_debug.h"
+//#include "post_debug.h"
 
 #include "BF707_Wagner.h"
 
 #include <cdefBF70x_rom.h>
-
-
 
 #define USE_USB
 
@@ -40,9 +37,6 @@ typedef enum
 
 int main(int argc, char *argv[])
 {
-
-	DEBUG_HEADER( "Wagner ADSP-BF707 Eval Board" );
-
 
 	//TODO ADD A INIT TO SET ALL GPIO DIRECTION
 #ifdef EZ_KIT
@@ -77,9 +71,6 @@ int main(int argc, char *argv[])
 	pADI_PORTA->DATA_SET = (1 << 15);
 #endif
 
-	//TEST SPI2 CS not
-
-
 	/**
 	 * Initialize managed drivers and/or services that have been added to 
 	 * the project.
@@ -88,25 +79,25 @@ int main(int argc, char *argv[])
 	adi_initComponents();
 	
     /* Initialize Power service */
+
     power_init();
 
-	/* Set the Software controlled switches to default values */
-
+    /* Initialize the Flash device */
 	Flash_Init();
 
-    //flash_test();
-
+	 /* Initialize the Lidar Parameter */
 	Lidar_InitADI();
 
     Main_States main_state = MAIN_STATE_SYSTEM_INIT;
 
-    DEBUG_HEADER( "Init Configuration Done, Entering main loop" );
+    //DEBUG_HEADER( "Init Configuration Done, Entering main loop" );
+
     //TODO re-enable those line
 
-    LP_DRIVER_POWER_ON();
-    LASER_OUTPUT_ENABLE();
-    LASER_PULSE1_ENABLE();
-    LASER_PULSE2_ENABLE();
+    //LP_DRIVER_POWER_ON();
+    //LASER_OUTPUT_ENABLE();
+    //LASER_PULSE1_ENABLE();
+    //LASER_PULSE2_ENABLE();
 
     while (1)
     {

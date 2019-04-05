@@ -1,5 +1,5 @@
 /*
-** ADSP-BF707 CPLB table definitions generated on Mar 13, 2019 at 13:52:31.
+** ADSP-BF707 CPLB table definitions generated on Apr 04, 2019 at 15:15:22.
 */
 /*
 ** Copyright (C) 2000-2017 Analog Devices Inc., All Rights Reserved.
@@ -55,6 +55,12 @@
 **     system_stack:                           L1
 **     system_stack_min_size:                  2
 **     system_stack_size_units:                kB
+**     use_sdram:                              true
+**     use_sdram_size:                         128
+**     use_sdram_size_units:                   MegaBytes
+**     use_sdram_partitioned:                  default
+**     use_sdram_dmc_size_0:                   128
+**     has_two_SDRAMs:                         false
 **     use_mt:                                 false
 **     use_software_modules:                   false
 **     use_user_mod_ldf:                       true
@@ -91,6 +97,9 @@ cplb_entry dcplbs_table[] = {
    /* L2 ROM */
    {0x04000000, (ENUM_L1DM_DCPLB_DATA_256KB | CACHE_MEM_MODE | BITM_L1DM_DCPLB_DATA_DIRTY | CPLB_READONLY_ACCESS)}, 
    {0x04040000, (ENUM_L1DM_DCPLB_DATA_256KB | CACHE_MEM_MODE | BITM_L1DM_DCPLB_DATA_DIRTY | CPLB_READONLY_ACCESS)}, 
+   /* DMC connected to 128 MB SDRAM (DDR2).*/ 
+   {0x80000000, (ENUM_L1DM_DCPLB_DATA_64MB | CACHE_MEM_MODE | BITM_L1DM_DCPLB_DATA_DIRTY)}, 
+   {0x84000000, (ENUM_L1DM_DCPLB_DATA_64MB | CACHE_MEM_MODE | BITM_L1DM_DCPLB_DATA_DIRTY)}, 
 
    /* Static Memory Controller (SMC) memory, can connect to
    ** Asynchronous SRAM, Asynchronous flash or NOR flash for example.
@@ -125,6 +134,9 @@ cplb_entry icplbs_table[] = {
    /* L2 ROM */
    {0x04000000, (ENUM_L1IM_ICPLB_DATA_256KB | CPLB_IDOCACHE)}, 
    {0x04040000, (ENUM_L1IM_ICPLB_DATA_256KB | CPLB_IDOCACHE)}, 
+   /* DMC connected to 128 MB SDRAM (DDR2).*/ 
+   {0x80000000, (ENUM_L1IM_ICPLB_DATA_64MB | CPLB_IDOCACHE)}, 
+   {0x84000000, (ENUM_L1IM_ICPLB_DATA_64MB | CPLB_IDOCACHE)}, 
 
    /* Static Memory Controller (SMC) memory, can connect to
    ** Asynchronous SRAM, Asynchronous flash or NOR flash for example.

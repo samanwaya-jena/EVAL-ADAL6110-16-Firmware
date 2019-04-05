@@ -1,0 +1,80 @@
+/*
+ * ezboardBF7xx_initcode.ldf
+ *
+ * Custom LDF for ADSP-BF7xx family parts initcode dxe.
+ *
+ * File Version 2.8.1.0
+ *
+ * Copyright (c) 2013-2018 Analog Devices, Inc. All Rights Reserved.
+ */
+
+#include "init_platform.h"
+
+/* If linking for a target that doesn't have the tools utility ROM
+ * you should select the Utility ROM Disabled in the Linker Processor
+ * settings. Otherwise the LDF will link against the ROM to resolve
+ * uses of library functions.
+ */
+#if !defined(NO_UTILITY_ROM)
+  #if !defined(__SILICON_REVISION__) || (__SILICON_REVISION__==0xffff)
+    #warning \
+    The Utility ROM will not be used to link this application because the silicon revision does not specify a specific revision number. This message may be suppressed by defining the LDF macro NO_UTILITY_ROM.
+    #define NO_UTILITY_ROM
+  #endif
+#endif
+
+#if !defined(NO_UTILITY_ROM) && defined(__SILICON_REVISION__) && !DISABLE_ICACHE
+    /* If building for a real silicon revision (i.e. not 'none' or 'any'),
+     * don't use the Utility ROM if instruction cache is enabled as the boot
+     * code does not define an ICPLB for the Utility ROM memory.
+     */
+    #warning \
+    The Utility ROM will not be used to link this application because the boot code does not install the required ICPLB. This message may be suppressed by defining the LDF macro NO_UTILITY_ROM. 
+    #define NO_UTILITY_ROM
+#endif
+
+$LIBRARIES =
+#if defined(NO_UTILITY_ROM)
+             libcc.dlb, libc.dlb, libdsp.dlb
+#endif
+  ;
+  
+$OBJECTS = $COMMAND_LINE_OBJECTS;
+
+$OBJS_LIBS = $OBJECTS, $LIBRARIES;
+
+MEMORY {
+  MEM_L1_CODE   { START(0x11A00000) END(0x11A0BFFF) TYPE(RAM) WIDTH(8) }
+  MEM_L1_DATA_A { START(0x11800000) END(0x11803FFF) TYPE(RAM) WIDTH(8) }
+}
+
+PROCESSOR p0 {
+  OUTPUT( $COMMAND_LINE_OUTPUT_FILE )
+  KEEP(_initcode)
+  RESOLVE(_initcode, 0x11A00000)
+  ENTRY(_initcode)
+
+#if !defined(NO_UTILITY_ROM)
+  #if !defined(NO_UTILITY_ROM_LIBDRV)
+    #define NO_UTILITY_ROM_LIBDRV /* only require libcc, libc and libdsp */
+  #endif
+  #include "ADSP-BF707-LDF.h"
+#endif
+  
+  SECTIONS {
+    L1_code {
+      INPUT_SECTION_ALIGN(4) 
+      INPUT_SECTIONS($OBJS_LIBS(program))
+    } > MEM_L1_CODE
+    
+    L1_data_BSZ ZERO_INIT {
+      INPUT_SECTION_ALIGN(4)
+      INPUT_SECTIONS($OBJS_LIBS(bsz))
+     } > MEM_L1_DATA_A
+
+    L1_data {
+      INPUT_SECTION_ALIGN(4)
+      INPUT_SECTIONS($OBJS_LIBS(data1))
+     } > MEM_L1_DATA_A
+  }
+}
