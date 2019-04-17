@@ -86,10 +86,10 @@ enum ADI_REGISTER_INDEX {
 	AGCDCBPID1 = 0xE7,
 	FRAMEDELAY = 0xE8,
 	STARTADDRPOINTER = 0xF5,
-	BankStatusAddress = 0xF6, // read only
+	SRAM_READY = 0xF6, // read only
 	LFSRSEEDL = 0xF7,
 	LFSRSEEDH = 0xF8,
-	SRAMReadOutAddress = 0xFF // read only
+	SRAM_DATA = 0xFF // read only
 };
 
 
@@ -129,6 +129,8 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
 int Lidar_ReadFifoPush(uint16_t _startAddress);
 int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data);
+
+int LoadDefaultConfig(int idx);
 
 extern int gAcq;
 
