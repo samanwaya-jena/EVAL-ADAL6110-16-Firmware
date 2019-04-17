@@ -35,41 +35,13 @@ typedef enum
     MAIN_STATE_ERROR
 } Main_States;
 
+void setup_gpio_state();
+
 int main(int argc, char *argv[])
 {
 
-	//TODO ADD A INIT TO SET ALL GPIO DIRECTION
-#ifdef EZ_KIT
-    pADI_PORTA->DIR_SET = (3 << 0);
-    pADI_PORTB->DIR_SET = (1 << 1);
-#endif
-    //SET LED DIRECTION
-#ifndef EZ_KIT
-    LASER_PULSE1_DISABLE();
-    LASER_PULSE2_DISABLE();
-    LASER_OUTPUT_DISABLE();
-    LP_DRIVER_POWER_OFF();
-
-    pADI_PORTA->DIR_SET = (1 << 8); // LASER_1
-	pADI_PORTA->DIR_SET = (1 << 9); // LASER_2
-	pADI_PORTB->DIR_SET = (1 << 5); // EN_P_N
-	pADI_PORTB->DIR_SET = (1 << 6); // PD_P
-
-    pADI_PORTC->DIR_SET = (1 << 7); 	//LED_BC2_R
-    pADI_PORTC->DIR_SET = (1 << 8); 	//LED_BC2_G
-    pADI_PORTC->DIR_SET = (1 << 11); 	//LED_BC3_R
-    pADI_PORTC->DIR_SET = (1 << 12); 	//LED_BC3_G
-
-    //JAB DEBUG SET LED FOR TEST
-    pADI_PORTC->DATA_CLR = (1 << 7);
-    pADI_PORTC->DATA_SET = (1 << 8);
-	pADI_PORTC->DATA_CLR = (1 << 11);
-	pADI_PORTC->DATA_SET = (1 << 12);
-
-	//TRIG IN, in output mode Set @ 1
-	pADI_PORTA->DIR_SET = (1 << 15);
-	pADI_PORTA->DATA_SET = (1 << 15);
-#endif
+	// SET IO DIRECTION
+ 	setup_gpio_state();
 
 	/**
 	 * Initialize managed drivers and/or services that have been added to 
@@ -79,7 +51,6 @@ int main(int argc, char *argv[])
 	adi_initComponents();
 	
     /* Initialize Power service */
-
     power_init();
 
     /* Initialize the Flash device */
@@ -90,14 +61,12 @@ int main(int argc, char *argv[])
 
     Main_States main_state = MAIN_STATE_SYSTEM_INIT;
 
-    //DEBUG_HEADER( "Init Configuration Done, Entering main loop" );
+    //TODO Laser Disabled for safety purpose re-enable those line when needed
 
-    //TODO re-enable those line
-
-    //LP_DRIVER_POWER_ON();
-    //LASER_OUTPUT_ENABLE();
-    //LASER_PULSE1_ENABLE();
-    //LASER_PULSE2_ENABLE();
+    LP_DRIVER_POWER_ON();
+    LASER_OUTPUT_ENABLE();
+    LASER_PULSE1_ENABLE();
+    LASER_PULSE2_ENABLE();
 
     while (1)
     {
@@ -154,4 +123,33 @@ int main(int argc, char *argv[])
             break;
         }
     }
+}
+
+
+void setup_gpio_state()
+{
+    LASER_PULSE1_DISABLE();
+    LASER_PULSE2_DISABLE();
+    LASER_OUTPUT_DISABLE();
+    LP_DRIVER_POWER_OFF();
+
+    pADI_PORTA->DIR_SET = (1 << 8); // LASER_1
+	pADI_PORTA->DIR_SET = (1 << 9); // LASER_2
+	pADI_PORTB->DIR_SET = (1 << 5); // EN_P_N
+	pADI_PORTB->DIR_SET = (1 << 6); // PD_P
+
+    pADI_PORTC->DIR_SET = (1 << 7); 	//LED_BC2_R
+    pADI_PORTC->DIR_SET = (1 << 8); 	//LED_BC2_G
+    pADI_PORTC->DIR_SET = (1 << 11); 	//LED_BC3_R
+    pADI_PORTC->DIR_SET = (1 << 12); 	//LED_BC3_G
+
+    //SET Debug LED
+    pADI_PORTC->DATA_CLR = (1 << 7);
+    pADI_PORTC->DATA_SET = (1 << 8);
+	pADI_PORTC->DATA_CLR = (1 << 11);
+	pADI_PORTC->DATA_SET = (1 << 12);
+
+	//TRIG IN, in output mode Set @ 1
+	pADI_PORTA->DIR_SET = (1 << 15);
+	pADI_PORTA->DATA_SET = (1 << 15);
 }
