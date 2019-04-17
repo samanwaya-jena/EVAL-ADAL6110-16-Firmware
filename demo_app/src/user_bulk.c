@@ -45,10 +45,6 @@ static void user_bulk_adi_loopback_bulk_in_transfer_complete (void);
 static void user_bulk_console_rx_byte (unsigned char byte);
 static void user_bulk_usb_event (CLD_USB_Event event);
 
-//TODO DEBUG
-void test_ddr();
-
-
 /* Bulk IN endpoint parameters */
 static CLD_Bulk_Endpoint_Params user_bulk_in_endpoint_params =
 {
@@ -486,7 +482,6 @@ void user_bulk_main (void)
     {
         main_time = cld_time_get();
         LED_BC2_TGL();
-		test_ddr();
     }
 
     if (usb_time)
@@ -495,8 +490,6 @@ void user_bulk_main (void)
 		{
 			usb_time = 0;
 			LED_BC3_OFF();
-			//TODO DEBUG REMOVE WHEN TESTING IS COMPLETED
-
 		}
     }
 
@@ -707,42 +700,4 @@ static void user_bulk_usb_event (CLD_USB_Event event)
             cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Resume\n\r");
             break;
     }
-}
-
-void test_ddr()
-{
-	static uint8_t test_done = 1;
-
-	if(test_done == 1)
-	{
-		uint32_t * ddrBaseAddr;
-
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Test DDR Memory\n\r");
-
-		ddrBaseAddr = 0x80000000;
-		for(int i=0; i<256; i++)
-		{
-			*(ddrBaseAddr) = i;
-			ddrBaseAddr += 1;
-		}
-		//Check for REad error
-		ddrBaseAddr = 0x80000000;
-		for(int i=0; i<256; i++)
-		{
-			if(i%4 == 0)
-			{
-				cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "DDR VALUE @ ddrBaseAddr : x%x is %d\n\r",ddrBaseAddr,*(ddrBaseAddr));
-			}
-			if(*(ddrBaseAddr) != i)
-			{
-				cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "MeMory error - Read Value : %d not Equal Write Value : %d\n\r",*(ddrBaseAddr),i);
-				break;
-			}
-			ddrBaseAddr += 1;
-		}
-
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Stop here to check DDR Memory\n\r" );
-		test_done = 0;
-	}
-
 }

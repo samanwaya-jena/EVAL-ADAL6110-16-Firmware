@@ -468,7 +468,6 @@ static int is25p32d_read(const struct flash_info *fi, uint32_t addr, uint8_t *bu
 	uint8_t tbuf[20];
 	int count;
 
-	/* TODO frequency will limit instruction chosen.  */
 	switch (fi->current_mode)
 	{
 	case STANDARD:
