@@ -87,15 +87,13 @@ typedef struct
 int Flash_LoadConfig(int idx, uint16_t * pParams, int * pNum)
 {
 	int Result = 0;							/* result */
+	int success = 1;
 	tFlashParams * pFlashParams = NULL;
 
 	uint32_t maxNum = *pNum;
 
 	*pNum = 0;
 
-#ifdef EZ_KIT
-	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
-#endif
 	flash_open(flash_info);
 
 	/* calculate offset based on sector */
@@ -140,14 +138,13 @@ int Flash_LoadConfig(int idx, uint16_t * pParams, int * pNum)
 		}
 
 		free(pFlashParams);
+		success = 0;
 	}
 
 FAIL:
 	flash_close(flash_info);
-#ifdef EZ_KIT
-	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
-#endif
-	return 0;
+
+	return success;
 }
 
 int Flash_SaveConfig(int idx, uint16_t * pParams, int num)
@@ -155,9 +152,7 @@ int Flash_SaveConfig(int idx, uint16_t * pParams, int num)
 	int Result = 0;							/* result */
 	tFlashParams * pFlashParams = NULL;
 	int sizeFlashParams = (num + 2) * sizeof(uint32_t);
-#ifdef EZ_KIT
-	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
-#endif
+
 	flash_open(flash_info);
 
 	/* calculate offset based on sector */
@@ -189,18 +184,14 @@ int Flash_SaveConfig(int idx, uint16_t * pParams, int num)
 	}
 
 	flash_close(flash_info);
-#ifdef EZ_KIT
-	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
-#endif
+
 	return 0;
 }
 
 int Flash_ResetToFactoryDefault(int idx)
 {
 	int Result = 0;							/* result */
-#ifdef EZ_KIT
-	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
-#endif
+
 	flash_open(flash_info);
 
 	/* calculate offset based on sector */
@@ -210,9 +201,6 @@ int Flash_ResetToFactoryDefault(int idx)
 	Result = flash_erase(flash_info, ulOffset, FLASH_PARAM_SIZE);
 
 	flash_close(flash_info);
-#ifdef EZ_KIT
-	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
-#endif
 
 	return 0;
 }
@@ -234,10 +222,7 @@ int testFlashParams(void)
 	uint8_t mid;							/* manufacturer id */
 	uint8_t did;							/* device id */
 
-//	DEBUG_HEADER( "SPI Flash Test" );
-#ifdef EZ_KIT
-	ConfigSoftSwitches(SS_SPI, sizeof(SoftSwitch)/sizeof(SoftSwitch[0]), SoftSwitch);
-#endif
+
 	flash_info = &w25q32bv_info;
 
 	flash_open(flash_info);
@@ -252,7 +237,7 @@ int testFlashParams(void)
 			return 0;
 	}
 
-//	DEBUG_PRINT( "\nDetected manufacturer code of 0x%x and device code of 0x%x\n", mid, did );
+
 
 	/* if codes don't match what we expect then we should fail */
 	if ( (MAN_CODE != mid) || (DEV_CODE != did) )
@@ -288,9 +273,7 @@ int testFlashParams(void)
 	Result = flash_read(flash_info, ulOffset, ucBuf, 128);
 
 	flash_close(flash_info);
-#ifdef EZ_KIT
-	ConfigSoftSwitches(SS_DEFAULT, 0, NULL);
-#endif
+
 	return 0;
 }
 #endif
