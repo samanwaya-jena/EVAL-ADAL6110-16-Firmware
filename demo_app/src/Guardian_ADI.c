@@ -8,23 +8,21 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <ADSP-BF707_device.h>
 #include <drivers\spi\adi_spi.h>
 
-#include <ADSP-BF707_device.h>
 
+#include "flash_params.h"
+#include "BF707_Wagner.h"
+#include "Guardian_ADI.h"
 #include "user_bulk.h"
-
 #include "post_debug.h"
 
 #ifdef USE_ALGO
 #include "algo.h"
 #endif //USE_ALGO
 
-#include "flash_params.h"
 
-#include "BF707_Wagner.h"
-
-#include "Guardian_ADI.h"
 
 
 /**
@@ -410,19 +408,21 @@ void ResetADI(void) {
 
 	// TODO: Drive the reset pin when available
 	//We dont have reset ctrl need to wait a certain delay
-	int i = 1200000; // 1.5ms @ 200mhz
+	//USed software reset for now
+	int i = 600000; // 1.5ms @ 400mhz
+
+	WriteParamToSPI(Control0Address, 0);
 
 	while(i--){
 	}
 
-	i = 1200000;
+	WriteParamToSPI(Control0Address, 1);
+	i = 600000;
 
 	while(i--){
 	}
 
-	//Lidar_SPITriggerMode();
 
-	//ClearSram();
 }
 
 /**
@@ -439,7 +439,7 @@ void ResetADI(void) {
 void Lidar_InitADI(void) {
     int i;
     uint16_t dataToBeRead = 0;
-    uint16_t waitTimer = 40000; //wait 200us @ 200mhz
+    uint32_t waitTimer = 80000; //wait 200us @ 400mhz
 
 
 	if (hSpi == NULL)
@@ -626,15 +626,15 @@ void Lidar_InitADI(void) {
 	if(Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams))
 	{
 		numParams = 0;
+		num= 0;
 	}
-
-	if (numParams)
-		num = numParams;
-
-	for (i=0; i<num; i++)
+	else
 	{
-		WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
-		//ReadParamFromSPI(Lidar_InitValues[i][0], &dataToBeRead);
+		num = numParams;
+		for (i=0; i<num; i++)
+		{
+			WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
+		}
 	}
 
 	user_CANFifoPushSensorStatus();
@@ -659,7 +659,7 @@ int SaveConfigToFlash(int idx)
 
 }
 
-int LoadDefaultConfig(int idx)
+void LoadDefaultConfig(int idx)
 {
 	if (idx == 0)
 	{
@@ -1148,14 +1148,14 @@ void Lidar_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo)
 void Lidar_ReleaseDataToFifo(uint16_t numFifo)
 {
 	iFifoTail = (iFifoTail + numFifo) & NUM_FIFO_MASK;
-//	LED5_OFF();
 }
 
 void Lidar_Reset(void)
 {
-  user_CANFifoReset();
+    user_CANFifoReset();
 
-	Lidar_InitADI();
+    //TODO DEBUG why it reboot the cpu
+	//Lidar_InitADI();
 
 	iFifoHead = 0;
 	iFifoTail = 0;

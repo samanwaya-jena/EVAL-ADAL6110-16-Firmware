@@ -7,25 +7,16 @@
 #include <sys/platform.h>
 
 #include "adi_initialize.h"
-
-#include "Guardian_ADI.h"
-#include "SoftConfig_BF707.h"
-
-#include "user_bulk.h"
+#include <cdefBF70x_rom.h>
 #include <ADSP-BF707_device.h>
 
+#include "Guardian_ADI.h"
+#include "user_bulk.h"
 #include "flash_params.h"
-
 #include "PWR_Freq_Mode.h"
-//#include "post_debug.h"
-
 #include "BF707_Wagner.h"
 
-#include <cdefBF70x_rom.h>
-
 #define USE_USB
-
-
 
 typedef enum
 {
@@ -40,6 +31,9 @@ void setup_gpio_state();
 int main(int argc, char *argv[])
 {
 
+	//TODO REMOVE ALL REFERENCE TO GUARDIANs?
+	//TODO REVIEWS GUARDIAN.C
+
 	// SET IO DIRECTION
  	setup_gpio_state();
 
@@ -48,6 +42,7 @@ int main(int argc, char *argv[])
 	 * the project.
 	 * @return zero on success 
 	 */
+
 	adi_initComponents();
 	
     /* Initialize Power service */
@@ -61,7 +56,7 @@ int main(int argc, char *argv[])
 
     Main_States main_state = MAIN_STATE_SYSTEM_INIT;
 
-    //TODO Laser Disabled for safety purpose re-enable those line when needed
+    //TODO Disable Laser for safety purpose, re-enable those line when needed
 
     LP_DRIVER_POWER_ON();
     LASER_OUTPUT_ENABLE();

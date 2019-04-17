@@ -22,7 +22,6 @@
 
 //#include "common/spi.h"
 //#include "post_debug.h"
-#include "SoftConfig_BF707.h"
 //#include "timer_isr.h"
 
 #include "calc_crc.h"
@@ -47,28 +46,6 @@ extern FILE *pDebugFile;				/* debug file when directing output to a file */
 extern struct flash_info is25lp032d_info;
 
 
-static SWITCH_CONFIG SwitchConfig0[] =
-{
-  { 0x12u, 0xF8u },
-  { 0x13u, 0xFFu },
-  { 0x0u, 0x40u },   /* Set IODIRA direction (bit 6 input, all others output) */
-  { 0x1u, 0x03u },   /* Set IODIRB direction (bit 0, 1 input, all others output) */
-};
-static SWITCH_CONFIG SwitchConfig1[] =
-{
-  { 0x12u, 0x81u },
-  { 0x13u, 0x03u },
-  { 0x0u, 0x00u },    /* Set IODIRA direction (all output) */
-  { 0x1u, 0x80u },    /* Set IODIRB direction (bit 7 input, all others output) */
-};
-
-static SOFT_SWITCH SoftSwitch[] =
-{
-  {    0u,    0x21u,    sizeof(SwitchConfig0)/sizeof(SWITCH_CONFIG),    SwitchConfig0  },
-  {    0u,    0x22u,    sizeof(SwitchConfig1)/sizeof(SWITCH_CONFIG),    SwitchConfig1  }
-};
-
-
 int Flash_Init(void)
 {
 	flash_info = &is25lp032d_info;
@@ -81,6 +58,7 @@ typedef struct
 	uint32_t magic;
 	uint32_t numParams;
 	uint32_t params[1]; // N params
+	//TODO REMOVE CRC
 //	uint32_t crc;
 } tFlashParams;
 
@@ -205,75 +183,3 @@ int Flash_ResetToFactoryDefault(int idx)
 	return 0;
 }
 
-
-#if 0
-/*******************************************************************
-*   Function:    TEST_SPI_FLASH
-*   Description: This test will test the SPI flash on the EZ-Board.
-*				 Since an image may live in the start of SPI flash
-*                we will not erase the entire flash during this test.
-*                We will first verify the manufacturer and vendor IDs
-*				 then we will perform operations on only a few sectors.
-*******************************************************************/
-int testFlashParams(void)
-{
-	int Result = 0;							/* result */
-	int nManCode = 0, nDevCode = 0;			/* man and device ids */
-	uint8_t mid;							/* manufacturer id */
-	uint8_t did;							/* device id */
-
-
-	flash_info = &w25q32bv_info;
-
-	flash_open(flash_info);
-
-	if (flash_info->modes & (QUAD_INPUT | QUAD_OUTPUT | QUAD_IO))
-		flash_enable_quad_mode(flash_info);
-
-	Result = flash_read_mid_did(flash_info, &mid, &did);
-	if (Result == 0)
-	{
-		if (mid != flash_info->mid || did != flash_info->did)
-			return 0;
-	}
-
-
-
-	/* if codes don't match what we expect then we should fail */
-	if ( (MAN_CODE != mid) || (DEV_CODE != did) )
-	{
-//		DEBUG_RESULT(TEST_FAIL, "Flash codes do not match what we expected");
-		return 0;
-	}
-
-    char wrBuf[] = "Hello World!";
-
-	uint8_t ucBuf[128];
-
-	unsigned long ulOffset;
-
-	/* calculate offset based on sector */
-	ulOffset = FLASH_PARAM_ADDR;
-
-	memset(ucBuf, 0, sizeof(ucBuf));
-
-	/* now do a read */
-	Result = flash_read(flash_info, ulOffset, ucBuf, 128);
-
-	/* erase the sector */
-	Result = flash_erase(flash_info, ulOffset, 128);
-
-	/* now do a read */
-	Result = flash_read(flash_info, ulOffset, ucBuf, 128);
-
-	/* write a value to the flash */
-	Result = flash_program(flash_info, ulOffset, (uint8_t*) wrBuf, sizeof(wrBuf));
-
-	/* now do a read */
-	Result = flash_read(flash_info, ulOffset, ucBuf, 128);
-
-	flash_close(flash_info);
-
-	return 0;
-}
-#endif

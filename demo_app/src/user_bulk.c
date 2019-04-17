@@ -466,10 +466,7 @@ void user_bulk_main (void)
     #define M_SECONDS(x)    (x%1000)
 
     static CLD_Time main_time = 0;
-//    static CLD_Time msg_time = 0;
-//    static CLD_Time run_time = 0;
     static CLD_Time log_time = 0;
-//    static CLD_Time acq_time = 0;
 
     static int iAcqNum = 0;
     static int iAcqNum1 = 0;
@@ -478,28 +475,18 @@ void user_bulk_main (void)
 
     cld_bf70x_bulk_lib_main();
 
+    //Keep Alive LED
     if (cld_time_passed_ms(main_time) >= 250u)
     {
         main_time = cld_time_get();
         LED_BC2_TGL();
     }
 
-    if (usb_time)
-    {
-		if (cld_time_passed_ms(usb_time) >= 500u)
-		{
-			usb_time = 0;
-			LED_BC3_OFF();
-		}
-    }
-
     Serial_Process();
 
-//    if (cld_time_passed_ms(acq_time) >= 1u)
+    //Process LIDAR Acquisition
     {
     	uint16_t banknum = 0;
-//    	acq_time = cld_time_get();
-
     	Lidar_Acq(&banknum);
 
     	if (banknum)
