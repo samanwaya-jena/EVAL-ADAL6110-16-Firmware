@@ -139,8 +139,8 @@ uint16_t Lidar_DefaultValues[][2] =
     {ChannelEnableAddress , 0xFFFF},
     {DataAcqMode , 0x0001},
     {TriggerOutAddress , 0x1021},
-    {CH0ControlReg0Address , 0x2E1F},
-    {CH0ControlReg1Address , 0x0180},
+    {CH0ControlReg0Address , 0x3C3F},
+    {CH0ControlReg1Address , 0x0B80},
     {CH0ControlReg2Address , 0x00FF},
     {CH1ControlReg0Address , 0x2E1F},
     {CH1ControlReg1Address , 0x0180},
@@ -517,22 +517,22 @@ void Lidar_InitADI(void) {
 		//ReadParamFromSPI(Lidar_POR_Values[i][0], &dataToBeRead);
 	}
 
-    WriteParamToSPI(CH0ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH1ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH2ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH3ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH4ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH5ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH6ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH7ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH8ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH9ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH10ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH11ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH12ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH13ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH14ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH15ControlReg0Address, 0x001F);
+	WriteParamToSPI(CH0ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH1ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH2ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH3ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH4ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH5ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH6ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH7ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH8ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH9ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH10ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH11ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH12ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH13ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH14ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH15ControlReg0Address, 0x003F);
 
   	dataToBeRead = 0;
 
@@ -551,39 +551,40 @@ void Lidar_InitADI(void) {
 	WriteParamToSPI(TriggerOutAddress, 0x1021); //2ns: 0x8021, 4ns: 0x1021
 	WriteParamToSPI(DataAcqMode, 0x0001); //2ns: 0x0000,  4ns :0x0001
 	WriteParamToSPI(DelayBetweenFlashesAddress, 0x4000); //0x4000 (1 frame period = 13.08 ms, 76.45 Hz MAX, measured with scope and FRAMEDELAY to minimum)
-	WriteParamToSPI(CH0ControlReg0Address, 0x2E1F); // 0x2E1F (typiquement)
-	WriteParamToSPI(CH1ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH2ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH3ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH4ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH5ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH6ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH7ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH8ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH9ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH10ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH11ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH12ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH13ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH14ControlReg0Address, 0x2E1F);
-	WriteParamToSPI(CH15ControlReg0Address, 0x2E1F);
 
-  	WriteParamToSPI(CH0ControlReg1Address, 0x0180); // 0x01C0
-  	WriteParamToSPI(CH1ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH2ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH3ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH4ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH5ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH6ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH7ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH8ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH9ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH10ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH11ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH12ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH13ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH14ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH15ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH0ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH1ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH2ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH3ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH4ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH5ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH6ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH7ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH8ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH9ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH10ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH11ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH12ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH13ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH14ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH15ControlReg0Address, 0x3C3F);
+
+	WriteParamToSPI(CH0ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH1ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH2ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH3ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH4ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH5ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH6ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH7ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH8ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH9ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH10ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH11ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH12ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH13ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH14ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH15ControlReg1Address, 0x0B80);
 
   	WriteParamToSPI(CH0ControlReg2Address, 0x00FF);
   	WriteParamToSPI(CH1ControlReg2Address, 0x00FF);
@@ -603,13 +604,13 @@ void Lidar_InitADI(void) {
   	WriteParamToSPI(CH15ControlReg2Address, 0x00FF);
 
   	WriteParamToSPI(FRAMEDELAY, 0x8000); // Slow it down to max (3.86 ms gordon frame period with 64 accumulation)
-  	WriteParamToSPI(AGCDCBCTRL, 0x0104); // Default: 0x0104, Enable AGC to change anything: 0x0115
+  	WriteParamToSPI(AGCDCBCTRL, 0x0015); // Default: 0x0104, Enable AGC to change anything: 0x0115
 
   	WriteParamToSPI(185, 0);
   	WriteParamToSPI(77, 0xC23F);
   	WriteParamToSPI(86, 0x823F);
   	WriteParamToSPI(ChannelEnableAddress, 0xFFFF);
-  	WriteParamToSPI(AGCEN, 0x0000);
+  	WriteParamToSPI(AGCEN, 0xFFFF);
   	WriteParamToSPI(DCEN, 0xFFFF);
   	WriteParamToSPI(185, 1);
 
@@ -623,19 +624,19 @@ void Lidar_InitADI(void) {
   	num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
 	numParams = num;
 
-	if(Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams))
-	{
-		numParams = 0;
-		num= 0;
-	}
-	else
-	{
-		num = numParams;
-		for (i=0; i<num; i++)
-		{
-			WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
-		}
-	}
+//	if(Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams))
+//	{
+//		numParams = 0;
+//		num= 0;
+//	}
+//	else
+//	{
+//		num = numParams;
+//		for (i=0; i<num; i++)
+//		{
+//			WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
+//		}
+//	}
 
 	user_CANFifoPushSensorStatus();
     user_CANFifoPushSensorBoot();
