@@ -86,7 +86,7 @@
 								<option id="blackfin.loader.option.enumerated.progflag.1046068346" name="Programmable flag" superClass="blackfin.loader.option.enumerated.progflag" useByScannerDiscovery="false"/>
 								<option id="blackfin.loader.option.bcode.2140728152" name="Boot code (-bcode)" superClass="blackfin.loader.option.bcode" useByScannerDiscovery="false" value="1" valueType="string"/>
 								<option id="loader.option.verbose.657337859" name="Output verbose loader messages (-v)" superClass="loader.option.verbose" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-								<option id="blackfin.loader.option.initfile.576761046" name="Initialization file (-init)" superClass="blackfin.loader.option.initfile" useByScannerDiscovery="false" value="D:\PROJETS\Wagner\BF707_init\BF7xx_init_icache_disable\BF707_init.dxe" valueType="string"/>
+								<option id="blackfin.loader.option.initfile.576761046" name="Initialization file (-init)" superClass="blackfin.loader.option.initfile" useByScannerDiscovery="false" value="&#10;&quot;${workspace_loc}\BF707_init\BF7xx_init_icache_disable\BF707_init.dxe&quot;" valueType="string"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
