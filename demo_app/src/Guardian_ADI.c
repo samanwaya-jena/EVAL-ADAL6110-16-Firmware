@@ -569,22 +569,22 @@ void Lidar_InitADI(void) {
 	WriteParamToSPI(CH14ControlReg0Address, 0x3C3F);
 	WriteParamToSPI(CH15ControlReg0Address, 0x3C3F);
 
-	WriteParamToSPI(CH0ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH1ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH2ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH3ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH4ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH5ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH6ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH7ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH8ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH9ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH10ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH11ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH12ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH13ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH14ControlReg1Address, 0x0B80);
-	WriteParamToSPI(CH15ControlReg1Address, 0x0B80);
+	WriteParamToSPI(CH0ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH1ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH2ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH3ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH4ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH5ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH6ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH7ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH8ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH9ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH10ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH11ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH12ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH13ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH14ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH15ControlReg1Address, 0x0180);
 
   	WriteParamToSPI(CH0ControlReg2Address, 0x00FF);
   	WriteParamToSPI(CH1ControlReg2Address, 0x00FF);
@@ -604,13 +604,13 @@ void Lidar_InitADI(void) {
   	WriteParamToSPI(CH15ControlReg2Address, 0x00FF);
 
   	WriteParamToSPI(FRAMEDELAY, 0x8000); // Slow it down to max (3.86 ms gordon frame period with 64 accumulation)
-  	WriteParamToSPI(AGCDCBCTRL, 0x0015); // Default: 0x0104, Enable AGC to change anything: 0x0115
+  	WriteParamToSPI(AGCDCBCTRL, 0x0014); // Default: 0x0104, Enable AGC to change anything: 0x0115
 
   	WriteParamToSPI(185, 0);
   	WriteParamToSPI(77, 0xC23F);
   	WriteParamToSPI(86, 0x823F);
   	WriteParamToSPI(ChannelEnableAddress, 0xFFFF);
-  	WriteParamToSPI(AGCEN, 0xFFFF);
+  	WriteParamToSPI(AGCEN, 0x0000);
   	WriteParamToSPI(DCEN, 0xFFFF);
   	WriteParamToSPI(185, 1);
 
@@ -621,8 +621,8 @@ void Lidar_InitADI(void) {
 
 
   	//Apply last used config from flash
-  	num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
-	numParams = num;
+  	//num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
+	//numParams = num;
 
 //	if(Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams))
 //	{
