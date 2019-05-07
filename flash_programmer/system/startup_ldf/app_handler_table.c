@@ -1,8 +1,8 @@
 
 /*
-** app_handler_table.c generated on May 28, 2018 at 12:02:39.
+** app_handler_table.c generated on May 6, 2019 at 09:43:50.
 **
-** Copyright (C) 2000-2018 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2019 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected in the
 ** Startup Code/LDF Configuration Editor. Changes to the Interrupt Handler
@@ -30,7 +30,7 @@
  * in L1 to achieve the best performance.
  */
 #ifndef __INT_SECTION__
-#define __INT_SECTION__ "L1_data"
+#define __INT_SECTION__ "$root.find("//crt_and_ldf/crt/propertygroup[@name='int_handlers']/property[@name='int_handler_table_section']/@value")"
 #endif /* __INT_SECTION__ */
 
 #include <sys/exception.h>

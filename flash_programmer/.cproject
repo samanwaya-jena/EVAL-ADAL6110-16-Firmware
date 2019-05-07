@@ -85,9 +85,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="blackfin.toolchain.configuration.debug.1255358836.1967393166" name="w25q32bv.c" rcbsApplicability="disable" resourcePath="src/w25q32bv/w25q32bv.c" toolsToInvoke="blackfin.toolchain.compiler.342690395.688933312">
-						<tool id="blackfin.toolchain.compiler.342690395.688933312" name="CrossCore Blackfin C/C++ Compiler" superClass="blackfin.toolchain.compiler.342690395"/>
-					</fileInfo>
 					<sourceEntries>
 						<entry excluding="system|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry excluding="w25q32bv/w25q32bv.c|bf707_w25q32bv_dpia.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>

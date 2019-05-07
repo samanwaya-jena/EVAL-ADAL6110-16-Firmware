@@ -2,7 +2,7 @@
   Copyright 2018 Phantom Intelligence Inc.
 */
 
-#define USE_DMA
+//#define USE_DMA
 #define USE_ALGO
 
 #include <stdint.h>
@@ -27,7 +27,6 @@
 
 /**
  * Private constant and variables
- *
  */
 
 
@@ -125,6 +124,7 @@ uint16_t Lidar_InitValues[][2] =
     {LFSRSEEDL , 0x9190},
     {LFSRSEEDH , 0x0001},
     //{SRAM_DATA , }*/
+	{Control0Address , 0x1F81},
 	{Control0Address , 0x1F82},
 
 };
@@ -202,6 +202,7 @@ uint16_t Lidar_DefaultValues[][2] =
     {LFSRSEEDL , 0x9190},
     {LFSRSEEDH , 0x0001},
     //{SRAM_DATA , }*/
+	{Control0Address , 0x1F81},
 	{Control0Address , 0x1F82}
 };
 
@@ -331,11 +332,6 @@ void ReadDataFromSPI(uint16_t * pData, int num)
 	Xcv0DMA.pReceiver = (uint8_t*) pData;
 	Xcv0DMA.ReceiverBytes = num * sizeof(uint16_t);
 
-	/* Disable DMA */
-//	result = adi_spi_EnableDmaMode(hSpi, true);
-
-//	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
-
 	result = adi_spi_SubmitBuffer(hSpi, &Xcv0DMA);
 
 	bool bAvailSpi = false;
@@ -407,16 +403,24 @@ bool ReadDataFromSPI_Check(void)
 void ResetADI(void) {
 
 	// TODO: Drive the reset pin when available
-	//We dont have reset ctrl need to wait a certain delay
-	//USed software reset for now
-	int i = 600000; // 1.5ms @ 400mhz
+	//We dont have reset ctrl. Need to wait a certain delay
+	//Use software reset for now
+	uint16_t reg = 0;
+	uint32_t i = 600000; // 1.5ms @ 400mhz
 
-	WriteParamToSPI(Control0Address, 0);
+	//TODO READ Control0Address
+	ReadParamFromSPI(Control0Address, &reg);
+
+	//CLEAR BIT 0
+	reg &= 0xFFFE;
+	WriteParamToSPI(Control0Address, reg);
 
 	while(i--){
 	}
 
-	WriteParamToSPI(Control0Address, 1);
+	//SET Bit 0
+	reg |= 0x0001;
+	WriteParamToSPI(Control0Address, reg);
 	i = 600000;
 
 	while(i--){
@@ -617,6 +621,7 @@ void Lidar_InitADI(void) {
   	while(waitTimer--){ // Wait 200 us
   	}
 
+  	WriteParamToSPI(Control0Address, 0x1F81); // Set system ready to 1
   	WriteParamToSPI(Control0Address, 0x1F82); // Set system ready to 1
 
 
