@@ -3,10 +3,6 @@
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="blackfin.toolchain.configuration.debug.1255358836">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="blackfin.toolchain.configuration.debug.1255358836" moduleId="org.eclipse.cdt.core.settings" name="Debug">
-				<macros>
-					<stringMacro name="uart-driver-version" type="VALUE_TEXT" value="1.0"/>
-					<stringMacro name="usb-device-device-driver-version" type="VALUE_TEXT" value="1.1"/>
-				</macros>
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -43,7 +39,6 @@
 									<listOptionValue builtIn="false" value="NO_UTILITY_ROM_LIBDRV"/>
 									<listOptionValue builtIn="false" value="CORE0"/>
 									<listOptionValue builtIn="false" value="_DEBUG"/>
-									<listOptionValue builtIn="false" value="NO_UTILITY_ROM_UART"/>
 								</option>
 								<option id="compiler.option.additionaldirectories.1515347388" name="Additional include directories (-I):" superClass="compiler.option.additionaldirectories" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
@@ -62,16 +57,15 @@
 									<listOptionValue builtIn="false" value="DEBUG"/>
 									<listOptionValue builtIn="false" value="NO_UTILITY_ROM_LIBDRV"/>
 									<listOptionValue builtIn="false" value="CORE0"/>
-									<listOptionValue builtIn="false" value="NO_UTILITY_ROM_UART"/>
 								</option>
 								<option id="linker.option.ldfprocessing.ldffile.1052769192" name="Custom LDF (-T)" superClass="linker.option.ldfprocessing.ldffile" useByScannerDiscovery="false" value="${ProjDirPath}/system/startup_ldf/app.ldf" valueType="string"/>
 								<option id="linker.option.srchdir.2041530358" name="Library search directories (-L):" superClass="linker.option.srchdir" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="${OutDir}/system/startup_ldf"/>
 								</option>
-								<option id="linker.option.libdoj.454701611" name="Additional libraries and object files:" superClass="linker.option.libdoj" useByScannerDiscovery="false" valueType="libFiles">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/cld_bf70x_bulk_lib.dlb}&quot;"/>
+								<option id="linker.option.libdoj.799527622" superClass="linker.option.libdoj" useByScannerDiscovery="false" valueType="libFiles">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/cld_bf70x_bulk_lib.dlb&quot;"/>
 								</option>
-								<option id="linker.option.misrachecksrcfiles.496797995" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option id="linker.option.misrachecksrcfiles.968804135" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="linker.doj.input.195575357" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.1440173601" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
@@ -81,13 +75,13 @@
 							<tool id="blackfin.toolchain.loader.701791160" name="CrossCore Blackfin Loader" superClass="blackfin.toolchain.loader">
 								<option id="loader.option.proc.2036563242" name="-proc" superClass="loader.option.proc" value=" ADSP-BF707" valueType="string"/>
 								<option id="loader.option.sirevision.833716076" name="-si-revision" superClass="loader.option.sirevision" value=" any" valueType="string"/>
-								<option id="blackfin.loader.option.enumerated.bootmode.502028072" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
+								<option id="blackfin.loader.option.enumerated.bootmode.1825841785" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="system|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="w25q32bv/w25q32bv.c|bf707_w25q32bv_dpia.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="common/dpia.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="system"/>
 					</sourceEntries>
 				</configuration>
@@ -96,10 +90,6 @@
 		</cconfiguration>
 		<cconfiguration id="blackfin.toolchain.configuration.release.1502348978">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="blackfin.toolchain.configuration.release.1502348978" moduleId="org.eclipse.cdt.core.settings" name="Release">
-				<macros>
-					<stringMacro name="uart-driver-version" type="VALUE_TEXT" value="1.0"/>
-					<stringMacro name="usb-device-device-driver-version" type="VALUE_TEXT" value="1.1"/>
-				</macros>
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -135,7 +125,6 @@
 									<listOptionValue builtIn="false" value="_BF707_EZBOARD_REV_1_0_"/>
 									<listOptionValue builtIn="false" value="CORE0"/>
 									<listOptionValue builtIn="false" value="_DEBUG"/>
-									<listOptionValue builtIn="false" value="NO_UTILITY_ROM_UART"/>
 								</option>
 								<option id="compiler.option.additionaldirectories.1572981792" name="Additional include directories (-I):" superClass="compiler.option.additionaldirectories" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
@@ -153,13 +142,12 @@
 								<option id="linker.option.preprocessdefs.1014912756" name="Preprocessor definitions (-MD)" superClass="linker.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="RELEASE"/>
 									<listOptionValue builtIn="false" value="CORE0"/>
-									<listOptionValue builtIn="false" value="NO_UTILITY_ROM_UART"/>
 								</option>
 								<option id="linker.option.ldfprocessing.ldffile.1669222623" name="Custom LDF (-T)" superClass="linker.option.ldfprocessing.ldffile" value="${ProjDirPath}/system/startup_ldf/app.ldf" valueType="string"/>
 								<option id="linker.option.srchdir.1548808892" name="Library search directories (-L):" superClass="linker.option.srchdir" valueType="libPaths">
 									<listOptionValue builtIn="false" value="${OutDir}/system/startup_ldf"/>
 								</option>
-								<option id="linker.option.misrachecksrcfiles.1100698210" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option id="linker.option.misrachecksrcfiles.1781799934" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="linker.doj.input.2081555905" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.1919980168" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
@@ -169,14 +157,14 @@
 							<tool id="blackfin.toolchain.loader.749747879" name="CrossCore Blackfin Loader" superClass="blackfin.toolchain.loader">
 								<option id="loader.option.proc.225331070" name="-proc" superClass="loader.option.proc" value=" ADSP-BF707" valueType="string"/>
 								<option id="loader.option.sirevision.138865242" name="-si-revision" superClass="loader.option.sirevision" value=" any" valueType="string"/>
-								<option id="blackfin.loader.option.enumerated.bootmode.698186819" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
+								<option id="blackfin.loader.option.enumerated.bootmode.1424063559" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="system"/>
 						<entry excluding="system|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry excluding="common/dpia.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="system"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -194,13 +182,8 @@
 			<content-type-mapping configuration="" content-type="org.eclipse.cdt.core.cxxSource" language="org.eclipse.cdt.core.c++.adi.extension"/>
 		</project-mappings>
 	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/bf707_w25q32bv_dpia"/>
-		</configuration>
-		<configuration configurationName="Release">
-			<resource resourceType="PROJECT" workspacePath="/bf707_w25q32bv_dpia"/>
-		</configuration>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/bf707_w25q32bv_dpia"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>

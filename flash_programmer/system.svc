@@ -9,19 +9,7 @@ It provides information needed to link your code. It can be used to configure me
 		</component>
 		<component id="com.analog.crosscore.ssldd.pinmux.component" name="Pin Multiplexing" version="1.0.0" visible="true">
 			<component-description><![CDATA[Since Blackfin processors have more peripherals than physical pins on the chip, the user needs to configure which peripherals they want enabled and onto which set of pins.  Peripheral configuration requires an in-depth understanding of the hardware.  This component makes it easier to program the peripherals without worrying about the internal details.  The user simply selects the peripherals to enable and this component will generate the C code necessary to configure the peripherals.]]></component-description>
-			<product name="SSL DD Product" version=""/>
-		</component>
-		<component id="com.analog.crosscore.addins.ssldd.uart" name="UART Driver for Blackfin" version="2.0.0" visible="true">
-			<component-description><![CDATA[This add-in provides Analog Devices' implementation of the UART Interface driver]]></component-description>
-			<product name="Analog Devices System Services and Device Drivers" version="1.0.0"/>
-		</component>
-		<component id="com.analog.crosscore.addins.ssldd.usbd.base" name="USB Device Controller Driver Base for Blackfin" version="1.1.0" visible="false">
-			<component-description><![CDATA[This add-in provides Analog Devices' implementation of the USB Device device driver]]></component-description>
-			<product name="Analog Devices System Services and Device Drivers" version="1.0.0"/>
-		</component>
-		<component id="com.analog.crosscore.addins.ssldd.usbd.general" name="USB Device Controller Driver for Blackfin" version="1.1.0" visible="true">
-			<component-description><![CDATA[This add-in provides Analog Devices' implementation of the usb device device driver]]></component-description>
-			<product name="Analog Devices System Services and Device Drivers" version="1.0.0"/>
+			<product name="SSL DD Product" version="1.0.0"/>
 		</component>
 	</installedComponents>
 	<configurations>
@@ -51,11 +39,10 @@ It provides information needed to link your code. It can be used to configure me
 						<propertygroup name="use_multicores" value="1">
 							<property name="use_core" value="0"/>
 						</propertygroup>
-						<propertygroup name="" value="96">
+						<propertygroup name="int_handlers" value="96">
 							<property name="int_handler_table_mem" value="L1"/>
 							<property name="int_handler_table_section" value="L1_data"/>
 						</propertygroup>
-						<propertygroup name="int_handlers" value="96"/>
 						<property name="main_never_returns" value="false"/>
 						<property name="use_mt" value="false"/>
 						<property name="init_regs" value="false"/>
@@ -108,36 +95,7 @@ It provides information needed to link your code. It can be used to configure me
 			</startup_ldf-configuration>
 		</configuration>
 		<configuration id="com.analog.crosscore.ssldd.pinmux.component">
-			<pinmux-configuration processor="ADSP-BF707" version="1.0">
-				<peripheral description="SPI Module" name="SPI2">
-					<signal bit="20" mux="0" name="CLK" pin="10" port="B"/>
-					<signal bit="22" mux="0" name="MISO" pin="11" port="B"/>
-					<signal bit="24" mux="0" name="MOSI" pin="12" port="B"/>
-					<signal bit="30" mux="0" name="SEL1" pin="15" port="B"/>
-					<signal bit="26" mux="0" name="D2" pin="13" port="B"/>
-					<signal bit="28" mux="0" name="D3" pin="14" port="B"/>
-				</peripheral>
-				<peripheral description="UART Module" name="UART0">
-					<signal bit="16" mux="0" name="TX" pin="8" port="B"/>
-					<signal bit="18" mux="0" name="RX" pin="9" port="B"/>
-					<signal bit="4" mux="0" name="RTS" pin="2" port="C"/>
-					<signal bit="6" mux="0" name="CTS" pin="3" port="C"/>
-				</peripheral>
-				<gpio name="Port B">
-					<signal bit="16" name="PB08" pin="8" port="B"/>
-					<signal bit="18" name="PB09" pin="9" port="B"/>
-					<signal bit="20" name="PB10" pin="10" port="B"/>
-					<signal bit="22" name="PB11" pin="11" port="B"/>
-					<signal bit="24" name="PB12" pin="12" port="B"/>
-					<signal bit="26" name="PB13" pin="13" port="B"/>
-					<signal bit="28" name="PB14" pin="14" port="B"/>
-					<signal bit="30" name="PB15" pin="15" port="B"/>
-				</gpio>
-				<gpio name="Port C">
-					<signal bit="4" name="PC02" pin="2" port="C"/>
-					<signal bit="6" name="PC03" pin="3" port="C"/>
-				</gpio>
-			</pinmux-configuration>
+			<pinmux-configuration processor="ADSP-BF707" version="1.0"/>
 		</configuration>
 	</configurations>
 </root>
