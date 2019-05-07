@@ -1,16 +1,14 @@
 /*
-** adi_initialize.c source file generated on March 11, 2014 at 14:28:32.
+** adi_initialize.c source file generated on February 27, 2019 at 21:01:41.
 **
-** Copyright (C) 2000-2014 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2019 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically. You should not modify this source file,
 ** as your changes will be lost if this source file is re-generated.
 */
 
 #include <sys/platform.h>
-#ifdef __ADI_HAS_SEC__
 #include <services/int/adi_sec.h>
-#endif
 
 #include "adi_initialize.h"
 
@@ -20,9 +18,8 @@ int32_t adi_initComponents(void)
 {
 	int32_t result = 0;
 
-#ifdef __ADI_HAS_SEC__
 	result = adi_sec_Init();
-#endif
+
 
 	if (result == 0) {
 		result = adi_initpinmux(); /* auto-generated code (order:0) */

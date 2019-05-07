@@ -14,7 +14,8 @@ set configFile=wagner_custom_board_support.xml
 
 ECHO Programming %TargetName% to SPI Flash
 
-"%CCESDir%\cldp.exe" -proc ADSP-BF707 -emu 1000 -driver "%DriverPath%" -cmd prog -erase affected -format hex -file %Configuration%\%TargetName%%TargetExt% -verbose -log 
+"%CCESDir%\cldp.exe" -proc ADSP-BF707 -emu 1000 -driver "%DriverPath%" -cmd prog -erase affected -format hex -file %TargetName%\%Configuration%\%TargetName%%TargetExt% -verbose -log 
+REM "%CCESDir%\cldp.exe" -proc ADSP-BF707 -emu 1000 -driver "%DriverPath%" -cmd info -verbose -log 
 REM popd
 
 :DONE

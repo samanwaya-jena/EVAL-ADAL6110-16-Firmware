@@ -95,7 +95,32 @@ It provides information needed to link your code. It can be used to configure me
 			</startup_ldf-configuration>
 		</configuration>
 		<configuration id="com.analog.crosscore.ssldd.pinmux.component">
-			<pinmux-configuration processor="ADSP-BF707" version="1.0"/>
+			<pinmux-configuration processor="ADSP-BF707" version="1.0">
+				<peripheral description="SPI Module" name="SPI2">
+					<signal bit="20" mux="0" name="CLK" pin="10" port="B"/>
+					<signal bit="22" mux="0" name="MISO" pin="11" port="B"/>
+					<signal bit="24" mux="0" name="MOSI" pin="12" port="B"/>
+					<signal bit="8" mux="2" name="RDY" pin="4" port="A"/>
+					<signal bit="30" mux="0" name="SEL1" pin="15" port="B"/>
+					<signal bit="16" mux="2" name="SEL2" pin="8" port="B"/>
+					<signal bit="18" mux="2" name="SEL3" pin="9" port="B"/>
+					<signal bit="26" mux="0" name="D2" pin="13" port="B"/>
+					<signal bit="28" mux="0" name="D3" pin="14" port="B"/>
+				</peripheral>
+				<gpio name="Port A">
+					<signal bit="8" name="PA04" pin="4" port="A"/>
+				</gpio>
+				<gpio name="Port B">
+					<signal bit="16" name="PB08" pin="8" port="B"/>
+					<signal bit="18" name="PB09" pin="9" port="B"/>
+					<signal bit="20" name="PB10" pin="10" port="B"/>
+					<signal bit="22" name="PB11" pin="11" port="B"/>
+					<signal bit="24" name="PB12" pin="12" port="B"/>
+					<signal bit="26" name="PB13" pin="13" port="B"/>
+					<signal bit="28" name="PB14" pin="14" port="B"/>
+					<signal bit="30" name="PB15" pin="15" port="B"/>
+				</gpio>
+			</pinmux-configuration>
 		</configuration>
 	</configurations>
 </root>
