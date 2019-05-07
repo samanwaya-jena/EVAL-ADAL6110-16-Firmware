@@ -62,10 +62,8 @@
 								<option id="linker.option.srchdir.2041530358" name="Library search directories (-L):" superClass="linker.option.srchdir" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="${OutDir}/system/startup_ldf"/>
 								</option>
-								<option id="linker.option.libdoj.799527622" superClass="linker.option.libdoj" useByScannerDiscovery="false" valueType="libFiles">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/cld_bf70x_bulk_lib.dlb&quot;"/>
-								</option>
-								<option id="linker.option.misrachecksrcfiles.968804135" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option id="linker.option.libdoj.799527622" name="Additional libraries and object files:" superClass="linker.option.libdoj" useByScannerDiscovery="false" valueType="libFiles"/>
+								<option id="linker.option.misrachecksrcfiles.968804135" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="linker.doj.input.195575357" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.1440173601" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
@@ -75,7 +73,7 @@
 							<tool id="blackfin.toolchain.loader.701791160" name="CrossCore Blackfin Loader" superClass="blackfin.toolchain.loader">
 								<option id="loader.option.proc.2036563242" name="-proc" superClass="loader.option.proc" value=" ADSP-BF707" valueType="string"/>
 								<option id="loader.option.sirevision.833716076" name="-si-revision" superClass="loader.option.sirevision" value=" any" valueType="string"/>
-								<option id="blackfin.loader.option.enumerated.bootmode.1825841785" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
+								<option id="blackfin.loader.option.enumerated.bootmode.1825841785" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
@@ -147,7 +145,7 @@
 								<option id="linker.option.srchdir.1548808892" name="Library search directories (-L):" superClass="linker.option.srchdir" valueType="libPaths">
 									<listOptionValue builtIn="false" value="${OutDir}/system/startup_ldf"/>
 								</option>
-								<option id="linker.option.misrachecksrcfiles.1781799934" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option id="linker.option.misrachecksrcfiles.1781799934" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="linker.doj.input.2081555905" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.1919980168" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
@@ -157,7 +155,7 @@
 							<tool id="blackfin.toolchain.loader.749747879" name="CrossCore Blackfin Loader" superClass="blackfin.toolchain.loader">
 								<option id="loader.option.proc.225331070" name="-proc" superClass="loader.option.proc" value=" ADSP-BF707" valueType="string"/>
 								<option id="loader.option.sirevision.138865242" name="-si-revision" superClass="loader.option.sirevision" value=" any" valueType="string"/>
-								<option id="blackfin.loader.option.enumerated.bootmode.1424063559" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
+								<option id="blackfin.loader.option.enumerated.bootmode.1424063559" name="Boot mode (-b)" superClass="blackfin.loader.option.enumerated.bootmode" value="blackfin.loader.option.boot.enumerated.spimaster" valueType="enumerated"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
