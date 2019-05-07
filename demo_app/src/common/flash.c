@@ -9,7 +9,7 @@ to the terms of the associated Analog Devices License Agreement.
 #include <stdint.h>
 #include "flash.h"
 #include <drivers\spi\adi_spi.h>
-#include "../BF707_Wagner.h"
+#include "../demo_app.h"
 
 #ifndef NULL
 #define NULL   ((void *) 0)

@@ -10,11 +10,11 @@
 #include <cdefBF70x_rom.h>
 #include <ADSP-BF707_device.h>
 
-#include "Guardian_ADI.h"
+#include "Lidar_adal6110_16.h"
 #include "user_bulk.h"
 #include "flash_params.h"
 #include "PWR_Freq_Mode.h"
-#include "BF707_Wagner.h"
+#include "demo_app.h"
 
 #define USE_USB
 

@@ -20,9 +20,9 @@
 #include "cld_bf70x_bulk_lib.h"
 
 #include <ADSP-BF707_device.h>
-#include "BF707_Wagner.h"
+#include "demo_app.h"
 
-#include "Guardian_ADI.h"
+#include "Lidar_adal6110_16.h"
 
 #include "Serial_cmd.h"
 #include "post_debug.h"

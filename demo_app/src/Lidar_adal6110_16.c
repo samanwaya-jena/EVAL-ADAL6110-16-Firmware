@@ -13,8 +13,8 @@
 
 
 #include "flash_params.h"
-#include "BF707_Wagner.h"
-#include "Guardian_ADI.h"
+#include "demo_app.h"
+#include "Lidar_adal6110_16.h"
 #include "user_bulk.h"
 #include "post_debug.h"
 
