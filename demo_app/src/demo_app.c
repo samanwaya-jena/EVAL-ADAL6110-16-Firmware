@@ -31,8 +31,6 @@ void setup_gpio_state();
 int main(int argc, char *argv[])
 {
 
-	//TODO REMOVE ALL REFERENCE TO GUARDIANs?
-	//TODO REVIEWS GUARDIAN.C
 
 	// SET IO DIRECTION
  	setup_gpio_state();

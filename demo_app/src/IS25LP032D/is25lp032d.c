@@ -1,10 +1,4 @@
 /********************************************************************************
-Copyright(c) 2012 Analog Devices, Inc. All Rights Reserved.
-
-This software is proprietary.  By using this software you agree
-to the terms of the associated Analog Devices License Agreement.
-
-This file was created and modified from is25p32d.c
 
 *********************************************************************************/
 

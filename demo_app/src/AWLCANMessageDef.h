@@ -1,3 +1,9 @@
+/*
+  Copyright 2018 Phantom Intelligence Inc.
+*/
+
+//TODO RENAME AWL TO SOMETHING ELSE
+
 #ifndef AWLCANMESSAGEDEF_H
 #define AWLCANMESSAGEDEF_H
 

@@ -58,8 +58,6 @@ typedef struct
 	uint32_t magic;
 	uint32_t numParams;
 	uint32_t params[1]; // N params
-	//TODO REMOVE CRC
-//	uint32_t crc;
 } tFlashParams;
 
 int Flash_LoadConfig(int idx, uint16_t * pParams, int * pNum)

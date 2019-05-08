@@ -3,7 +3,6 @@
 */
 
 #include <math.h>
-
 #include "algo.h"
 
 

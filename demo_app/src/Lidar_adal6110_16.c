@@ -11,7 +11,6 @@
 #include <ADSP-BF707_device.h>
 #include <drivers\spi\adi_spi.h>
 
-
 #include "flash_params.h"
 #include "demo_app.h"
 #include "Lidar_adal6110_16.h"
@@ -408,7 +407,7 @@ void ResetADI(void) {
 	uint16_t reg = 0;
 	uint32_t i = 600000; // 1.5ms @ 400mhz
 
-	//TODO READ Control0Address
+	//READ Control0Address
 	ReadParamFromSPI(Control0Address, &reg);
 
 	//CLEAR BIT 0
