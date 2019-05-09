@@ -60,17 +60,17 @@ void threshold2(detection_type* detPtr, float* buffer, int ch)
 
 		threshold = (intervalPercentage/100)*(abs(minVal - noisemean));
 
-		for(i = 0; i < GUARDIAN_SAMPLING_LENGTH; i++)
+		for(i = 0; i < DEVICE_SAMPLING_LENGTH; i++)
 		{
 			if(i <= 19)
 			{
-				if(*sigPtr < (noisemean - threshold) && *sigPtr <= -3000  && iNbDetected < GUARDIAN_NUM_DET_PER_CH) {
+				if(*sigPtr < (noisemean - threshold) && *sigPtr <= -3000  && iNbDetected < DEVICE_NUM_DET_PER_CH) {
 					detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
 					detPtr[iNbDetected].intensity = sigPtr[i];
 					++iNbDetected;
 				}
 			} else {
-				if(*sigPtr < (noisemean - threshold)  && iNbDetected < GUARDIAN_NUM_DET_PER_CH) {
+				if(*sigPtr < (noisemean - threshold)  && iNbDetected < DEVICE_NUM_DET_PER_CH) {
 					detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
 					detPtr[iNbDetected].intensity = sigPtr[i];
 					++iNbDetected;
@@ -80,7 +80,7 @@ void threshold2(detection_type* detPtr, float* buffer, int ch)
 		}
 	}
 
-	for (; iNbDetected < GUARDIAN_NUM_DET_PER_CH; iNbDetected++) {
+	for (; iNbDetected < DEVICE_NUM_DET_PER_CH; iNbDetected++) {
 		detPtr[iNbDetected].distance = 0.00;
 		detPtr[iNbDetected].intensity = 0.00;
 	}
@@ -110,7 +110,7 @@ void threshold3(detection_type* detPtr, float* buffer, int ch)
 
 	}
 
-	for (; iNbDetected < GUARDIAN_NUM_DET_PER_CH; iNbDetected++) {
+	for (; iNbDetected < DEVICE_NUM_DET_PER_CH; iNbDetected++) {
 		detPtr[iNbDetected].distance = 0.00;
 		detPtr[iNbDetected].intensity = 0.00;
 	}

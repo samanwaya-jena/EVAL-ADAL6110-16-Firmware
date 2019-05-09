@@ -973,14 +973,14 @@ int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data)
 
 #ifdef USE_ALGO
 
-static float tmpAcqFloat[GUARDIAN_SAMPLING_LENGTH];
+static float tmpAcqFloat[DEVICE_SAMPLING_LENGTH];
 
 int DoAlgo(int16_t * pAcqFifo)
 {
 	int ch;
-    detection_type detections[GUARDIAN_NUM_CHANNEL * GUARDIAN_NUM_DET_PER_CH];
+    detection_type detections[DEVICE_NUM_CHANNEL * DEVICE_NUM_DET_PER_CH];
 
-    for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
+    for(ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
     {
         int i;
 
@@ -989,10 +989,10 @@ int DoAlgo(int16_t * pAcqFifo)
 
         int chIdx = aChIdxADI[chIdxArray];
 
-        detection_type* pDetections = &detections[ch * GUARDIAN_NUM_DET_PER_CH];
+        detection_type* pDetections = &detections[ch * DEVICE_NUM_DET_PER_CH];
 
-        for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
-            tmpAcqFloat[i] = (float) pAcqFifo[chIdx * GUARDIAN_SAMPLING_LENGTH + i];
+        for(i=0; i<DEVICE_SAMPLING_LENGTH; ++i)
+            tmpAcqFloat[i] = (float) pAcqFifo[chIdx * DEVICE_SAMPLING_LENGTH + i];
 
         //threshold2(pDetections, tmpAcqFloat, ch);
         threshold3(pDetections, tmpAcqFloat, ch);
@@ -1186,7 +1186,7 @@ int iUSBnumEmpty = 0;
 // Fake data
 //
 
-const int16_t fakeData[2][GUARDIAN_SAMPLING_LENGTH + 32] =
+const int16_t fakeData[2][DEVICE_SAMPLING_LENGTH + 32] =
 {
 {
 	-153,
@@ -1483,10 +1483,10 @@ void GetADIData_Start(uint16_t *pBank, uint16_t * pData)
 
 		*pBank = nextBank + 1;
 
-		for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ch++)
+		for(ch=0; ch<DEVICE_NUM_CHANNEL; ch++)
 		{
 			int offset = (iFakeData_offsetPerChannel) ? offsetPerCycles + ch : offsetPerCycles;
-			memcpy(pData + ch * 100, &fakeData[nextBank][offset], GUARDIAN_SAMPLING_LENGTH * sizeof(int16_t));
+			memcpy(pData + ch * 100, &fakeData[nextBank][offset], DEVICE_SAMPLING_LENGTH * sizeof(int16_t));
 		}
 
 		nextBank = (nextBank + 1) & 0x1;

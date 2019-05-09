@@ -26,7 +26,7 @@
 
 #include "Serial_cmd.h"
 #include "post_debug.h"
-#include "AWLCANMessageDef.h"
+#include "PICANMessageDef.h"
 
 
 #define FIRMWARE_MAJOR_REV 0
@@ -166,7 +166,7 @@ int user_CANFifoPushCompletedFrame(void)
 {
 	AWLCANMessage canMsg;
 
-	canMsg.id = AWLCANMSG_ID_COMPLETEDFRAME;
+	canMsg.id = PICANMSG_ID_COMPLETEDFRAME;
 
 	return CANFifoPushMsg(&canMsg);
 }
@@ -176,7 +176,7 @@ int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel, uint16_t snr)
 	int ret;
 	AWLCANMessage canMsg;
 
-	canMsg.id = AWLCANMSG_ID_OBSTACLETRACK;
+	canMsg.id = PICANMSG_ID_OBSTACLETRACK;
 	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = ch + 1;      //trackID
 	canMsg.data[1] = 0;           //...
@@ -192,7 +192,7 @@ int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel, uint16_t snr)
 	if (ret)
 		return ret;
 
-	canMsg.id = AWLCANMSG_ID_OBSTACLEVELOCITY;
+	canMsg.id = PICANMSG_ID_OBSTACLEVELOCITY;
 	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = ch + 1;      //trackID
 	canMsg.data[1] = 0;           //...
@@ -210,14 +210,14 @@ int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
 {
 	AWLCANMessage canMsg;
 
-	canMsg.id = AWLCANMSG_ID_COMMANDMESSAGE;
+	canMsg.id = PICANMSG_ID_COMMANDMESSAGE;
 	canMsg.len = AWLCANMSG_LEN;
-	canMsg.data[0] = AWLCANMSG_ID_CMD_RESPONSE_PARAMETER;
+	canMsg.data[0] = PICANMSG_ID_CMD_RESPONSE_PARAMETER;
 
 	if (registerAddress & RW_INTERNAL_MASK)
-		canMsg.data[1] = AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER;
+		canMsg.data[1] = PICANMSG_ID_CMD_PARAM_ADC_REGISTER;
 	else
-		canMsg.data[1] = AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER;
+		canMsg.data[1] = PICANMSG_ID_CMD_PARAM_AWL_REGISTER;
 
 	registerAddress &= ~RW_INTERNAL_MASK;
 
@@ -235,7 +235,7 @@ int user_CANFifoPushSensorStatus(void)
 {
 	AWLCANMessage canMsg;
 
-	canMsg.id = AWLCANMSG_ID_SENSORSTATUS;
+	canMsg.id = PICANMSG_ID_SENSORSTATUS;
 	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = 234 >> 0;
 	canMsg.data[1] = 234 >> 8;
@@ -253,7 +253,7 @@ int user_CANFifoPushSensorBoot(void)
 {
 	AWLCANMessage canMsg;
 
-	canMsg.id = AWLCANMSG_ID_SENSORBOOT;
+	canMsg.id = PICANMSG_ID_SENSORBOOT;
 	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = FIRMWARE_MAJOR_REV;
 	canMsg.data[1] = FIRMWARE_MINOR_REV;
@@ -306,7 +306,7 @@ static int ProcessLidarQueryCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage
 	else if (_iCANFifoTail > _iCANFifoHead)
 		numCANMsg = (CANFIFO_SIZE - _iCANFifoTail) + _iCANFifoHead;
 
-	pCanResp->id = AWLCANMSG_ID_LIDARQUERY;
+	pCanResp->id = PICANMSG_ID_LIDARQUERY;
 
 	uint32_t * pNbrDataCycles = (uint32_t *) &pCanResp->data[0];
 	*pNbrDataCycles = numPendingTemp;
@@ -374,29 +374,29 @@ static int ProcessCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanRes
 
 	switch (pCanReq->id)
 	{
-	case AWLCANMSG_ID_LIDARQUERY:
+	case PICANMSG_ID_LIDARQUERY:
 		ProcessLidarQueryCanCommandMsg(pCanReq, pCanResp);
 		break;
-	case AWLCANMSG_ID_COMMANDMESSAGE:
-		if (pCanReq->data[0] == AWLCANMSG_ID_CMD_SET_PARAMETER &&
-			(pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER ||
-			 pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER))
+	case PICANMSG_ID_COMMANDMESSAGE:
+		if (pCanReq->data[0] == PICANMSG_ID_CMD_SET_PARAMETER &&
+			(pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_AWL_REGISTER ||
+			 pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER))
 		{
 			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
 			uint16_t data = * (uint16_t *) &pCanReq->data[4];
 
-			if (pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER)
+			if (pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER)
 				registerAddress |= RW_INTERNAL_MASK;
 
 			Lidar_WriteFifoPush(registerAddress, data);
 		}
-		else if (pCanReq->data[0] == AWLCANMSG_ID_CMD_QUERY_PARAMETER &&
-				 (pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER ||
-				  pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER))
+		else if (pCanReq->data[0] == PICANMSG_ID_CMD_QUERY_PARAMETER &&
+				 (pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_AWL_REGISTER ||
+				  pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER))
 		{
 			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
 
-			if (pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER)
+			if (pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER)
 				registerAddress |= RW_INTERNAL_MASK;
 
 			Lidar_ReadFifoPush(registerAddress);
@@ -589,9 +589,9 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 
 //    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CAN Msg %d: ", pCanMsg->id);
 
-    if (pCanMsg->id == AWLCANMSG_ID_GETDATA)
+    if (pCanMsg->id == PICANMSG_ID_GETDATA)
     	return ProcessGetData(pCanMsg);
-    else if (pCanMsg->id == AWLCANMSG_ID_POLLMESSAGES)
+    else if (pCanMsg->id == PICANMSG_ID_POLLMESSAGES)
     	PollCanCommandMsg(pCanMsg, canResp, &num);
     else
     	ProcessCanCommandMsg(pCanMsg, canResp);
