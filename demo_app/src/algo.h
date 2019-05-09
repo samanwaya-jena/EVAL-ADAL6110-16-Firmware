@@ -40,8 +40,8 @@ typedef struct{
 } detection_frame_type;
 
 
-void threshold2(detection_type* _detPtr, float* _buffer, int _ch);
-void threshold3(detection_type* _detPtr, float* _buffer, int _ch);
+void threshold2(detection_type* detPtr, float* buffer, int ch);
+void threshold3(detection_type* detPtr, float* buffer, int ch);
 
 
 #endif //_ALGO_H_

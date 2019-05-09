@@ -7,41 +7,41 @@
 
 
 
-static float minvalue(float* _data, int _NbData) {
-	float min = _data[0];
-	for (int i = 0; i < _NbData; i++) {
-		if(_data[i] < min){
-			min = _data[i];
+static float minvalue(float* data, int NbData) {
+	float min = data[0];
+	for (int i = 0; i < NbData; i++) {
+		if(data[i] < min){
+			min = data[i];
 		}
 	}
 	return min;
 }
 
-static int minpos(float* _data, int _NbData) {
-	float min = _data[0];
+static int minpos(float* data, int NbData) {
+	float min = data[0];
 	int pos = 0;
 
-	for (int i = 0; i < _NbData; i++) {
-		if(_data[i] < min){
-			min = _data[i];
+	for (int i = 0; i < NbData; i++) {
+		if(data[i] < min){
+			min = data[i];
 			pos = i;
 		}
 	}
 	return pos;
 }
 
-static float findmean(float* _data, int _NbData) {
+static float findmean(float* data, int NbData) {
 	int i;
 	float fMEAN = 0;
 
-	for (i = 0; i < _NbData; i++) {
-		fMEAN += _data[i];
+	for (i = 0; i < NbData; i++) {
+		fMEAN += data[i];
 	}
-	fMEAN = fMEAN / _NbData;
+	fMEAN = fMEAN / NbData;
 	return (fMEAN);
 }
 
-void threshold2(detection_type* _detPtr, float* _buffer, int _ch)
+void threshold2(detection_type* detPtr, float* buffer, int ch)
 {
 	// Threshold
 	float * sigPtr;
@@ -51,7 +51,7 @@ void threshold2(detection_type* _detPtr, float* _buffer, int _ch)
 	int iNbDetected = 0;
 	int i;
 
-	sigPtr = _buffer;
+	sigPtr = buffer;
 
 	noisemean = findmean(sigPtr, 100); // Find noise mean (DC value)
 	minVal = minvalue(sigPtr,100);
@@ -65,14 +65,14 @@ void threshold2(detection_type* _detPtr, float* _buffer, int _ch)
 			if(i <= 19)
 			{
 				if(*sigPtr < (noisemean - threshold) && *sigPtr <= -3000  && iNbDetected < GUARDIAN_NUM_DET_PER_CH) {
-					_detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
-					_detPtr[iNbDetected].intensity = sigPtr[i];
+					detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
+					detPtr[iNbDetected].intensity = sigPtr[i];
 					++iNbDetected;
 				}
 			} else {
 				if(*sigPtr < (noisemean - threshold)  && iNbDetected < GUARDIAN_NUM_DET_PER_CH) {
-					_detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
-					_detPtr[iNbDetected].intensity = sigPtr[i];
+					detPtr[iNbDetected].distance = i*dx - DISTANCE_OFFSET;
+					detPtr[iNbDetected].intensity = sigPtr[i];
 					++iNbDetected;
 				}
 			}
@@ -81,12 +81,12 @@ void threshold2(detection_type* _detPtr, float* _buffer, int _ch)
 	}
 
 	for (; iNbDetected < GUARDIAN_NUM_DET_PER_CH; iNbDetected++) {
-		_detPtr[iNbDetected].distance = 0.00;
-		_detPtr[iNbDetected].intensity = 0.00;
+		detPtr[iNbDetected].distance = 0.00;
+		detPtr[iNbDetected].intensity = 0.00;
 	}
 }
 
-void threshold3(detection_type* _detPtr, float* _buffer, int _ch)
+void threshold3(detection_type* detPtr, float* buffer, int ch)
 {
 	// Threshold
 	float * sigPtr;
@@ -95,7 +95,7 @@ void threshold3(detection_type* _detPtr, float* _buffer, int _ch)
 	int iNbDetected = 0;
 	int i, minPos;
 
-	sigPtr = _buffer;
+	sigPtr = buffer;
 
 	noisemean = findmean(sigPtr, 100); // Find signal mean
 	minVal = minvalue(sigPtr,100); // Find signal min value
@@ -104,14 +104,14 @@ void threshold3(detection_type* _detPtr, float* _buffer, int _ch)
 
 	if(abs(minVal - noisemean) > minimum_Viable_Value) {
 
-		_detPtr[iNbDetected].distance = minPos*dx - DISTANCE_OFFSET;
-		_detPtr[iNbDetected].intensity = minVal;
+		detPtr[iNbDetected].distance = minPos*dx - DISTANCE_OFFSET;
+		detPtr[iNbDetected].intensity = minVal;
 		++iNbDetected;
 
 	}
 
 	for (; iNbDetected < GUARDIAN_NUM_DET_PER_CH; iNbDetected++) {
-		_detPtr[iNbDetected].distance = 0.00;
-		_detPtr[iNbDetected].intensity = 0.00;
+		detPtr[iNbDetected].distance = 0.00;
+		detPtr[iNbDetected].intensity = 0.00;
 	}
 }
