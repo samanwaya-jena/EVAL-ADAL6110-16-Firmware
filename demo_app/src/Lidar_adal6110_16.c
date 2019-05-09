@@ -2,41 +2,35 @@
   Copyright 2018 Phantom Intelligence Inc.
 */
 
-#define USE_DMA
+//#define USE_DMA
 #define USE_ALGO
-//#define USE_ACCUMULATION
-
 
 #include <stdint.h>
 #include <string.h>
 
+#include <ADSP-BF707_device.h>
 #include <drivers\spi\adi_spi.h>
 
-#include <ADSP-BF707_device.h>
-
+#include "flash_params.h"
+#include "demo_app.h"
+#include "Lidar_adal6110_16.h"
 #include "user_bulk.h"
-
 #include "post_debug.h"
 
 #ifdef USE_ALGO
 #include "algo.h"
 #endif //USE_ALGO
 
-#include "flash_params.h"
 
-#include "BF707_Wagner.h"
-
-#include "Guardian_ADI.h"
 
 
 /**
  * Private constant and variables
- *
  */
 
 
 
-uint16_t Lidar_InitValues[][2] =
+uint16_t Lidar_POR_Values[][2] =
 {
 		{ 9, 0x7A4F },
 		{ TriggerOutAddress, 0x1811 },
@@ -55,6 +49,162 @@ uint16_t Lidar_InitValues[][2] =
 		{ 131, 0x0A40 },
 		{132, 0xC201}
 };
+
+uint16_t Lidar_InitValues[][2] =
+{
+    
+    {Control0Address , 0x1F80},
+    {Control1Address , 0x8040},
+    //{DataControlAddress , },
+    {DelayBetweenFlashesAddress , 0x4000},
+    {ChannelEnableAddress , 0xFFFF},
+    {DataAcqMode , 0x0001},
+    {TriggerOutAddress , 0x1021},
+    {CH0ControlReg0Address , 0x2E1F},
+    {CH0ControlReg1Address , 0x0180},
+    {CH0ControlReg2Address , 0x00FF},
+    {CH1ControlReg0Address , 0x2E1F},
+    {CH1ControlReg1Address , 0x0180},
+    {CH1ControlReg2Address , 0x00FF},
+    {CH2ControlReg0Address , 0x2E1F},
+    {CH2ControlReg1Address , 0x0180},
+    {CH2ControlReg2Address , 0x00FF},
+    {CH3ControlReg0Address , 0x2E1F},
+    {CH3ControlReg1Address , 0x0180},
+    {CH3ControlReg2Address , 0x00FF},
+    {CH4ControlReg0Address , 0x2E1F},
+    {CH4ControlReg1Address , 0x0180},
+    {CH4ControlReg2Address , 0x00FF},
+    {CH5ControlReg0Address , 0x2E1F},
+    {CH5ControlReg1Address , 0x0180},
+    {CH5ControlReg2Address , 0x00FF},
+    {CH6ControlReg0Address , 0x2E1F},
+    {CH6ControlReg1Address , 0x0180},
+    {CH6ControlReg2Address , 0x00FF},
+    {CH7ControlReg0Address , 0x2E1F},
+    {CH7ControlReg1Address , 0x0180},
+    {CH7ControlReg2Address , 0x00FF},
+    {CH8ControlReg0Address , 0x2E1F},
+    {CH8ControlReg1Address , 0x0180},
+    {CH8ControlReg2Address , 0x00FF},
+    {CH9ControlReg0Address , 0x2E1F},
+    {CH9ControlReg1Address , 0x0180},
+    {CH9ControlReg2Address , 0x00FF},
+    {CH10ControlReg0Address , 0x2E1F},
+    {CH10ControlReg1Address , 0x0180},
+    {CH10ControlReg2Address , 0x00FF},
+    {CH11ControlReg0Address , 0x2E1F},
+    {CH11ControlReg1Address , 0x0180},
+    {CH11ControlReg2Address , 0x00FF},
+    {CH12ControlReg0Address , 0x2E1F},
+    {CH12ControlReg1Address , 0x0180},
+    {CH12ControlReg2Address , 0x00FF},
+    {CH13ControlReg0Address , 0x2E1F},
+    {CH13ControlReg1Address , 0x0180},
+    {CH13ControlReg2Address , 0x00FF},
+    {CH14ControlReg0Address , 0x2E1F},
+    {CH14ControlReg1Address , 0x0180},
+    {CH14ControlReg2Address , 0x00FF},
+    {CH15ControlReg0Address , 0x2E1F},
+    {CH15ControlReg1Address , 0x0180},
+    {CH15ControlReg2Address , 0x00FF},
+    //{GPIOCFG , },
+    //{SPICFG , },
+    //{THSMAX , },
+    //{THSMIN , },
+    {AGCDCBCTRL , 0x0104},
+    {AGCEN , 0x0000},
+    {DCEN , 0xFFFF},
+    {AGCDCBPID0, 0x0032},
+    {AGCDCBPID1 ,0x03e8},
+    {FRAMEDELAY , 0x8000},
+    //{STARTADDRPOINTER , },
+    //{SRAM_READY , },
+    {LFSRSEEDL , 0x9190},
+    {LFSRSEEDH , 0x0001},
+    //{SRAM_DATA , }*/
+	{Control0Address , 0x1F81},
+	{Control0Address , 0x1F82},
+
+};
+
+uint16_t Lidar_DefaultValues[][2] =
+{
+    
+    {Control0Address , 0x1F80},
+    {Control1Address , 0x8040},
+    //{DataControlAddress , },
+    {DelayBetweenFlashesAddress , 0x4000},
+    {ChannelEnableAddress , 0xFFFF},
+    {DataAcqMode , 0x0001},
+    {TriggerOutAddress , 0x1021},
+    {CH0ControlReg0Address , 0x3C3F},
+    {CH0ControlReg1Address , 0x0B80},
+    {CH0ControlReg2Address , 0x00FF},
+    {CH1ControlReg0Address , 0x2E1F},
+    {CH1ControlReg1Address , 0x0180},
+    {CH1ControlReg2Address , 0x00FF},
+    {CH2ControlReg0Address , 0x2E1F},
+    {CH2ControlReg1Address , 0x0180},
+    {CH2ControlReg2Address , 0x00FF},
+    {CH3ControlReg0Address , 0x2E1F},
+    {CH3ControlReg1Address , 0x0180},
+    {CH3ControlReg2Address , 0x00FF},
+    {CH4ControlReg0Address , 0x2E1F},
+    {CH4ControlReg1Address , 0x0180},
+    {CH4ControlReg2Address , 0x00FF},
+    {CH5ControlReg0Address , 0x2E1F},
+    {CH5ControlReg1Address , 0x0180},
+    {CH5ControlReg2Address , 0x00FF},
+    {CH6ControlReg0Address , 0x2E1F},
+    {CH6ControlReg1Address , 0x0180},
+    {CH6ControlReg2Address , 0x00FF},
+    {CH7ControlReg0Address , 0x2E1F},
+    {CH7ControlReg1Address , 0x0180},
+    {CH7ControlReg2Address , 0x00FF},
+    {CH8ControlReg0Address , 0x2E1F},
+    {CH8ControlReg1Address , 0x0180},
+    {CH8ControlReg2Address , 0x00FF},
+    {CH9ControlReg0Address , 0x2E1F},
+    {CH9ControlReg1Address , 0x0180},
+    {CH9ControlReg2Address , 0x00FF},
+    {CH10ControlReg0Address , 0x2E1F},
+    {CH10ControlReg1Address , 0x0180},
+    {CH10ControlReg2Address , 0x00FF},
+    {CH11ControlReg0Address , 0x2E1F},
+    {CH11ControlReg1Address , 0x0180},
+    {CH11ControlReg2Address , 0x00FF},
+    {CH12ControlReg0Address , 0x2E1F},
+    {CH12ControlReg1Address , 0x0180},
+    {CH12ControlReg2Address , 0x00FF},
+    {CH13ControlReg0Address , 0x2E1F},
+    {CH13ControlReg1Address , 0x0180},
+    {CH13ControlReg2Address , 0x00FF},
+    {CH14ControlReg0Address , 0x2E1F},
+    {CH14ControlReg1Address , 0x0180},
+    {CH14ControlReg2Address , 0x00FF},
+    {CH15ControlReg0Address , 0x2E1F},
+    {CH15ControlReg1Address , 0x0180},
+    {CH15ControlReg2Address , 0x00FF},
+    //{GPIOCFG , },
+    //{SPICFG , },
+    //{THSMAX , },
+    //{THSMIN , },
+    {AGCDCBCTRL , 0x0104},
+    {AGCEN , 0x0000},
+    {DCEN , 0xFFFF},
+    //{AGCDCBPID0, },
+    //{AGCDCBPID1 , },
+    {FRAMEDELAY , 0x8000},
+    //{STARTADDRPOINTER , },
+    //{SRAM_READY , },
+    {LFSRSEEDL , 0x9190},
+    {LFSRSEEDH , 0x0001},
+    //{SRAM_DATA , }*/
+	{Control0Address , 0x1F81},
+	{Control0Address , 0x1F82}
+};
+
 
 int aChIdxADI[16] = {
   0,
@@ -94,11 +244,6 @@ int aChIdxArray[16] = {
   15
 };
 
-uint16_t Int_InitValues[][2] =
-{
-  { 1, 0x0 },
-  { 2, 0x0 }
-};
 
 #ifdef USE_DMA
 uint8_t spiMem[ADI_SPI_DMA_MEMORY_SIZE];
@@ -108,14 +253,6 @@ uint8_t spiMem[ADI_SPI_INT_MEMORY_SIZE];
 
 ADI_SPI_HANDLE hSpi = NULL;
 
-
-#ifdef USE_ACCUMULATION
-bool bAcqAccUpdate = 1;
-uint16_t iAcqAccMaxNew = 16;
-
-uint16_t iAcqAccMax = 0;
-uint16_t iAcqAccShift = 0;
-#endif //USE_ACCUMULATION
 
 /*
  * Private function prototypes
@@ -194,11 +331,6 @@ void ReadDataFromSPI(uint16_t * pData, int num)
 	Xcv0DMA.pReceiver = (uint8_t*) pData;
 	Xcv0DMA.ReceiverBytes = num * sizeof(uint16_t);
 
-	/* Disable DMA */
-//	result = adi_spi_EnableDmaMode(hSpi, true);
-
-//	result = adi_spi_SetDmaTransferSize(hSpi, ADI_SPI_DMA_TRANSFER_16BIT);
-
 	result = adi_spi_SubmitBuffer(hSpi, &Xcv0DMA);
 
 	bool bAvailSpi = false;
@@ -270,20 +402,30 @@ bool ReadDataFromSPI_Check(void)
 void ResetADI(void) {
 
 	// TODO: Drive the reset pin when available
-	//We dont have reset ctrl need to wait a certain delay
-	int i = 1200000; // 1.5ms @ 200mhz
+	//We dont have reset ctrl. Need to wait a certain delay
+	//Use software reset for now
+	uint16_t reg = 0;
+	uint32_t i = 600000; // 1.5ms @ 400mhz
+
+	//READ Control0Address
+	ReadParamFromSPI(Control0Address, &reg);
+
+	//CLEAR BIT 0
+	reg &= 0xFFFE;
+	WriteParamToSPI(Control0Address, reg);
 
 	while(i--){
 	}
 
-	i = 1200000;
+	//SET Bit 0
+	reg |= 0x0001;
+	WriteParamToSPI(Control0Address, reg);
+	i = 600000;
 
 	while(i--){
 	}
 
-	//Lidar_SPITriggerMode();
 
-	//ClearSram();
 }
 
 /**
@@ -300,7 +442,7 @@ void ResetADI(void) {
 void Lidar_InitADI(void) {
     int i;
     uint16_t dataToBeRead = 0;
-    uint16_t waitTimer = 40000; //wait 200us @ 200mhz
+    uint32_t waitTimer = 80000; //wait 200us @ 400mhz
 
 
 	if (hSpi == NULL)
@@ -369,59 +511,31 @@ void Lidar_InitADI(void) {
 
 	ResetADI();
 
-	int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
+	int num = sizeof(Lidar_POR_Values) / sizeof(Lidar_POR_Values[0]);
 	int numParams = num;
-
-
-	Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams);
-	//numParams = 0;
-	if (numParams)
-		num = numParams;
 
 	for (i=0; i<num; i++)
 	{
-		WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
-		ReadParamFromSPI(Lidar_InitValues[i][0], &dataToBeRead);
+		WriteParamToSPI(Lidar_POR_Values[i][0], Lidar_POR_Values[i][1]);
+		//ReadParamFromSPI(Lidar_POR_Values[i][0], &dataToBeRead);
 	}
 
-	numParams = 2;
-
-	//Flash_LoadConfig(1, &Int_InitValues[0][0], &numParams);
-
-	for (i = 0; i < numParams; i++)
-	{
-		switch (Int_InitValues[i][0])
-		{
-#ifdef USE_ACCUMULATION
-			case 1:
-				iAcqAccMax = Int_InitValues[i][1];
-				break;
-			case 2:
-				iAcqAccShift = Int_InitValues[i][1];
-				break;
-#endif //USE_ACCUMULATION
-			default:
-				break;
-		}
-	}
-
-
-    WriteParamToSPI(CH0ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH1ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH2ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH3ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH4ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH5ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH6ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH7ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH8ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH9ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH10ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH11ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH12ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH13ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH14ControlReg0Address, 0x001F);
-  	WriteParamToSPI(CH15ControlReg0Address, 0x001F);
+	WriteParamToSPI(CH0ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH1ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH2ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH3ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH4ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH5ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH6ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH7ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH8ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH9ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH10ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH11ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH12ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH13ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH14ControlReg0Address, 0x003F);
+	WriteParamToSPI(CH15ControlReg0Address, 0x003F);
 
   	dataToBeRead = 0;
 
@@ -433,46 +547,47 @@ void Lidar_InitADI(void) {
   		dataToBeRead = dataToBeRead & 8;
   	}
 
-  	WriteParamToSPI(LFSRSEEDL, 0x9190);
-  	WriteParamToSPI(LFSRSEEDH, 0x0001);
-  	WriteParamToSPI(Control0Address, 0x1F80); // 16 accum // 64 accum = 0x1F80 (ne pas dÃ©passer)
-  	WriteParamToSPI(Control1Address, 0x8040);
-  	WriteParamToSPI(TriggerOutAddress, 0x1021);//0x1021
-  	WriteParamToSPI(DataAcqMode, 0x0001);
-  	WriteParamToSPI(DelayBetweenFlashesAddress, 0x4000);
-  	WriteParamToSPI(CH0ControlReg0Address, 0x2E1F); // 0x5F9F
-  	WriteParamToSPI(CH1ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH2ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH3ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH4ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH5ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH6ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH7ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH8ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH9ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH10ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH11ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH12ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH13ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH14ControlReg0Address, 0x2E1F);
-  	WriteParamToSPI(CH15ControlReg0Address, 0x2E1F);
+	WriteParamToSPI(LFSRSEEDL, 0x9190);
+	WriteParamToSPI(LFSRSEEDH, 0x0001);
+	WriteParamToSPI(Control0Address, 0x1F80); // 8 accum = 0x0400, 16 accum = 0x0800 // 64 accum = 0x1F80 (ne pas dépasser)
+	WriteParamToSPI(Control1Address, 0x8040);
+	WriteParamToSPI(TriggerOutAddress, 0x1021); //2ns: 0x8021, 4ns: 0x1021
+	WriteParamToSPI(DataAcqMode, 0x0001); //2ns: 0x0000,  4ns :0x0001
+	WriteParamToSPI(DelayBetweenFlashesAddress, 0x4000); //0x4000 (1 frame period = 13.08 ms, 76.45 Hz MAX, measured with scope and FRAMEDELAY to minimum)
 
-  	WriteParamToSPI(CH0ControlReg1Address, 0x0180); // 0x01C0
-  	WriteParamToSPI(CH1ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH2ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH3ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH4ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH5ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH6ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH7ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH8ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH9ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH10ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH11ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH12ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH13ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH14ControlReg1Address, 0x0180);
-  	WriteParamToSPI(CH15ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH0ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH1ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH2ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH3ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH4ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH5ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH6ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH7ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH8ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH9ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH10ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH11ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH12ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH13ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH14ControlReg0Address, 0x3C3F);
+	WriteParamToSPI(CH15ControlReg0Address, 0x3C3F);
+
+	WriteParamToSPI(CH0ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH1ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH2ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH3ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH4ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH5ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH6ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH7ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH8ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH9ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH10ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH11ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH12ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH13ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH14ControlReg1Address, 0x0180);
+	WriteParamToSPI(CH15ControlReg1Address, 0x0180);
 
   	WriteParamToSPI(CH0ControlReg2Address, 0x00FF);
   	WriteParamToSPI(CH1ControlReg2Address, 0x00FF);
@@ -491,23 +606,42 @@ void Lidar_InitADI(void) {
   	WriteParamToSPI(CH14ControlReg2Address, 0x00FF);
   	WriteParamToSPI(CH15ControlReg2Address, 0x00FF);
 
-  	WriteParamToSPI(FRAMEDELAY, 0x0000); // Slow it down to max (3.86 ms gordon frame period with 64 accumulation)
-  	WriteParamToSPI(AGCDCBCTRL, 0x0104); // Default: 0x0104, Enable AGC to change anything: 0x0115
+  	WriteParamToSPI(FRAMEDELAY, 0x8000); // Slow it down to max (3.86 ms gordon frame period with 64 accumulation)
+  	WriteParamToSPI(AGCDCBCTRL, 0x0014); // Default: 0x0104, Enable AGC to change anything: 0x0115
 
   	WriteParamToSPI(185, 0);
   	WriteParamToSPI(77, 0xC23F);
   	WriteParamToSPI(86, 0x823F);
   	WriteParamToSPI(ChannelEnableAddress, 0xFFFF);
-  	WriteParamToSPI(AGCEN, 0x3FFF);
+  	WriteParamToSPI(AGCEN, 0x0000);
   	WriteParamToSPI(DCEN, 0xFFFF);
   	WriteParamToSPI(185, 1);
 
   	while(waitTimer--){ // Wait 200 us
   	}
 
+  	WriteParamToSPI(Control0Address, 0x1F81); // Set system ready to 1
   	WriteParamToSPI(Control0Address, 0x1F82); // Set system ready to 1
 
-  	//TODO Reenable user_can_fifo_push
+
+  	//Apply last used config from flash
+  	//num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
+	//numParams = num;
+
+//	if(Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams))
+//	{
+//		numParams = 0;
+//		num= 0;
+//	}
+//	else
+//	{
+//		num = numParams;
+//		for (i=0; i<num; i++)
+//		{
+//			WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
+//		}
+//	}
+
 	user_CANFifoPushSensorStatus();
     user_CANFifoPushSensorBoot();
 
@@ -527,23 +661,19 @@ int SaveConfigToFlash(int idx)
 
 		return Flash_SaveConfig(idx, &Lidar_InitValues[0][0], num);
 	}
-	else
+
+}
+
+void LoadDefaultConfig(int idx)
+{
+	if (idx == 0)
 	{
-		int num;
-
-#ifdef USE_ACCUMULATION
-		num = 2;
-		Int_InitValues[0][0] = 1;
-		Int_InitValues[0][1] = iAcqAccMax;
-		Int_InitValues[1][0] = 2;
-		Int_InitValues[1][1] = iAcqAccShift;
-#else //USE_ACCUMULATION
-		num = 1;
-		Int_InitValues[0][0] = 0;
-		Int_InitValues[0][1] = 0;
-#endif //USE_ACCUMULATION
-
-		return Flash_SaveConfig(idx, &Int_InitValues[0][0], num);
+		int num = sizeof(Lidar_DefaultValues) / sizeof(Lidar_DefaultValues[0]);
+		int i;
+		for (i = 0; i < num; i++)
+		{
+			WriteParamToSPI(Lidar_DefaultValues[i][0], Lidar_DefaultValues[i][1]);
+		}
 	}
 }
 
@@ -596,7 +726,7 @@ void Lidar_GetADIData(uint16_t *pBank, uint16_t * pData) {
 	uint16_t bankStatus = 0;
 
 	*pBank = 0;
-	ReadParamFromSPI(BankStatusAddress, &bankStatus);
+	ReadParamFromSPI(SRAM_READY, &bankStatus);
 	if (bankStatus)
 	{
 		//1. Poll the Bank_Status register (Address 0xF6) until
@@ -640,8 +770,8 @@ void GetADIData_Start(uint16_t *pBank, uint16_t * pData) {
 	uint16_t bankStatus = 0;
 
 	*pBank = 0;
-	//TODO DEBUG
-	ReadParamFromSPI(BankStatusAddress, &bankStatus);
+
+	ReadParamFromSPI(SRAM_READY, &bankStatus);
 	if (bankStatus)
 	{
 		//1. Poll the Bank_Status register (Address 0xF6) until
@@ -841,120 +971,16 @@ int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data)
 }
 
 
-
-#ifdef USE_ACCUMULATION
-
-uint16_t iAcqAccNum = 0;
-int32_t AcqFifoAcc[FRAME_NUM_PTS];
-
-uint16_t GetNextPowerOfTwo(uint16_t v)
-{
-  v--;
-  v |= v >> 1;
-  v |= v >> 2;
-  v |= v >> 4;
-  v |= v >> 8;
-  //v |= v >> 16;
-  v++;
-
-  return v;
-}
-
-bool IsPowerOfTwo(uint16_t x)
-{
-  return (x != 0) && ((x & (x - 1)) == 0);
-}
-
-int GetMSBit(uint16_t n)
-{
-  int pos = 0;
-  while (n)
-  {
-    n = n >> 1;
-    pos++;
-  }
-  return pos;
-}
-
-
-bool DoAccumulation(int16_t * pAcqFifo)
-{
-	bool bAccDone = false;
-
-	if (bAcqAccUpdate)
-	{
-    if (iAcqAccMaxNew == 0)
-      iAcqAccMaxNew = 1;
-
-    if (!IsPowerOfTwo(iAcqAccMaxNew))
-    {
-      iAcqAccMaxNew = GetNextPowerOfTwo(iAcqAccMaxNew);
-    }
-
-		iAcqAccMax = iAcqAccMaxNew;
-		iAcqAccShift = GetMSBit(iAcqAccMaxNew) - 1;
-
-		iAcqAccNum = 0;
-		bAcqAccUpdate = 0;
-	}
-
-	if (iAcqAccMax == 0 || iAcqAccMax == 1)
-	{
-        // Special case: no accumulation
-        bAccDone = true;
-	}
-	else if (iAcqAccNum == 0)
-    {
-        // First accumulation
-        int i;
-        for(i=0; i<FRAME_NUM_PTS; i++)
-        {
-            AcqFifoAcc[i] = pAcqFifo[i];
-        }
-
-        ++iAcqAccNum;
-    }
-    else if ((iAcqAccNum + 1) >= iAcqAccMax) // >= just in case
-    {
-        // Last accumulation
-        int i;
-        for(i=0; i<FRAME_NUM_PTS; i++)
-        {
-            int32_t data = AcqFifoAcc[i] + pAcqFifo[i];
-            pAcqFifo[i] = (int16_t) (data >> iAcqAccShift);
-        }
-
-        iAcqAccNum = 0;
-        bAccDone = true;
-    }
-    else //if (iAcqAccNum < iAcqAccMax)
-	{
-        // Intermediate accumulations
-		int i;
-		for(i=0; i<FRAME_NUM_PTS; i++)
-		{
-			AcqFifoAcc[i] = AcqFifoAcc[i] + pAcqFifo[i];
-		}
-
-		++iAcqAccNum;
-	}
-
-    return bAccDone;
-}
-#endif //USE_ACCUMULATION
-
-
-
 #ifdef USE_ALGO
 
-static float tmpAcqFloat[GUARDIAN_SAMPLING_LENGTH];
+static float tmpAcqFloat[DEVICE_SAMPLING_LENGTH];
 
 int DoAlgo(int16_t * pAcqFifo)
 {
 	int ch;
-    detection_type detections[GUARDIAN_NUM_CHANNEL * GUARDIAN_NUM_DET_PER_CH];
+    detection_type detections[DEVICE_NUM_CHANNEL * DEVICE_NUM_DET_PER_CH];
 
-    for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ++ch)
+    for(ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
     {
         int i;
 
@@ -963,10 +989,10 @@ int DoAlgo(int16_t * pAcqFifo)
 
         int chIdx = aChIdxADI[chIdxArray];
 
-        detection_type* pDetections = &detections[ch * GUARDIAN_NUM_DET_PER_CH];
+        detection_type* pDetections = &detections[ch * DEVICE_NUM_DET_PER_CH];
 
-        for(i=0; i<GUARDIAN_SAMPLING_LENGTH; ++i)
-            tmpAcqFloat[i] = (float) pAcqFifo[chIdx * GUARDIAN_SAMPLING_LENGTH + i];
+        for(i=0; i<DEVICE_SAMPLING_LENGTH; ++i)
+            tmpAcqFloat[i] = (float) pAcqFifo[chIdx * DEVICE_SAMPLING_LENGTH + i];
 
         //threshold2(pDetections, tmpAcqFloat, ch);
         threshold3(pDetections, tmpAcqFloat, ch);
@@ -995,23 +1021,21 @@ inline int ProcessReadWriteFifo(void)
 	{
 		switch (addr)
 		{
-    case 0x3FFE:
+		case 0x3FFE:
 			SaveConfigToFlash(0);
 			break;
 		case 0x3FFF:
-			Flash_ResetToFactoryDefault(0);
+			//Flash_ResetToFactoryDefault(0);
+			LoadDefaultConfig(0);
 			//Lidar_Reset();
 			break;
 		case 0x4000:
+			Lidar_Reset();
+			break;
+		case 0x4001:
 			//Lidar_Reset();
 			break;
-#ifdef USE_ACCUMULATION
-		case 0x4001:
-			iAcqAccMaxNew = data;
-			bAcqAccUpdate = 1;
-			break;
-#endif //USE_ACCUMULATION
-    case 0x7FFE:
+		case 0x7FFE:
 			SaveConfigToFlash(1);
 			break;
 		case 0x7FFF:
@@ -1027,11 +1051,10 @@ inline int ProcessReadWriteFifo(void)
 	{
 		switch (addr)
 		{
-#ifdef USE_ACCUMULATION
-		case 0x4001:
-			data = iAcqAccMax;
+		case 0x4000:
 			break;
-#endif //USE_ACCUMULATION
+		case 0x4001:
+			break;
 		default:
 			ReadParamFromSPI(addr, &data);
 			break;
@@ -1088,10 +1111,6 @@ void Lidar_Acq(uint16_t *pBank)
 
 			GetADIData_Stop();
 
-#ifdef USE_ACCUMULATION
-			bAccDone = DoAccumulation(pAcqFifo);
-#endif //USE_ACCUMULATION
-
 			if (bAccDone)
 			{
 #ifdef USE_ALGO
@@ -1134,23 +1153,20 @@ void Lidar_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo)
 void Lidar_ReleaseDataToFifo(uint16_t numFifo)
 {
 	iFifoTail = (iFifoTail + numFifo) & NUM_FIFO_MASK;
-//	LED5_OFF();
 }
 
 void Lidar_Reset(void)
 {
-  user_CANFifoReset();
+    user_CANFifoReset();
 
-	Lidar_InitADI();
+    //TODO DEBUG why it reboot the cpu
+	//Lidar_InitADI();
 
 	iFifoHead = 0;
 	iFifoTail = 0;
 
 	BankInTransfer = 0;
 
-#ifdef USE_ACCUMULATION
-	iAcqAccNum = 0;
-#endif //USE_ACCUMULATION
 }
 
 
@@ -1170,7 +1186,7 @@ int iUSBnumEmpty = 0;
 // Fake data
 //
 
-const int16_t fakeData[2][GUARDIAN_SAMPLING_LENGTH + 32] =
+const int16_t fakeData[2][DEVICE_SAMPLING_LENGTH + 32] =
 {
 {
 	-153,
@@ -1467,10 +1483,10 @@ void GetADIData_Start(uint16_t *pBank, uint16_t * pData)
 
 		*pBank = nextBank + 1;
 
-		for(ch=0; ch<GUARDIAN_NUM_CHANNEL; ch++)
+		for(ch=0; ch<DEVICE_NUM_CHANNEL; ch++)
 		{
 			int offset = (iFakeData_offsetPerChannel) ? offsetPerCycles + ch : offsetPerCycles;
-			memcpy(pData + ch * 100, &fakeData[nextBank][offset], GUARDIAN_SAMPLING_LENGTH * sizeof(int16_t));
+			memcpy(pData + ch * 100, &fakeData[nextBank][offset], DEVICE_SAMPLING_LENGTH * sizeof(int16_t));
 		}
 
 		nextBank = (nextBank + 1) & 0x1;

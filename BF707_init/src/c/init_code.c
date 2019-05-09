@@ -21,7 +21,6 @@
 #include <builtins.h>
 #include <stdbool.h>
 
-uint32_t test_ddr();
 
 #pragma retain_name /* retain resolved initcode entry */
 void initcode(ADI_ROM_BOOT_CONFIG* pBootStruct);
@@ -94,39 +93,8 @@ void initcode(ADI_ROM_BOOT_CONFIG* pBootStruct)
    }
 #endif /* CHANGE_SPI_BAUD */
 
-   //test_ddr();
 } /* initcode */
 
 
 
-uint32_t test_ddr()
-{
-	static uint8_t test_done = 1;
-	uint32_t temp_value ;
 
-	if(test_done == 1)
-	{
-		uint32_t * ddrBaseAddr;
-
-		ddrBaseAddr = 0x80000000;
-		for(int i=0; i<1024; i++)
-		{
-			*(ddrBaseAddr) = 2*i;
-			ddrBaseAddr += 1;
-		}
-		//Check for REad error
-		ddrBaseAddr = 0x80000000;
-		for(int i=0; i<1024; i++)
-		{
-			temp_value = ddrBaseAddr;
-			if(*(ddrBaseAddr) != 2*i)
-			{
-				break;
-			}
-			ddrBaseAddr += 1;
-		}
-
-		test_done = 0;
-	}
-	return temp_value;
-}

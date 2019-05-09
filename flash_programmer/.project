@@ -87,22 +87,10 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 		<nature>com.analog.crosscore.managedbuilder.core.CCESProjectNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>system/drivers/uart/adi_uart.c</name>
-			<type>1</type>
-			<locationURI>CCES/Blackfin/lib/src/drivers/source/uart/adi_uart.c</locationURI>
-		</link>
-		<link>
-			<name>system/drivers/usb/controller/musbmhdrc/adi_usbd_musbmhdrc.c</name>
-			<type>1</type>
-			<locationURI>CCES/Blackfin/lib/src/drivers/source/usb/controller/musbmhdrc/adi_usbd_musbmhdrc.c</locationURI>
-		</link>
-	</linkedResources>
 	<variableList>
 		<variable>
 			<name>CCES</name>
-			<value>file:/C:/Analog%20Devices/CrossCore%20Embedded%20Studio%202.8.1</value>
+			<value>file:/C:/Analog%20Devices/CrossCore%20Embedded%20Studio%202.8.3</value>
 		</variable>
 	</variableList>
 </projectDescription>

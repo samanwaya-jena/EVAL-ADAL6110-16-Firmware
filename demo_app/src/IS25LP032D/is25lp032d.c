@@ -1,10 +1,4 @@
 /********************************************************************************
-Copyright(c) 2012 Analog Devices, Inc. All Rights Reserved.
-
-This software is proprietary.  By using this software you agree
-to the terms of the associated Analog Devices License Agreement.
-
-This file was created and modified from is25p32d.c
 
 *********************************************************************************/
 
@@ -468,7 +462,6 @@ static int is25p32d_read(const struct flash_info *fi, uint32_t addr, uint8_t *bu
 	uint8_t tbuf[20];
 	int count;
 
-	/* TODO frequency will limit instruction chosen.  */
 	switch (fi->current_mode)
 	{
 	case STANDARD:

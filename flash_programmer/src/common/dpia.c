@@ -28,9 +28,7 @@ to the terms of the associated Analog Devices License Agreement.
 #include "flash_errors.h"
 #include "flash.h"
 #include "dpia.h"
-#include "../user_bulk.h"
-#include "../cld_bf70x_bulk_lib.h"
-//#include "../post_debug.h"
+
 
 /*
  * The buffer size can be altered to increase performance provided the heap
@@ -196,7 +194,7 @@ int main(void)
 	*pREG_PORTB_FER_CLR = BITM_PORT_DATA_PX15;
 	*pREG_PORTB_DIR_SET = BITM_PORT_DATA_PX15;
 
-	User_Bulk_Init_Return_Code rv = user_bulk_init();
+
 
 
 

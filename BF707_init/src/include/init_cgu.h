@@ -36,7 +36,7 @@ void init_cgu(void);
 #define S1SEL  ((1uL  << BITP_CGU_DIV_S1SEL)  & BITM_CGU_DIV_S1SEL)  /* SCLK1 Divisor Select [1-7]: SYSLCK/S1SEL = 100MHz(max)                       */
 #else
 /* BF70[2-7], BF716 */
-#define MSEL   ((32uL << BITP_CGU_CTL_MSEL)   & BITM_CGU_CTL_MSEL)   /* PLL Multiplier Select [1-127]: PLLCLK = ((CLKIN x MSEL/(DF+1)) = 800MHz(max) */
+#define MSEL   ((16uL << BITP_CGU_CTL_MSEL)   & BITM_CGU_CTL_MSEL)   /* PLL Multiplier Select [1-127]: PLLCLK = ((CLKIN x MSEL/(DF+1)) = 800MHz(max) */
 #define DSEL   ((4uL  << BITP_CGU_DIV_DSEL)   & BITM_CGU_DIV_DSEL)   /* DDR Clock Divisor Select [1-31]: (CLKIN x MSEL/(DF+1))/DSEL = 200MHz(max)    */
 #define OSEL   ((16uL << BITP_CGU_DIV_OSEL)   & BITM_CGU_DIV_OSEL)   /* OUTCLK Divisor Select [1-127]: (CLKIN x MSEL/(DF+1))/OSEL = 50 MHz(max)     */
 #define CSEL   ((2uL  << BITP_CGU_DIV_CSEL)   & BITM_CGU_DIV_CSEL)   /* Core Clock Divisor Select [1-31]: (CLKIN x MSEL/DF+1)/CSEL =  400MHz(max)    */

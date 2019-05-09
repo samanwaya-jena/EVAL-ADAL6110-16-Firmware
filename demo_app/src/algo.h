@@ -7,14 +7,14 @@
 /**
  * data management constants
  */
-#define GUARDIAN_SAMPLING_LENGTH       100
-#define GUARDIAN_NUM_CHANNEL           16
-#define GUARDIAN_NUM_RAWHISTORY        4
-#define GUARDIAN_NUM_BANKS             2
-#define GUARDIAN_NUM_DET_PER_CH        1
-#define GUARDIAN_NUM_TRACK_PER_CH      4
-#define GUARDIAN_NUM_ALARM             16
-#define GUARDIAN_NUM_TRIGGER           2
+#define DEVICE_SAMPLING_LENGTH       100
+#define DEVICE_NUM_CHANNEL           16
+#define DEVICE_NUM_RAWHISTORY        4
+#define DEVICE_NUM_BANKS             2
+#define DEVICE_NUM_DET_PER_CH        1
+#define DEVICE_NUM_TRACK_PER_CH      4
+#define DEVICE_NUM_ALARM             16
+#define DEVICE_NUM_TRIGGER           2
 
 /**
  * DSP constant
@@ -36,12 +36,12 @@ typedef struct{
 
 typedef struct{
 	unsigned int timeStamp;
-	detection_type detections[GUARDIAN_NUM_CHANNEL][GUARDIAN_NUM_DET_PER_CH];
+	detection_type detections[DEVICE_NUM_CHANNEL][DEVICE_NUM_DET_PER_CH];
 } detection_frame_type;
 
 
-void threshold2(detection_type* _detPtr, float* _buffer, int _ch);
-void threshold3(detection_type* _detPtr, float* _buffer, int _ch);
+void threshold2(detection_type* detPtr, float* buffer, int ch);
+void threshold3(detection_type* detPtr, float* buffer, int ch);
 
 
 #endif //_ALGO_H_

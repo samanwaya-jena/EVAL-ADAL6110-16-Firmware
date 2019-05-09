@@ -9,8 +9,11 @@ to the terms of the associated Analog Devices License Agreement.
 #include <stdint.h>
 #include "flash.h"
 #include <drivers\spi\adi_spi.h>
-#include "../BF707_Wagner.h"
+#include "../demo_app.h"
 
+#ifndef NULL
+#define NULL   ((void *) 0)
+#endif
 
 ADI_SPI_HANDLE hSpiFlash;
 
@@ -38,13 +41,11 @@ int flash_company(const struct flash_info *fi, const char **company)
 int flash_open(struct flash_info *fi)
 {
 	ADI_SPI_RESULT result = adi_spi_Open(FLASH_SPI_DEVICE, flashMem, sizeof(flashMem), &hSpiFlash);
-	if(result != ADI_SPI_SUCCESS){
-		printf("FAILED TO OPEN FLASH SPI\n");
-	}
+	//	CHECK_RESULT(result, "adi_spi_Open");
 
 	/* Set master */
 	result = adi_spi_SetMaster( hSpiFlash,true);
-//	CHECK_RESULT(result, "adi_spi_SetMaster");
+	//	CHECK_RESULT(result, "adi_spi_SetMaster");
 
 	/* Set slave select using hardware*/
 	result = adi_spi_SetHwSlaveSelect( hSpiFlash, false);

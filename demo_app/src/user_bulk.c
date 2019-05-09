@@ -20,13 +20,13 @@
 #include "cld_bf70x_bulk_lib.h"
 
 #include <ADSP-BF707_device.h>
-#include "BF707_Wagner.h"
+#include "demo_app.h"
 
-#include "Guardian_ADI.h"
+#include "Lidar_adal6110_16.h"
 
 #include "Serial_cmd.h"
 #include "post_debug.h"
-#include "AWLCANMessageDef.h"
+#include "PICANMessageDef.h"
 
 
 #define FIRMWARE_MAJOR_REV 0
@@ -44,10 +44,6 @@ static void user_bulk_adi_loopback_device_transfer_error (void);
 static void user_bulk_adi_loopback_bulk_in_transfer_complete (void);
 static void user_bulk_console_rx_byte (unsigned char byte);
 static void user_bulk_usb_event (CLD_USB_Event event);
-
-//TODO DEBUG
-void test_ddr();
-
 
 /* Bulk IN endpoint parameters */
 static CLD_Bulk_Endpoint_Params user_bulk_in_endpoint_params =
@@ -170,7 +166,7 @@ int user_CANFifoPushCompletedFrame(void)
 {
 	AWLCANMessage canMsg;
 
-	canMsg.id = AWLCANMSG_ID_COMPLETEDFRAME;
+	canMsg.id = PICANMSG_ID_COMPLETEDFRAME;
 
 	return CANFifoPushMsg(&canMsg);
 }
@@ -180,7 +176,7 @@ int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel, uint16_t snr)
 	int ret;
 	AWLCANMessage canMsg;
 
-	canMsg.id = AWLCANMSG_ID_OBSTACLETRACK;
+	canMsg.id = PICANMSG_ID_OBSTACLETRACK;
 	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = ch + 1;      //trackID
 	canMsg.data[1] = 0;           //...
@@ -196,7 +192,7 @@ int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel, uint16_t snr)
 	if (ret)
 		return ret;
 
-	canMsg.id = AWLCANMSG_ID_OBSTACLEVELOCITY;
+	canMsg.id = PICANMSG_ID_OBSTACLEVELOCITY;
 	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = ch + 1;      //trackID
 	canMsg.data[1] = 0;           //...
@@ -214,14 +210,14 @@ int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
 {
 	AWLCANMessage canMsg;
 
-	canMsg.id = AWLCANMSG_ID_COMMANDMESSAGE;
+	canMsg.id = PICANMSG_ID_COMMANDMESSAGE;
 	canMsg.len = AWLCANMSG_LEN;
-	canMsg.data[0] = AWLCANMSG_ID_CMD_RESPONSE_PARAMETER;
+	canMsg.data[0] = PICANMSG_ID_CMD_RESPONSE_PARAMETER;
 
 	if (registerAddress & RW_INTERNAL_MASK)
-		canMsg.data[1] = AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER;
+		canMsg.data[1] = PICANMSG_ID_CMD_PARAM_ADC_REGISTER;
 	else
-		canMsg.data[1] = AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER;
+		canMsg.data[1] = PICANMSG_ID_CMD_PARAM_AWL_REGISTER;
 
 	registerAddress &= ~RW_INTERNAL_MASK;
 
@@ -239,7 +235,7 @@ int user_CANFifoPushSensorStatus(void)
 {
 	AWLCANMessage canMsg;
 
-	canMsg.id = AWLCANMSG_ID_SENSORSTATUS;
+	canMsg.id = PICANMSG_ID_SENSORSTATUS;
 	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = 234 >> 0;
 	canMsg.data[1] = 234 >> 8;
@@ -257,7 +253,7 @@ int user_CANFifoPushSensorBoot(void)
 {
 	AWLCANMessage canMsg;
 
-	canMsg.id = AWLCANMSG_ID_SENSORBOOT;
+	canMsg.id = PICANMSG_ID_SENSORBOOT;
 	canMsg.len = AWLCANMSG_LEN;
 	canMsg.data[0] = FIRMWARE_MAJOR_REV;
 	canMsg.data[1] = FIRMWARE_MINOR_REV;
@@ -310,7 +306,7 @@ static int ProcessLidarQueryCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage
 	else if (_iCANFifoTail > _iCANFifoHead)
 		numCANMsg = (CANFIFO_SIZE - _iCANFifoTail) + _iCANFifoHead;
 
-	pCanResp->id = AWLCANMSG_ID_LIDARQUERY;
+	pCanResp->id = PICANMSG_ID_LIDARQUERY;
 
 	uint32_t * pNbrDataCycles = (uint32_t *) &pCanResp->data[0];
 	*pNbrDataCycles = numPendingTemp;
@@ -378,29 +374,29 @@ static int ProcessCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanRes
 
 	switch (pCanReq->id)
 	{
-	case AWLCANMSG_ID_LIDARQUERY:
+	case PICANMSG_ID_LIDARQUERY:
 		ProcessLidarQueryCanCommandMsg(pCanReq, pCanResp);
 		break;
-	case AWLCANMSG_ID_COMMANDMESSAGE:
-		if (pCanReq->data[0] == AWLCANMSG_ID_CMD_SET_PARAMETER &&
-			(pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER ||
-			 pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER))
+	case PICANMSG_ID_COMMANDMESSAGE:
+		if (pCanReq->data[0] == PICANMSG_ID_CMD_SET_PARAMETER &&
+			(pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_AWL_REGISTER ||
+			 pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER))
 		{
 			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
 			uint16_t data = * (uint16_t *) &pCanReq->data[4];
 
-			if (pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER)
+			if (pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER)
 				registerAddress |= RW_INTERNAL_MASK;
 
 			Lidar_WriteFifoPush(registerAddress, data);
 		}
-		else if (pCanReq->data[0] == AWLCANMSG_ID_CMD_QUERY_PARAMETER &&
-				 (pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_AWL_REGISTER ||
-				  pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER))
+		else if (pCanReq->data[0] == PICANMSG_ID_CMD_QUERY_PARAMETER &&
+				 (pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_AWL_REGISTER ||
+				  pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER))
 		{
 			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
 
-			if (pCanReq->data[1] == AWLCANMSG_ID_CMD_PARAM_ADC_REGISTER)
+			if (pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER)
 				registerAddress |= RW_INTERNAL_MASK;
 
 			Lidar_ReadFifoPush(registerAddress);
@@ -470,10 +466,7 @@ void user_bulk_main (void)
     #define M_SECONDS(x)    (x%1000)
 
     static CLD_Time main_time = 0;
-//    static CLD_Time msg_time = 0;
-//    static CLD_Time run_time = 0;
     static CLD_Time log_time = 0;
-//    static CLD_Time acq_time = 0;
 
     static int iAcqNum = 0;
     static int iAcqNum1 = 0;
@@ -482,31 +475,18 @@ void user_bulk_main (void)
 
     cld_bf70x_bulk_lib_main();
 
+    //Keep Alive LED
     if (cld_time_passed_ms(main_time) >= 250u)
     {
         main_time = cld_time_get();
         LED_BC2_TGL();
-		test_ddr();
-    }
-
-    if (usb_time)
-    {
-		if (cld_time_passed_ms(usb_time) >= 500u)
-		{
-			usb_time = 0;
-			LED_BC3_OFF();
-			//TODO DEBUG REMOVE WHEN TESTING IS COMPLETED
-
-		}
     }
 
     Serial_Process();
 
-//    if (cld_time_passed_ms(acq_time) >= 1u)
+    //Process LIDAR Acquisition
     {
     	uint16_t banknum = 0;
-//    	acq_time = cld_time_get();
-
     	Lidar_Acq(&banknum);
 
     	if (banknum)
@@ -609,9 +589,9 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 
 //    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CAN Msg %d: ", pCanMsg->id);
 
-    if (pCanMsg->id == AWLCANMSG_ID_GETDATA)
+    if (pCanMsg->id == PICANMSG_ID_GETDATA)
     	return ProcessGetData(pCanMsg);
-    else if (pCanMsg->id == AWLCANMSG_ID_POLLMESSAGES)
+    else if (pCanMsg->id == PICANMSG_ID_POLLMESSAGES)
     	PollCanCommandMsg(pCanMsg, canResp, &num);
     else
     	ProcessCanCommandMsg(pCanMsg, canResp);
@@ -707,42 +687,4 @@ static void user_bulk_usb_event (CLD_USB_Event event)
             cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Resume\n\r");
             break;
     }
-}
-
-void test_ddr()
-{
-	static uint8_t test_done = 1;
-
-	if(test_done == 1)
-	{
-		uint32_t * ddrBaseAddr;
-
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Test DDR Memory\n\r");
-
-		ddrBaseAddr = 0x80000000;
-		for(int i=0; i<256; i++)
-		{
-			*(ddrBaseAddr) = i;
-			ddrBaseAddr += 1;
-		}
-		//Check for REad error
-		ddrBaseAddr = 0x80000000;
-		for(int i=0; i<256; i++)
-		{
-			if(i%4 == 0)
-			{
-				cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "DDR VALUE @ ddrBaseAddr : x%x is %d\n\r",ddrBaseAddr,*(ddrBaseAddr));
-			}
-			if(*(ddrBaseAddr) != i)
-			{
-				cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "MeMory error - Read Value : %d not Equal Write Value : %d\n\r",*(ddrBaseAddr),i);
-				break;
-			}
-			ddrBaseAddr += 1;
-		}
-
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Stop here to check DDR Memory\n\r" );
-		test_done = 0;
-	}
-
 }

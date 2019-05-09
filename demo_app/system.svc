@@ -116,7 +116,7 @@ It provides information needed to link your code. It can be used to configure me
 						<property name="ldf_output" value="app.ldf"/>
 					</propertygroup>
 					<propertygroup name="template_schemas" value="true">
-						<property name="ldf_schema" value="22.00"/>
+						<property name="ldf_schema" value="28.30"/>
 						<property name="startup_code_schema" value="28.01"/>
 					</propertygroup>
 					<crt>
@@ -152,8 +152,8 @@ It provides information needed to link your code. It can be used to configure me
 					</crt>
 					<ldf>
 						<propertygroup name="system_heap" value="L1">
-							<property name="min_size" value="2"/>
 							<property name="size_units" value="kB"/>
+							<property name="min_size" value="2"/>
 							<property name="customized" value="false"/>
 						</propertygroup>
 						<propertygroup name="system_stack" value="L1">
@@ -164,20 +164,21 @@ It provides information needed to link your code. It can be used to configure me
 						<propertygroup name="use_sdram" value="true">
 							<property name="partitioned" value="default"/>
 							<property name="size" value="128"/>
-							<property name="size_units" value="MegaBytes"/>
 							<property name="dmc_size_0" value="128"/>
+							<property name="size_units" value="MegaBytes"/>
 						</propertygroup>
 						<propertygroup name="running_from_internal_memory" value="true"/>
 						<propertygroup name="libraries" value="true">
 							<property name="use_fileio_libs" value="false"/>
 							<property name="heap_dbg_libs" value="false"/>
+							<property name="no_libdrv" value="false"/>
 							<property name="use_utility_rom" value="true"/>
 							<property name="use_eh_enabled_libs" value="false"/>
 							<property name="use_fixed_point_io_libs" value="false"/>
 						</propertygroup>
 						<property name="use_eh" value="true"/>
-						<property name="user_heap_src_file" value="app_heaptab.c"/>
 						<property name="use_full_cpplib" value="false"/>
+						<property name="user_heap_src_file" value="app_heaptab.c"/>
 						<property name="use_software_modules" value="false"/>
 						<property name="use_user_mod_ldf" value="true"/>
 						<property name="use_pgo_hw" value="false"/>

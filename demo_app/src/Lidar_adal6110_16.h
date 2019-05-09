@@ -8,7 +8,9 @@
 #include "algo.h"
 
 
-#define FRAME_NUM_PTS		(GUARDIAN_NUM_CHANNEL * GUARDIAN_SAMPLING_LENGTH)
+#define DATA_NUM_PTS	(DEVICE_NUM_CHANNEL * DEVICE_SAMPLING_LENGTH)
+#define FRAME_NUM_PTS	DATA_NUM_PTS + (DEVICE_NUM_CHANNEL * 5) + 16
+//#define FRAME_NUM_PTS	DATA_NUM_PTS
 #define RW_WRITE_MASK    0x8000
 #define RW_INTERNAL_MASK 0x4000
 
@@ -86,10 +88,10 @@ enum ADI_REGISTER_INDEX {
 	AGCDCBPID1 = 0xE7,
 	FRAMEDELAY = 0xE8,
 	STARTADDRPOINTER = 0xF5,
-	BankStatusAddress = 0xF6, // read only
+	SRAM_READY = 0xF6, // read only
 	LFSRSEEDL = 0xF7,
 	LFSRSEEDH = 0xF8,
-	SRAMReadOutAddress = 0xFF // read only
+	SRAM_DATA = 0xFF // read only
 };
 
 
@@ -129,6 +131,8 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
 int Lidar_ReadFifoPush(uint16_t _startAddress);
 int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data);
+
+void LoadDefaultConfig(int idx);
 
 extern int gAcq;
 

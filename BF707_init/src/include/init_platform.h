@@ -20,7 +20,7 @@
   #error "Expected target processor to be a ADSP-BF7xx family part"
 #endif
 
-#define CLKIN_Hz              25000000  /* CLKIN [Hz]   */
+#define CLKIN_Hz              50000000  /* CLKIN [Hz]   */
 #define CLKIN_ns (1000000000/CLKIN_Hz)  /* CLKIN [ns]   */
 
 /*

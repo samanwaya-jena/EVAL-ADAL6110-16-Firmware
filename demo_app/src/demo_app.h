@@ -18,11 +18,6 @@
 #define LED_BC3_OFF() pADI_PORTC->DATA_CLR = (1 << 12)
 #define LED_BC3_TGL() pADI_PORTC->DATA_TGL = (1 << 12)
 
-//JAB LED 5 not used in code
-//#define LED5_ON()  pADI_PORTB->DATA_SET = (1 << 1)
-//#define LED5_OFF() pADI_PORTB->DATA_CLR = (1 << 1)
-//#define LED5_TGL() pADI_PORTB->DATA_TGL = (1 << 1)
-
 #define GORDON_RESET() pADI_PORTC->DATA_SET = (1 << 8)
 #define GORDON_SET()   pADI_PORTC->DATA_SET = (1 << 8)
 #define GORDON_TGL()   pADI_PORTC->DATA_SET = (1 << 8)

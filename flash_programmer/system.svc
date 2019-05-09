@@ -9,27 +9,15 @@ It provides information needed to link your code. It can be used to configure me
 		</component>
 		<component id="com.analog.crosscore.ssldd.pinmux.component" name="Pin Multiplexing" version="1.0.0" visible="true">
 			<component-description><![CDATA[Since Blackfin processors have more peripherals than physical pins on the chip, the user needs to configure which peripherals they want enabled and onto which set of pins.  Peripheral configuration requires an in-depth understanding of the hardware.  This component makes it easier to program the peripherals without worrying about the internal details.  The user simply selects the peripherals to enable and this component will generate the C code necessary to configure the peripherals.]]></component-description>
-			<product name="SSL DD Product" version=""/>
-		</component>
-		<component id="com.analog.crosscore.addins.ssldd.uart" name="UART Driver for Blackfin" version="2.0.0" visible="true">
-			<component-description><![CDATA[This add-in provides Analog Devices' implementation of the UART Interface driver]]></component-description>
-			<product name="Analog Devices System Services and Device Drivers" version="1.0.0"/>
-		</component>
-		<component id="com.analog.crosscore.addins.ssldd.usbd.base" name="USB Device Controller Driver Base for Blackfin" version="1.1.0" visible="false">
-			<component-description><![CDATA[This add-in provides Analog Devices' implementation of the USB Device device driver]]></component-description>
-			<product name="Analog Devices System Services and Device Drivers" version="1.0.0"/>
-		</component>
-		<component id="com.analog.crosscore.addins.ssldd.usbd.general" name="USB Device Controller Driver for Blackfin" version="1.1.0" visible="true">
-			<component-description><![CDATA[This add-in provides Analog Devices' implementation of the usb device device driver]]></component-description>
-			<product name="Analog Devices System Services and Device Drivers" version="1.0.0"/>
+			<product name="SSL DD Product" version="1.0.0"/>
 		</component>
 	</installedComponents>
 	<configurations>
 		<configuration id="com.analog.sourcegen.component.startup_ldf">
 			<startup_ldf-configuration>
 				<crt_and_ldf>
-					<propertygroup name="template_schemas" value="">
-						<property name="ldf_schema" value="22.00"/>
+					<propertygroup name="template_schemas" value="true">
+						<property name="ldf_schema" value="28.30"/>
 						<property name="startup_code_schema" value="28.01"/>
 					</propertygroup>
 					<propertygroup name="mandatory">
@@ -51,7 +39,7 @@ It provides information needed to link your code. It can be used to configure me
 						<propertygroup name="use_multicores" value="1">
 							<property name="use_core" value="0"/>
 						</propertygroup>
-						<propertygroup name="" value="96">
+						<propertygroup name="int_handlers" value="96">
 							<property name="int_handler_table_mem" value="L1"/>
 							<property name="int_handler_table_section" value="L1_data"/>
 						</propertygroup>
@@ -74,12 +62,12 @@ It provides information needed to link your code. It can be used to configure me
 						<propertygroup name="use_sdram" value="false">
 							<property name="partitioned" value="default"/>
 							<property name="size" value="128"/>
-							<property name="dmc_size_0" value="128"/>
 							<property name="size_units" value="MB"/>
+							<property name="dmc_size_0" value="128"/>
 						</propertygroup>
 						<propertygroup name="system_heap" value="L1">
-							<property name="min_size" value="2"/>
 							<property name="size_units" value="kB"/>
+							<property name="min_size" value="2"/>
 							<property name="customized" value="false"/>
 						</propertygroup>
 						<propertygroup name="system_stack" value="L1">
@@ -91,13 +79,14 @@ It provides information needed to link your code. It can be used to configure me
 						<propertygroup name="libraries" value="true">
 							<property name="use_fileio_libs" value="false"/>
 							<property name="heap_dbg_libs" value="false"/>
+							<property name="no_libdrv" value="false"/>
 							<property name="use_utility_rom" value="true"/>
 							<property name="use_eh_enabled_libs" value="false"/>
 							<property name="use_fixed_point_io_libs" value="false"/>
 						</propertygroup>
 						<property name="use_eh" value="true"/>
-						<property name="user_heap_src_file" value="app_heaptab.c"/>
 						<property name="use_full_cpplib" value="false"/>
+						<property name="user_heap_src_file" value="app_heaptab.c"/>
 						<property name="use_software_modules" value="false"/>
 						<property name="use_user_mod_ldf" value="true"/>
 						<property name="use_pgo_hw" value="false"/>
@@ -111,16 +100,16 @@ It provides information needed to link your code. It can be used to configure me
 					<signal bit="20" mux="0" name="CLK" pin="10" port="B"/>
 					<signal bit="22" mux="0" name="MISO" pin="11" port="B"/>
 					<signal bit="24" mux="0" name="MOSI" pin="12" port="B"/>
+					<signal bit="8" mux="2" name="RDY" pin="4" port="A"/>
 					<signal bit="30" mux="0" name="SEL1" pin="15" port="B"/>
+					<signal bit="16" mux="2" name="SEL2" pin="8" port="B"/>
+					<signal bit="18" mux="2" name="SEL3" pin="9" port="B"/>
 					<signal bit="26" mux="0" name="D2" pin="13" port="B"/>
 					<signal bit="28" mux="0" name="D3" pin="14" port="B"/>
 				</peripheral>
-				<peripheral description="UART Module" name="UART0">
-					<signal bit="16" mux="0" name="TX" pin="8" port="B"/>
-					<signal bit="18" mux="0" name="RX" pin="9" port="B"/>
-					<signal bit="4" mux="0" name="RTS" pin="2" port="C"/>
-					<signal bit="6" mux="0" name="CTS" pin="3" port="C"/>
-				</peripheral>
+				<gpio name="Port A">
+					<signal bit="8" name="PA04" pin="4" port="A"/>
+				</gpio>
 				<gpio name="Port B">
 					<signal bit="16" name="PB08" pin="8" port="B"/>
 					<signal bit="18" name="PB09" pin="9" port="B"/>
@@ -130,10 +119,6 @@ It provides information needed to link your code. It can be used to configure me
 					<signal bit="26" name="PB13" pin="13" port="B"/>
 					<signal bit="28" name="PB14" pin="14" port="B"/>
 					<signal bit="30" name="PB15" pin="15" port="B"/>
-				</gpio>
-				<gpio name="Port C">
-					<signal bit="4" name="PC02" pin="2" port="C"/>
-					<signal bit="6" name="PC03" pin="3" port="C"/>
 				</gpio>
 			</pinmux-configuration>
 		</configuration>

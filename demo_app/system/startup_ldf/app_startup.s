@@ -1,8 +1,8 @@
 /*
-** ADSP-BF707 startup code generated on Apr 04, 2019 at 15:15:22.
+** ADSP-BF707 startup code generated on May 03, 2019 at 13:43:51.
 */
 /*
-** Copyright (C) 2000-2017 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2018 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected
 ** in the System Configuration utility. Changes to the Startup Code configuration
@@ -15,7 +15,7 @@
 ** placed within these sections are preserved when this file is re-generated.
 **
 ** Product      : CrossCore Embedded Studio
-** Tool Version : 6.2.0.0
+** Tool Version : 6.2.0.1
 */
 
 #include <sys/platform.h>
