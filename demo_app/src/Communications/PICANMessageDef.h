@@ -4,8 +4,8 @@
 
 //TODO RENAME AWL TO SOMETHING ELSE
 
-#ifndef AWLCANMESSAGEDEF_H
-#define AWLCANMESSAGEDEF_H
+#ifndef CANMESSAGEDEF_H
+#define CANMESSAGEDEF_H
 
 
 // len
@@ -20,13 +20,17 @@ typedef struct {
     uint8_t  data[AWLCANMSG_LEN];   // Databytes 0..7
     uint8_t  pad1;      // Padding required so that sizeof(AWLCANMessage) be 20 on all platforms
     uint8_t  pad2;      // ...
-} AWLCANMessage;
+} CANMessage;
 
 
 // id
+
+//status report
 #define PICANMSG_ID_SENSORSTATUS                   1
 #define PICANMSG_ID_SENSORBOOT                     2
 #define PICANMSG_ID_COMPLETEDFRAME                 9
+
+// obsolete
 #define PICANMSG_ID_OBSTACLETRACK                  10
 #define PICANMSG_ID_OBSTACLEVELOCITY               11
 #define PICANMSG_ID_OBSTACLESIZE                   12
@@ -39,7 +43,11 @@ typedef struct {
 #define PICANMSG_ID_CHANNELINTENSITY1_LAST         46
 #define PICANMSG_ID_CHANNELINTENSITY2_FIRST        50
 #define PICANMSG_ID_CHANNELINTENSITY2_LAST         56
+
+// fused data message per pixel
 #define PICANMSG_ID_CHANNELDISTANCEANDINTENSITY    60
+
+// do stuff general command
 #define PICANMSG_ID_COMMANDMESSAGE                 80
 
 // New command id for Wagner/Guardian
@@ -47,43 +55,17 @@ typedef struct {
 #define PICANMSG_ID_POLLMESSAGES                   88
 #define PICANMSG_ID_LIDARQUERY                     89
 
-/*
-00: Command (0xC0 = SET_PARAMETER)
-0xC1 = QUERY_PARAMETER)
-0xC2 = RESPONSE_PARAMETER)
-01: Type (0x01 = ALGO_SELECTED
-0x02 = ALGO_PARAMETER
-0x03 = AWL_REGISTER
-0x04 = BIAS
-0x05 = ADC_REGISTER
-0x06 = PRESET
-0x07 = GLOBAL_PARAMETER
-0x08 = GPIO_CONTROL
-0x11 = TRACKER_SELECTED
-0x12 = TRACKER_PARAMETER
-0x20 = DATE_TIME
-0xD0 = RECORD_FILENAME (zero-terminated)
-0xD1 = PLAYBACK_FILENAME (zero-terminated)
-02-03: Address (U16_LE)
-04-07: Value (x32_LE or U8S)
 
-for DATE:
-04-05: YEAR (U16_LE)
-06: MONTH
-07: DAY-OF-MONTH
-
-for TIME:
-04: HOURS
-05: MINUTES
-06: SECONDS
-07: 0x00
-*/
-
+// parameters
 #define PICANMSG_ID_CMD_SET_PARAMETER            0xC0
 #define PICANMSG_ID_CMD_QUERY_PARAMETER          0xC1
 #define PICANMSG_ID_CMD_RESPONSE_PARAMETER       0xC2
+
+// file management (no files in wagner)
 #define PICANMSG_ID_CMD_PLAYBACK_RAW             0xD1
 #define PICANMSG_ID_CMD_RECORD_CALIBRATION       0xDA
+
+// ID qui ne correspondent pas a la structure CAN
 #define PICANMSG_ID_CMD_TRANSMIT_RAW             0xE0
 #define PICANMSG_ID_CMD_TRANSMIT_COOKED          0xE1
 
@@ -102,4 +84,5 @@ for TIME:
 #define PICANMSG_ID_CMD_PARAM_PLAYBACK_FILENAME  0xD1
 #define PICANMSG_ID_CMD_PARAM_
 
-#endif //AWLCANMESSAGEDEF_H
+
+#endif //CANMESSAGEDEF_H

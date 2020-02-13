@@ -14,19 +14,21 @@
     processors only. Nothing else gives you the right to use this software.
 
 ==============================================================================*/
+#include "user_bulk.h"
+
 #include <string.h>
 #include <builtins.h>
-#include "user_bulk.h"
 #include "cld_bf70x_bulk_lib.h"
 
-#include <ADSP-BF707_device.h>
-#include "demo_app.h"
+//#include <ADSP-BF707_device.h>
 
-#include "Lidar_adal6110_16.h"
-
-#include "Serial_cmd.h"
-#include "post_debug.h"
 #include "PICANMessageDef.h"
+#include "Serial_cmd.h"
+#include "../demo_app.h"
+
+#include "../Lidar_adal6110_16.h"
+
+#include "../post_debug.h"
 
 
 #define FIRMWARE_MAJOR_REV 0
@@ -34,7 +36,7 @@
 
 
 
-static AWLCANMessage user_bulk_adi_loopback_buffer;
+static CANMessage user_bulk_adi_loopback_buffer;
 
 /* Function prototypes */
 CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Transfer_Params * p_transfer_data);
@@ -117,11 +119,16 @@ static CLD_Time usb_time = 0;
 
 
 
+
+
+/* this section is a database and should be outside of this file
+ * the files message_queue should be used to create a fixed memory space
+ * and all the operator and validation required for proper operation of
+ * queue.
+ */
+
 #define DISABLE_INT() unsigned int _intm = cli()
 #define ENABLE_INT() sti(_intm)
-
-
-
 //
 // CAN messages FIFO out
 //
@@ -132,7 +139,7 @@ volatile int iCANFifoTail = 0;
 #define CANFIFO_SIZE 128
 #define CANFIFO_MASK (CANFIFO_SIZE - 1)
 
-AWLCANMessage canFifo[CANFIFO_SIZE];
+CANMessage canFifo[CANFIFO_SIZE];
 
 int user_CANFifoReset(void)
 {
@@ -146,13 +153,13 @@ int user_CANFifoReset(void)
   return 0;
 }
 
-int CANFifoPushMsg(AWLCANMessage * pCanMsg)
+int CANFifoPushMsg(CANMessage * pCanMsg)
 {
 	int nextHead = (iCANFifoHead + 1) & CANFIFO_MASK;
 
 	if (nextHead != iCANFifoTail)
 	{
-		memcpy(&canFifo[iCANFifoHead], pCanMsg, sizeof(AWLCANMessage));
+		memcpy(&canFifo[iCANFifoHead], pCanMsg, sizeof(CANMessage));
 
 		iCANFifoHead = nextHead;
 
@@ -164,17 +171,29 @@ int CANFifoPushMsg(AWLCANMessage * pCanMsg)
 
 int user_CANFifoPushCompletedFrame(void)
 {
-	AWLCANMessage canMsg;
+	CANMessage canMsg;
 
 	canMsg.id = PICANMSG_ID_COMPLETEDFRAME;
 
 	return CANFifoPushMsg(&canMsg);
 }
 
+/*
+ * End of Queue basic structure
+ */
+
+/*
+ * This section defines the message handled on the application layer
+ * this should be in seperate file (comm_messages?)
+ *
+ * The files should include all the function to send and receive AWL_CAN_msg
+ * that are used by Wagner
+ */
+
 int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel, uint16_t snr)
 {
 	int ret;
-	AWLCANMessage canMsg;
+	CANMessage canMsg;
 
 	canMsg.id = PICANMSG_ID_OBSTACLETRACK;
 	canMsg.len = AWLCANMSG_LEN;
@@ -208,7 +227,7 @@ int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel, uint16_t snr)
 
 int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
 {
-	AWLCANMessage canMsg;
+	CANMessage canMsg;
 
 	canMsg.id = PICANMSG_ID_COMMANDMESSAGE;
 	canMsg.len = AWLCANMSG_LEN;
@@ -233,7 +252,7 @@ int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
 
 int user_CANFifoPushSensorStatus(void)
 {
-	AWLCANMessage canMsg;
+	CANMessage canMsg;
 
 	canMsg.id = PICANMSG_ID_SENSORSTATUS;
 	canMsg.len = AWLCANMSG_LEN;
@@ -251,7 +270,7 @@ int user_CANFifoPushSensorStatus(void)
 
 int user_CANFifoPushSensorBoot(void)
 {
-	AWLCANMessage canMsg;
+	CANMessage canMsg;
 
 	canMsg.id = PICANMSG_ID_SENSORBOOT;
 	canMsg.len = AWLCANMSG_LEN;
@@ -267,7 +286,7 @@ int user_CANFifoPushSensorBoot(void)
 	return CANFifoPushMsg(&canMsg);
 }
 
-static int PollCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanResp, int * pNum)
+static int PollCanCommandMsg(CANMessage * pCanReq, CANMessage * pCanResp, int * pNum)
 {
 	int num = pCanReq->data[0];
 	int i;
@@ -279,7 +298,7 @@ static int PollCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanResp, 
 	{
 		if (iCANFifoHead != iCANFifoTail)
 		{
-			memcpy(pCanResp++, &canFifo[iCANFifoTail], sizeof(AWLCANMessage));
+			memcpy(pCanResp++, &canFifo[iCANFifoTail], sizeof(CANMessage));
 
 			iCANFifoTail = (iCANFifoTail + 1) & CANFIFO_MASK;
 		}
@@ -290,7 +309,9 @@ static int PollCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanResp, 
 	return 0;
 }
 
-static int ProcessLidarQueryCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanResp)
+
+
+static int ProcessLidarQueryCanCommandMsg(CANMessage * pCanReq, CANMessage * pCanResp)
 {
 	int _iCANFifoHead = iCANFifoHead;
 	int _iCANFifoTail = iCANFifoTail;
@@ -317,7 +338,7 @@ static int ProcessLidarQueryCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage
 	return 0;
 }
 
-static CLD_USB_Data_Received_Return_Type ProcessGetData(AWLCANMessage * pCanReq)
+static CLD_USB_Data_Received_Return_Type ProcessGetData(CANMessage * pCanReq)
 {
 	tDataFifo * pData = NULL;
 
@@ -368,9 +389,9 @@ static CLD_USB_Data_Received_Return_Type ProcessGetData(AWLCANMessage * pCanReq)
 }
 
 
-static int ProcessCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanResp)
+static int ProcessCanCommandMsg(CANMessage * pCanReq, CANMessage * pCanResp)
 {
-	memset(pCanResp, 0, sizeof(AWLCANMessage));
+	memset(pCanResp, 0, sizeof(CANMessage));
 
 	switch (pCanReq->id)
 	{
@@ -407,9 +428,11 @@ static int ProcessCanCommandMsg(AWLCANMessage * pCanReq, AWLCANMessage * pCanRes
 	return 0;
 }
 
-//
-// CAN Messages FIFO out
-//
+/*
+ * End of message handling
+ * All input and output messages
+ */
+
 
 
 
@@ -455,7 +478,7 @@ Function:       user_bulk_main
 
 Parameters:     None.
 
-Description:    Example user mainline.
+Description:    user main loop... called at the main() function, handles the main operation of the system...
 
 Returns:        None.
 ==============================================================================*/
@@ -465,8 +488,8 @@ void user_bulk_main (void)
     #define SECONDS(x)      ((x/1000)%60)
     #define M_SECONDS(x)    (x%1000)
 
-    static CLD_Time main_time = 0;
-    static CLD_Time log_time = 0;
+
+	static CLD_Time log_time = 0;
 
     static int iAcqNum = 0;
     static int iAcqNum1 = 0;
@@ -475,16 +498,10 @@ void user_bulk_main (void)
 
     cld_bf70x_bulk_lib_main();
 
-    //Keep Alive LED
-    if (cld_time_passed_ms(main_time) >= 250u)
-    {
-        main_time = cld_time_get();
-        LED_BC2_TGL();
-    }
-
     Serial_Process();
 
     //Process LIDAR Acquisition
+    // why are we polling Gordon this deep into the communication protocol?
     {
     	uint16_t banknum = 0;
     	Lidar_Acq(&banknum);
@@ -501,6 +518,7 @@ void user_bulk_main (void)
     	}
     }
 
+    // every second, log how many data has been logged
 	if (gLogData & 1)
 	{
 		if (cld_time_passed_ms(log_time) >= 1000u)
@@ -553,13 +571,13 @@ CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Tr
 {
     CLD_USB_Transfer_Request_Return_Type rv = CLD_USB_TRANSFER_STALL;
 
-	if (cld_time_passed_ms(usb_time) >= 25u)
+	if (cld_time_passed_ms(usb_time) >= 25u) // 40Hz!! quite slow
 	{
 		usb_time = cld_time_get();
-		LED_BC3_TGL();
+		LED_BC3G_TGL();
 	}
 
-    if (p_transfer_data->num_bytes == sizeof(AWLCANMessage))
+    if (p_transfer_data->num_bytes == sizeof(CANMessage))
 	{
 		/* Save the received data to the user_bulk_adi_loopback_data.cmd structure,
 		   and call user_bulk_adi_loopback_cmd_received once the data has been received. */
@@ -584,8 +602,8 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
         .fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error
     };
 
-    AWLCANMessage * pCanMsg = (AWLCANMessage *) &user_bulk_adi_loopback_buffer;
-    AWLCANMessage canResp[CANFIFO_SIZE];
+    CANMessage * pCanMsg = (CANMessage *) &user_bulk_adi_loopback_buffer;
+    CANMessage canResp[CANFIFO_SIZE];
 
 //    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CAN Msg %d: ", pCanMsg->id);
 
@@ -597,7 +615,7 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
     	ProcessCanCommandMsg(pCanMsg, canResp);
 
 	/* Return the firmware version using the Bulk IN endpoint. */
-	transfer_params.num_bytes = num * sizeof(AWLCANMessage);
+	transfer_params.num_bytes = num * sizeof(CANMessage);
 	transfer_params.p_data_buffer = (unsigned char*)canResp;
 	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.transfer_timeout_ms = 1000;

@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "cld_bf70x_bulk_lib.h"
-#include "Lidar_adal6110_16.h"
+#include "../Lidar_adal6110_16.h"
 
 
 
