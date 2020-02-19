@@ -9,7 +9,7 @@
 
 
 
-int gLogData = 1;
+int gLogData = 0;
 static uint16_t buf[FRAME_NUM_PTS];
 
 void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);

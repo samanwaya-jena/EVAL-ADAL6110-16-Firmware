@@ -69,7 +69,7 @@
 									<listOptionValue builtIn="false" value="&quot;${OutDir}/system/startup_ldf&quot;"/>
 								</option>
 								<option id="linker.option.libdoj.522650587" name="Additional libraries and object files:" superClass="linker.option.libdoj" useByScannerDiscovery="false" valueType="libFiles">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/cld_bf70x_bulk_lib.dlb&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/Communications/cld_bf70x_bulk_lib.dlb&quot;"/>
 								</option>
 								<option id="linker.option.misrachecksrcfiles.1127082766" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="blackfin.linker.option.memusage.102133300" name="Memory Usage" superClass="blackfin.linker.option.memusage" useByScannerDiscovery="false" value="blackfin.linker.option.memusage.enumerated.internalsramonly" valueType="enumerated"/>
@@ -86,7 +86,7 @@
 								<option id="blackfin.loader.option.enumerated.progflag.1046068346" name="Programmable flag" superClass="blackfin.loader.option.enumerated.progflag" useByScannerDiscovery="false"/>
 								<option id="blackfin.loader.option.bcode.2140728152" name="Boot code (-bcode)" superClass="blackfin.loader.option.bcode" useByScannerDiscovery="false" value="1" valueType="string"/>
 								<option id="loader.option.verbose.657337859" name="Output verbose loader messages (-v)" superClass="loader.option.verbose" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-								<option id="blackfin.loader.option.initfile.576761046" name="Initialization file (-init)" superClass="blackfin.loader.option.initfile" useByScannerDiscovery="false" value="&#10;&quot;${workspace_loc}\BF707_init\BF7xx_init_icache_disable\BF707_init.dxe&quot;" valueType="string"/>
+								<option id="blackfin.loader.option.initfile.576761046" name="Initialization file (-init)" superClass="blackfin.loader.option.initfile" useByScannerDiscovery="false" value="&#13;&#10;&quot;c:\GIT\Wagner\BF707_init\BF7xx_init_icache_disable\BF707_init.dxe&quot;" valueType="string"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
@@ -99,7 +99,7 @@
 						</tool>
 					</fileInfo>
 					<sourceEntries>
-						<entry excluding="src/dmc_ctrl.h|src/dmc_ctrl.c|src/flash_debug.h|src/flash_debug.c|src/w25q32bv/w25q32bv.c|src.work|src.bak|system" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/w25q32bv/w25q32bv.c|src.work|src/dmc_ctrl.h|src/dmc_ctrl.c|system|src.bak|src/flash_debug.h|src/flash_debug.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="system"/>
 					</sourceEntries>
 				</configuration>
@@ -219,7 +219,7 @@
 	</storageModule>
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/BF707_Wagner"/>
+			<resource resourceType="PROJECT" workspacePath="/BF707_init"/>
 		</configuration>
 		<configuration configurationName="Release">
 			<resource resourceType="PROJECT" workspacePath="/BF707_Wagner"/>

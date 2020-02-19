@@ -1,8 +1,8 @@
 /*
-** ADSP-BF707 user heap source file generated on May 07, 2019 at 11:31:25.
+** ADSP-BF707 user heap source file generated on Sep 26, 2019 at 10:31:47.
 */
 /*
-** Copyright (C) 2000-2018 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2019 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected
 ** in the System Configuration utility. Changes to the Heap configuration
@@ -15,7 +15,7 @@
 ** placed within these sections are preserved when this file is re-generated.
 **
 ** Product      : CrossCore Embedded Studio
-** Tool Version : 6.2.0.1
+** Tool Version : 6.2.1.4
 */
 
 #ifdef _MISRA_RULES

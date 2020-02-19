@@ -15,20 +15,21 @@
 #include "cld_bf70x_bulk_lib.h"
 
 #include "../demo_app.h" // board definitions
+#include "../error_handler.h"
 #include "Msg_queue.h"
 
-inline void ProcessError(void);
-inline uint32_t GetTime(void);
-inline void SendToUSB(USB_msg *msg);
-inline void SendACK(void);
-inline void SendNACK(void);
-inline void SendNext(void);
+#include "../Lidar_adal6110_16.h"
 
-inline void ProcessError()
-{
-	// do something... like red LED... plus BIST error
-	LED_BC2R_ON();
-}
+
+uint32_t GetTime(void);
+
+void SendACK(USB_msg* ret_msg);
+void SendNACK(USB_msg* ret_msg);
+void SendNext(USB_msg* ret_msg);
+
+uint8_t ProcessCommand(USB_CAN_message* cmd);
+
+
 
 inline uint32_t GetTime()
 {
@@ -41,50 +42,71 @@ inline uint32_t GetTime()
  * Message preparation
  */
 
-void USB_sendStatus()
+void USB_pushStatus()
 {
 	static USB_CAN_message msg;
+	uint32_t errorFlags;
+
+	errorFlags = GetError();
 
 	msg.id = msgID_sensorStatus;
 	msg.flags = 0;
 	msg.timestamp = GetTime();
-	msg.len = 0;
+	msg.len = 4;
 	// put error/status code in payload
+	msg.data[0] = (errorFlags >>0) & 0xFF;
+	msg.data[1] = (errorFlags >>8) & 0xFF;
+	msg.data[2] = (errorFlags >>16) & 0xFF;
+	msg.data[3] = (errorFlags >>24) & 0xFF;
+	msg.data[4] = 0;
+	msg.data[5] = 0;
+	msg.data[6] = 0;
+	msg.data[7] = 0;
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
-			ProcessError();
+			SetError(error_SW_comm_fifo_full);
 }
-void USB_SendBoot()
+void USB_pushBoot()
 {
 	static USB_CAN_message msg;
 
 	msg.id = msgID_sensorBoot;
 	msg.flags = 0;
 	msg.timestamp = GetTime();
-	msg.len = 0;
+	msg.len = 2;
+	msg.data[0] = FIRMWARE_MAJOR_REV;
+	msg.data[1] = FIRMWARE_MINOR_REV;
+	msg.data[2] = 0;
+	msg.data[3] = 0;
+	msg.data[4] = 0;
+	msg.data[5] = 0;
+	msg.data[6] = 0;
+	msg.data[7] = 0;
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
-			ProcessError();
+		SetError(error_SW_comm_fifo_full);
 }
 
-void USB_sendParameter(uint16_t address, uint16_t value)
+void USB_pushParameter(uint16_t address, uint16_t value)
 {
 	static USB_CAN_message msg;
 
-	msg.id = msgID_responseParameter;
+	msg.id = msgID_command;
 	msg.flags = 0;
 	msg.timestamp = GetTime();
-	msg.len = 4;
-	msg.data[0] = (uint8_t) (address&0xFF);
-	msg.data[1] = (uint8_t) (address>>8)&0xFF;
-	msg.data[2] = (uint8_t) (value&0xFF);
-	msg.data[3] = (uint8_t) (value>>8)&0xFF;
+	msg.len = 6;
+	msg.data[0] = msgID_respParametercmd;
+	msg.data[1] = 0;
+	msg.data[2] = (uint8_t) (address&0xFF);
+	msg.data[3] = (uint8_t) (address>>8)&0xFF;
+	msg.data[4] = (uint8_t) (value&0xFF);
+	msg.data[5] = (uint8_t) (value>>8)&0xFF;
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
-			ProcessError();
+		SetError(error_SW_comm_fifo_full);
 }
 
-void USB_SendRawData(uint16_t pixelID, uint16_t *buf)
+void USB_pushRawData(uint16_t pixelID, uint16_t *buf)
 {
 	static USB_raw_message msg;
 
@@ -96,10 +118,10 @@ void USB_SendRawData(uint16_t pixelID, uint16_t *buf)
 	memcpy(msg.data, buf, sizeof(msg.data));
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
-		ProcessError();
+		SetError(error_SW_comm_fifo_full);
 }
 
-void USB_SendTrack(uint16_t trackID, int pixelID, float probability, float intensity,
+void USB_pushTrack(uint16_t trackID, int pixelID, float probability, float intensity,
 		          float distance, float velocity, float acceleration)
 {
 	USB_CAN_message msg;
@@ -126,7 +148,7 @@ void USB_SendTrack(uint16_t trackID, int pixelID, float probability, float inten
 	msg.data[7] = (uint8_t)(((int)intensity)>>8)&0xFF;
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
-		ProcessError();
+		SetError(error_SW_comm_fifo_full);
 
 	// send values
 	msg.id = msgID_trackValue;
@@ -145,11 +167,11 @@ void USB_SendTrack(uint16_t trackID, int pixelID, float probability, float inten
 	msg.data[7] = (uint8_t)(((int)acceleration)>>8)&0xFF;
 
 	if( MsgQueue_Ok != msgQueuePush( (USB_msg*) &msg))
-		ProcessError();
+		SetError(error_SW_comm_fifo_full);
 
 }
 
-void USB_SendEndOfFrame(uint16_t frameID, uint16_t systemID, uint16_t numTrackSent)
+void USB_pushEndOfFrame(uint16_t frameID, uint16_t systemID, uint16_t numTrackSent)
 {
 	USB_CAN_message msg;
 
@@ -171,7 +193,7 @@ void USB_SendEndOfFrame(uint16_t frameID, uint16_t systemID, uint16_t numTrackSe
 	msg.pad2 = 0;
 
 	if( MsgQueue_Ok != msgQueuePush( (USB_msg*) &msg))
-		ProcessError();
+		SetError(error_SW_comm_fifo_full);
 }
 
 /*
@@ -179,75 +201,93 @@ void USB_SendEndOfFrame(uint16_t frameID, uint16_t systemID, uint16_t numTrackSe
  */
 
 
-inline void SendToUSB(USB_msg *msg)
+void SendACK(USB_msg* ret_msg)
 {
-	if (msg->CAN.id == msgID_transmitRaw)
+	ret_msg->CAN.id = msgID_ACK;
+	ret_msg->CAN.timestamp = GetTime();
+	ret_msg->CAN.flags = 0;
+	ret_msg->CAN.len = 0;
+}
+
+void SendNACK(USB_msg* ret_msg)
+{
+	ret_msg->CAN.id = msgID_NACK;
+	ret_msg->CAN.timestamp = GetTime();
+	ret_msg->CAN.flags = 0;
+	ret_msg->CAN.len = 0;
+
+}
+
+void SendNext(USB_msg* ret_msg)
+{
+	if (MsgQueue_Ok != msgQueuePop(ret_msg))
 	{
-		// do USB stuff (uint8_t*)msg, sizeof(USB_raw_message)
+		ret_msg->CAN.id = msgID_queueEmpty;
+		ret_msg->CAN.timestamp = GetTime();
+		ret_msg->CAN.flags = 0;
+		ret_msg->CAN.len = 0;
 	}
-	else
+}
+
+void USB_ReadCommand(USB_CAN_message* cmd, USB_msg* ret_msg)
+{
+
+	switch (cmd->id)
 	{
-		// do USB stuff (uint8_t*)msg, sizeof(USB_CAN_message)
-	}
-}
-
-
-inline void SendACK()
-{
-	static USB_CAN_message msg;
-
-	msg.id = msgID_ACK;
-	msg.timestamp = GetTime();
-	msg.flags = 0;
-	msg.len = 0;
-
-	SendToUSB((USB_msg*) &msg);
-}
-
-inline void SendNACK()
-{
-	static USB_CAN_message msg;
-
-	msg.id = msgID_NACK;
-	msg.timestamp = GetTime();
-	msg.flags = 0;
-	msg.len = 0;
-
-	SendToUSB((USB_msg*) &msg);
-}
-
-inline void SendNext()
-{
-	static USB_msg msg;
-
-	if (MsgQueue_Ok != msgQueuePop(&msg))
-	{
-		msg.CAN.id = msgID_queueEmpty;
-		msg.CAN.timestamp = GetTime();
-		msg.CAN.flags = 0;
-		msg.CAN.len = 0;
-	}
-	SendToUSB(&msg);
-}
-
-void USB_ReadCommand(USB_CAN_message* msg)
-{
-
-	switch (msg->id)
-	{
-	case msgID_setparameter:
-		SendACK();
-		// do what has to de done
-		break;
-	case msgID_getParameter:
-		SendACK();
-		// do what has to de done
+	case msgID_command:
+		if ( ProcessCommand(cmd) != 0) SendNACK(ret_msg);
+		else SendACK(ret_msg);
 		break;
 	case msgID_poll:
-		SendNext();
+		SendNext(ret_msg);
 		break;
 	default:
-		SendNACK();
+		SendNACK(ret_msg);
+		SetError(error_SW_comm_unknown);
 	}
 
+}
+
+enum{
+	cmdParam_DetectionAlgo = 0x01,
+	cmdParam_DetectionParam = 0x02,
+	cmdParam_AWLRegister = 0x03,
+	cmdParam_ADCRegister = 0x05,
+	cmdParam_GlobalParam =  0x07,
+	cmdParam_GPIORegister = 0x08,
+	cmdParam_TrackingAlgo = 0x11,
+	cmdParam_TrackingParam = 0x12
+};
+
+uint8_t ProcessCommand(USB_CAN_message* cmd)
+{
+	/*
+	 * command format
+	 * Byte | description
+	 * -----+---------------------------
+	 *   0     cmd_ID
+	 *   1     cmd_type
+	 *   2-3   address
+	 *   4-7   Value
+	 */
+	uint8_t ID = cmd->data[0];
+	uint8_t type= cmd->data[1];
+	uint16_t add = (uint16_t) ((cmd->data[3] << 8) & cmd->data[2]);
+	uint32_t val = (uint32_t) ((cmd->data[7] << 24) & (cmd->data[6] << 16) & (cmd->data[5] << 8) & cmd->data[4]);
+
+	switch(ID)
+	{
+	case msgID_setparametercmd :
+		if(!Lidar_WriteFifoPush( (add|RW_INTERNAL_MASK), (uint16_t) val))
+			SetError(error_SW_ADI);
+		break;
+	case msgID_getParametercmd :
+		if(!Lidar_ReadFifoPush(add|RW_INTERNAL_MASK))
+			SetError(error_SW_ADI);
+		break;
+	default:
+		SetError(error_SW_comm_unknown);
+		return(1);
+	}
+	return(0);
 }

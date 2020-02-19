@@ -1,8 +1,8 @@
 /*
-** ADSP-BF707 CPLB table definitions generated on May 03, 2019 at 13:43:52.
+** ADSP-BF707 CPLB table definitions generated on Sep 23, 2019 at 13:38:13.
 */
 /*
-** Copyright (C) 2000-2018 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2019 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected
 ** in the System Configuration utility. Changes to the CPLB configuration
@@ -15,7 +15,7 @@
 ** placed within these sections are preserved when this file is re-generated.
 **
 ** Product      : CrossCore Embedded Studio
-** Tool Version : 6.2.0.1
+** Tool Version : 6.2.1.4
 */
 
 /* Configuration:-

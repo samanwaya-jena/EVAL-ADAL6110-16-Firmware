@@ -16,7 +16,7 @@
 /**************************************************************
  * defining one of these methods will enabling debug printing *
  **************************************************************/
-/* #define __DEBUG_FILE__ */	/* prints are directed to file __DEBUG_FILE_NAME__ */
+// #define __DEBUG_FILE__ 	/* prints are directed to file __DEBUG_FILE_NAME__ */
 //#define __DEBUG_UART__			/* prints are directed to the UART */
 #define __DEBUG_VIEW__ 	/* prints are directed to the view console window (MUCH SLOWER!!!) */
 /**************************************************************/

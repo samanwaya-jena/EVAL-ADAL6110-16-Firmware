@@ -13,8 +13,8 @@
 
 #define DISABLE_INT() unsigned int _intm = cli()
 #define ENABLE_INT() sti(_intm)
-#define QUEUE_LENGTH 128
-#define QUEUE_POINTER_MASK 0x7F
+#define QUEUE_LENGTH 256
+#define QUEUE_POINTER_MASK 0xFF
 
 /*
  * private interface
@@ -41,9 +41,9 @@ MsgQueueError msgQueuePush(USB_msg* msg)
 {
 	int insert_pos;
 	MsgQueueError retVal = MsgQueue_Full;
-	DISABLE_INT();
+	//DISABLE_INT();
 
-	insert_pos = ++head & QUEUE_POINTER_MASK;
+	insert_pos = (head+1) & QUEUE_POINTER_MASK;
 	if (insert_pos != tail)
 	{
 		memcpy((void*)&Queue[insert_pos], msg, sizeof(USB_msg));
@@ -51,7 +51,7 @@ MsgQueueError msgQueuePush(USB_msg* msg)
 		retVal = MsgQueue_Ok;
 	}
 
-	ENABLE_INT();
+	//ENABLE_INT();
 	return(retVal);
 }
 
@@ -59,7 +59,7 @@ MsgQueueError msgQueuePush(USB_msg* msg)
 MsgQueueError msgQueuePop(USB_msg* msg)
 {
 	MsgQueueError retVal = MsgQueue_Empty;
-	DISABLE_INT();
+	//DISABLE_INT();
 
 	if (tail != head)
 	{
@@ -68,6 +68,6 @@ MsgQueueError msgQueuePop(USB_msg* msg)
 		retVal = MsgQueue_Ok;
 	}
 
-	ENABLE_INT();
+	//ENABLE_INT();
 	return(retVal);
 }

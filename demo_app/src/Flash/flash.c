@@ -6,8 +6,9 @@ to the terms of the associated Analog Devices License Agreement.
 
 *********************************************************************************/
 
+#include "../Flash/flash.h"
+
 #include <stdint.h>
-#include "flash.h"
 #include <drivers\spi\adi_spi.h>
 #include "../demo_app.h"
 

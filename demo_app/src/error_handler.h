@@ -1,16 +1,18 @@
 /*
- * error.h
+ * error_handler.h
  *
  *  Created on: Feb 14, 2020
  *      Author: e.turenne
  */
+#include <stdint.h>
 
 
 #ifndef SRC_ERROR_H_
 #define SRC_ERROR_H_
 
 typedef enum{
-	error_SW_ADI = 0,
+	error_SW_Boot = 0,
+	error_SW_ADI,
 	error_SW_DSP ,
 	error_SW_flash ,
 
@@ -20,7 +22,8 @@ typedef enum{
 	error_numberOfErrors
 } error_type;
 
-inline void SetError(error_type err);
-inline error_type getError();
+void SetError(error_type err);
+uint32_t GetError(void);
+
 
 #endif /* SRC_ERROR_H_ */

@@ -11,10 +11,11 @@
 #include <ADSP-BF707_device.h>
 #include <drivers\spi\adi_spi.h>
 
-#include "flash_params.h"
+#include "Flash/flash_params.h"
 #include "demo_app.h"
 #include "Lidar_adal6110_16.h"
-#include "user_bulk.h"
+#include "Communications/user_bulk.h"
+#include "Communications/USB_cmd.h"
 #include "post_debug.h"
 
 #ifdef USE_ALGO
@@ -642,9 +643,6 @@ void Lidar_InitADI(void) {
 //		}
 //	}
 
-	user_CANFifoPushSensorStatus();
-    user_CANFifoPushSensorBoot();
-
 }
 
 
@@ -661,7 +659,7 @@ int SaveConfigToFlash(int idx)
 
 		return Flash_SaveConfig(idx, &Lidar_InitValues[0][0], num);
 	}
-
+	return(0);
 }
 
 void LoadDefaultConfig(int idx)
@@ -907,7 +905,8 @@ void Lidar_FlashGain(uint16_t flashGain)
 void AddFakeData(void)
 {
 	static uint16_t dist = 1000;
-
+	//TODO: add new comm...
+/*
 	user_CANFifoPushDetection(0, dist, 100, 44);
 	user_CANFifoPushDetection(1, dist + 250, 100, 44);
 	user_CANFifoPushDetection(2, dist + 500, 100, 44);
@@ -917,15 +916,18 @@ void AddFakeData(void)
 	user_CANFifoPushDetection(6, dist + 250, 100, 44);
 	user_CANFifoPushDetection(7, dist, 100, 44);
 
+	//TODO: push in new Queue
 	user_CANFifoPushCompletedFrame();
-
+*/
 	dist += 100;
 
 	if (dist > 2500)
 		dist = 500;
 }
 
-
+/*
+ *  is this section required for DSP or only communications?
+ */
 
 //
 // Read/Write FIFO
@@ -978,17 +980,15 @@ static float tmpAcqFloat[DEVICE_SAMPLING_LENGTH];
 int DoAlgo(int16_t * pAcqFifo)
 {
 	int ch;
+	int numDet;
     detection_type detections[DEVICE_NUM_CHANNEL * DEVICE_NUM_DET_PER_CH];
 
+    numDet = 0;
     for(ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
     {
         int i;
-
-
         int chIdxArray = aChIdxArray[ch];
-
         int chIdx = aChIdxADI[chIdxArray];
-
         detection_type* pDetections = &detections[ch * DEVICE_NUM_DET_PER_CH];
 
         for(i=0; i<DEVICE_SAMPLING_LENGTH; ++i)
@@ -999,11 +999,14 @@ int DoAlgo(int16_t * pAcqFifo)
 
         if (pDetections->distance)
         {
-            user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 0, (uint16_t) ((pDetections->intensity + 21)*2));
+
+        	numDet++;
+        	//USB_pushTrack(0x01, chIdxArray , 100, pDetections->intensity, pDetections->distance, 0x00, 0x00);
+            //user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 0, (uint16_t) ((pDetections->intensity + 21)*2));
         }
     }
 
-    return 0;
+    return numDet;
 }
 #endif //USE_ALGO
 
@@ -1060,7 +1063,8 @@ inline int ProcessReadWriteFifo(void)
 			break;
 		}
 
-		user_CANFifoPushReadResp(addr, data);
+		//TODO: new comm...
+		//user_CANFifoPushReadResp(addr, data);
 	}
 
 	iReadWriteFifoTail = (iReadWriteFifoTail + 1) & READWRITEFIFO_MASK;
@@ -1086,10 +1090,11 @@ volatile int iFifoTail = 0;
 
 static tDataFifo dataFifo[NUM_FIFO];
 
-
 void Lidar_Acq(uint16_t *pBank)
 {
 	*pBank = 0;
+	int numDet =0;
+	static uint16_t frame_ID;
 
 	if (BankInTransfer == 0)
 	{
@@ -1113,10 +1118,17 @@ void Lidar_Acq(uint16_t *pBank)
 
 			if (bAccDone)
 			{
+				frame_ID = (frame_ID+1) & 0xFFFF;
+				for(int ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
+				    {
+				        //USB_pushRawData(aChIdxArray[ch], (uint16_t*) pAcqFifo[ch*DEVICE_SAMPLING_LENGTH]);
+				    }
 #ifdef USE_ALGO
-				DoAlgo(pAcqFifo);
+				numDet = DoAlgo(pAcqFifo);
 #endif //USE_ALGO
-			    user_CANFifoPushCompletedFrame();
+
+				//USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
+			    //user_CANFifoPushCompletedFrame();
 			}
 
             if (bAccDone)
@@ -1157,7 +1169,8 @@ void Lidar_ReleaseDataToFifo(uint16_t numFifo)
 
 void Lidar_Reset(void)
 {
-    user_CANFifoReset();
+	//TODO: new comm...
+    //user_CANFifoReset();
 
     //TODO DEBUG why it reboot the cpu
 	//Lidar_InitADI();
@@ -1166,6 +1179,8 @@ void Lidar_Reset(void)
 	iFifoTail = 0;
 
 	BankInTransfer = 0;
+
+	//frame_ID = 0;
 
 }
 

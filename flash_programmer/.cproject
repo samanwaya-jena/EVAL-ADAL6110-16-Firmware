@@ -62,7 +62,7 @@
 								<option id="linker.option.srchdir.2041530358" name="Library search directories (-L):" superClass="linker.option.srchdir" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="${OutDir}/system/startup_ldf"/>
 								</option>
-								<option id="linker.option.libdoj.799527622" name="Additional libraries and object files:" superClass="linker.option.libdoj" useByScannerDiscovery="false" valueType="libFiles"/>
+								<option id="linker.option.libdoj.799527622" name="Additional libraries and object files:" superClass="linker.option.libdoj" useByScannerDiscovery="false"/>
 								<option id="linker.option.misrachecksrcfiles.968804135" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="linker.doj.input.195575357" name="Object Files" superClass="linker.doj.input"/>
 							</tool>

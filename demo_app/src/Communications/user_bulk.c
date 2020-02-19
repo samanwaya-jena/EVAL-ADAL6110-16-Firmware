@@ -25,14 +25,14 @@
 #include "PICANMessageDef.h"
 #include "Serial_cmd.h"
 #include "../demo_app.h"
+#include "../error_handler.h"
 
 #include "../Lidar_adal6110_16.h"
 
 #include "../post_debug.h"
 
+#include "USB_cmd.h"
 
-#define FIRMWARE_MAJOR_REV 0
-#define FIRMWARE_MINOR_REV 8
 
 
 
@@ -126,7 +126,7 @@ static CLD_Time usb_time = 0;
  * and all the operator and validation required for proper operation of
  * queue.
  */
-
+#if 0
 #define DISABLE_INT() unsigned int _intm = cli()
 #define ENABLE_INT() sti(_intm)
 //
@@ -383,7 +383,7 @@ static CLD_USB_Data_Received_Return_Type ProcessGetData(CANMessage * pCanReq)
 	CLD_USB_Data_Transmit_Return_Type res = cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
 
 	if (res != CLD_USB_TRANSMIT_SUCCESSFUL)
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Error!");
+		cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "Error!");
 
     return CLD_USB_DATA_GOOD;
 }
@@ -428,6 +428,7 @@ static int ProcessCanCommandMsg(CANMessage * pCanReq, CANMessage * pCanResp)
 	return 0;
 }
 
+#endif
 /*
  * End of message handling
  * All input and output messages
@@ -450,21 +451,19 @@ User_Bulk_Init_Return_Code user_bulk_init (void)
     static unsigned char user_init_state = 0;
     CLD_RV cld_rv = CLD_ONGOING;
 
-    /* Initalize the CLD Bulk Library */
     cld_rv = cld_bf70x_bulk_lib_init(&user_bulk_init_params);
-
-    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\nFirmware version: %d.%d\n\n",
-    		FIRMWARE_MAJOR_REV, FIRMWARE_MINOR_REV );
 
     if (cld_rv == CLD_SUCCESS)
     {
-        /* Connect to the USB Host */
+    	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\nFirmware version: %02d.%03d\n\r",
+    	    		FIRMWARE_MAJOR_REV, FIRMWARE_MINOR_REV );
         cld_lib_usb_connect();
 
         return USER_BULK_INIT_SUCCESS;
     }
-    else if (cld_rv == CLD_FAIL)
+    else if(cld_rv == CLD_FAIL )
     {
+    	SetError(error_SW_Boot);
         return USER_BULK_INIT_FAILED;
     }
     else
@@ -484,52 +483,8 @@ Returns:        None.
 ==============================================================================*/
 void user_bulk_main (void)
 {
-    #define MINUTES(x)      (x/60000)
-    #define SECONDS(x)      ((x/1000)%60)
-    #define M_SECONDS(x)    (x%1000)
-
-
-	static CLD_Time log_time = 0;
-
-    static int iAcqNum = 0;
-    static int iAcqNum1 = 0;
-    static int iAcqNum2 = 0;
-    static int iAcqNumX = 0;
-
     cld_bf70x_bulk_lib_main();
-
     Serial_Process();
-
-    //Process LIDAR Acquisition
-    // why are we polling Gordon this deep into the communication protocol?
-    {
-    	uint16_t banknum = 0;
-    	Lidar_Acq(&banknum);
-
-    	if (banknum)
-    	{
-    		++iAcqNum;
-    		if (banknum == 1)
-    			++iAcqNum1;
-    		else if (banknum == 2)
-    			++iAcqNum2;
-    		else
-    			++iAcqNumX;
-    	}
-    }
-
-    // every second, log how many data has been logged
-	if (gLogData & 1)
-	{
-		if (cld_time_passed_ms(log_time) >= 1000u)
-		{
-			log_time = cld_time_get();
-			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (%d,%d,%d) USB %d (%d,%d)\r\n", iAcqNum, iAcqNum1, iAcqNum2, iAcqNumX, iUSBnum, iUSBnumOK, iUSBnumEmpty);
-			iAcqNum = iAcqNum1 = iAcqNum2 = iAcqNumX = 0;
-			iUSBnum = iUSBnumOK = iUSBnumEmpty = 0;
-
-		}
-	}
 
 }
 
@@ -593,8 +548,6 @@ CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Tr
 
 static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 {
-	int num = 1;
-
     /* Parameters used to send Bulk IN data in response to the
        current command. */
     static CLD_USB_Transfer_Params transfer_params =
@@ -602,26 +555,22 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
         .fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error
     };
 
-    CANMessage * pCanMsg = (CANMessage *) &user_bulk_adi_loopback_buffer;
-    CANMessage canResp[CANFIFO_SIZE];
+    LED_BC3R_TGL(); // meanwhile blink LED when polled
+    USB_CAN_message* usbCMDmsg = (USB_CAN_message *)&user_bulk_adi_loopback_buffer;
+    USB_msg usbResp;
 
-//    cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CAN Msg %d: ", pCanMsg->id);
+    cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "CAN Msg recieved: 0x%04X ", usbCMDmsg->id);
+    USB_ReadCommand(usbCMDmsg, &usbResp);
+    cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " ---> answered by: 0x%04X ", usbResp.CAN.id);
 
-    if (pCanMsg->id == PICANMSG_ID_GETDATA)
-    	return ProcessGetData(pCanMsg);
-    else if (pCanMsg->id == PICANMSG_ID_POLLMESSAGES)
-    	PollCanCommandMsg(pCanMsg, canResp, &num);
-    else
-    	ProcessCanCommandMsg(pCanMsg, canResp);
-
-	/* Return the firmware version using the Bulk IN endpoint. */
-	transfer_params.num_bytes = num * sizeof(CANMessage);
-	transfer_params.p_data_buffer = (unsigned char*)canResp;
+	/* return message callback*/
+	transfer_params.num_bytes = sizeof(USB_msg);
+	transfer_params.p_data_buffer = (unsigned char*)&usbResp;
 	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.transfer_timeout_ms = 1000;
 	cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
 
-//   	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\n\r");
+  	cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "\n\r");
 
     return CLD_USB_DATA_GOOD;
 }
@@ -638,6 +587,7 @@ Returns:        None.
 ==============================================================================*/
 static void user_bulk_adi_loopback_device_transfer_error (void)
 {
+	cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "CLD Bulk Device transfer error (aborted)!\n\r");
 //    user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE;
 }
 
@@ -652,9 +602,13 @@ Returns:        None.
 ==============================================================================*/
 static void user_bulk_adi_loopback_bulk_in_transfer_complete (void)
 {
+	/*
+	 * Cette routine est utile avec la vieille comm... Autrement on n'a rien a faire
+	 * a la fin du transfert de donnees vers l'hote
+	 */
 	if (numPending)
 	{
-    	Lidar_ReleaseDataToFifo(numPending);
+    	Lidar_ReleaseDataToFifo(numPending);  // incremente la tail du fifo de numPending...
     	numPending = 0;
 	}
 }

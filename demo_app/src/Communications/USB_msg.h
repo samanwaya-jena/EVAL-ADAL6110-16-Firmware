@@ -9,31 +9,34 @@
 #define USB_MSG_H_
 
 #include <stdint.h>
+#include "../algo.h"
 
 
 enum Msg_ID{
-	// output messages, does not pass trough message queue
-	msgID_ACK              = 0x53, // Command well received and understood
-	msgID_NACK             = 0x54, // Command not received or not understood or timed out
-	msgID_queueEmpty       = 0x56, // no message left to send (response to msgID_poll)
 	// output messages, pushed in msg queue
 	msgID_sensorStatus     = 0x01, // BIST
 	msgID_sensorBoot       = 0x02, // alive, just to notice the host
-	msgID_responseParameter= 0x52, // response to msgID_getParameter (0x51)
 	msgID_transmitRaw      = 0xB0, // raw channel sampling
 	msgID_trackInfo        = 0x0A, // track information (id, pixel, Intensity, confidence)
 	msgID_trackValue       = 0x0B, // track information (id, distance, velocity, acceleration)
 	msgID_FrameDone        = 0x09, // all the data in the current frame were sent
+	// output messages, does not pass trough message queue
+	msgID_ACK              = 0x53, // Command well received and understood
+	msgID_NACK             = 0x54, // Command not received or not understood or timed out
+	msgID_queueEmpty       = 0x56, // no message left to send (response to msgID_poll)
 	//Input messages, answered from queue
-	msgID_poll             = 0x55,  // get a message from the queue
+	msgID_poll             = 0x55, // get a message from the queue
 	// input messages, ack/nack answer
-	msgID_setparameter     = 0x50,  // send a parameter
-	msgID_getParameter     = 0x51,  // get a parameter (0x52 response pushed in queue)
+	msgID_command          = 0x50,
+	// commands
+	msgID_setparametercmd  = 0xC0, // send a parameter
+	msgID_getParametercmd  = 0xC1, // get a parameter (0xC2 response pushed in queue)
+	msgID_respParametercmd = 0xC2, // response to msgID_getParameter (0xC1)
 };
 
 
 #define CAN_PAYLOAD_LENGTH 8    //in bytes
-#define RAW_NUM_SAMPLES    100  // in 16b samples
+#define RAW_NUM_SAMPLES    DEVICE_SAMPLING_LENGTH  // in 16b samples
 #define RAW_PAYLOAD_LENGTH RAW_NUM_SAMPLES*2 + 4  //in bytes
 #define RAW_SYNCH_VALUES {0x7fff, 0x8000}
 
