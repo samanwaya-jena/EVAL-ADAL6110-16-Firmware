@@ -20,18 +20,18 @@ enum Msg_ID{
 	msgID_trackInfo        = 0x0A, // track information (id, pixel, Intensity, confidence)
 	msgID_trackValue       = 0x0B, // track information (id, distance, velocity, acceleration)
 	msgID_FrameDone        = 0x09, // all the data in the current frame were sent
-	// output messages, does not pass trough message queue
-	msgID_ACK              = 0x53, // Command well received and understood
-	msgID_NACK             = 0x54, // Command not received or not understood or timed out
-	msgID_queueEmpty       = 0x56, // no message left to send (response to msgID_poll)
-	//Input messages, answered from queue
-	msgID_poll             = 0x55, // get a message from the queue
+	//Input messages, answered from queue, msgID_queueEmptycmd if queue is empty
+	msgID_poll             = 0x56, // get a message from the queue
 	// input messages, ack/nack answer
 	msgID_command          = 0x50,
 	// commands
 	msgID_setparametercmd  = 0xC0, // send a parameter
 	msgID_getParametercmd  = 0xC1, // get a parameter (0xC2 response pushed in queue)
 	msgID_respParametercmd = 0xC2, // response to msgID_getParameter (0xC1)
+	// command reponses
+	msgID_ACKcmd           = 0xC8, // Command well received and understood
+	msgID_NACKcmd          = 0xC9, // Command not received or not understood or timed out
+	msgID_queueEmptycmd    = 0xCA, // no message left to send (response to msgID_poll)
 };
 
 

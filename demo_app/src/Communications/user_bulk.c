@@ -559,9 +559,17 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
     USB_CAN_message* usbCMDmsg = (USB_CAN_message *)&user_bulk_adi_loopback_buffer;
     USB_msg usbResp;
 
-    cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "CAN Msg recieved: 0x%04X ", usbCMDmsg->id);
+    cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "CAN Msg recieved: 0x%04X: (0x %02X %02X %02X %02X %02X %02X %02X %02X) ",
+    		usbCMDmsg->id, usbCMDmsg->data[0], usbCMDmsg->data[1], usbCMDmsg->data[2], usbCMDmsg->data[3], usbCMDmsg->data[4],
+			usbCMDmsg->data[5], usbCMDmsg->data[6], usbCMDmsg->data[7]);
     USB_ReadCommand(usbCMDmsg, &usbResp);
-    cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " ---> answered by: 0x%04X ", usbResp.CAN.id);
+    if (usbResp.CAN.id != msgID_transmitRaw)
+    	cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " ---> answered by: 0x%04X (0x: %02X %02X %02X %02X %02X %02X %02X %02X )",
+    			usbResp.CAN.id, usbResp.CAN.data[0], usbResp.CAN.data[1], usbResp.CAN.data[2], usbResp.CAN.data[3], usbResp.CAN.data[4],
+				usbResp.CAN.data[5], usbResp.CAN.data[6], usbResp.CAN.data[7]);
+    else
+    	cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " ---> answered by: 0x%04X ", usbResp.CAN.id);
+
 
 	/* return message callback*/
 	transfer_params.num_bytes = sizeof(USB_msg);

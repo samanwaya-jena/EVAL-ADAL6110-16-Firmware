@@ -23,9 +23,9 @@
 
 uint32_t GetTime(void);
 
-void SendACK(USB_msg* ret_msg);
-void SendNACK(USB_msg* ret_msg);
-void SendNext(USB_msg* ret_msg);
+void SendACK(USB_CAN_message* cmd, USB_msg* ret_msg);
+void SendNACK(USB_CAN_message* cmd, USB_msg* ret_msg);
+void SendNext(USB_CAN_message* cmd, USB_msg* ret_msg);
 
 uint8_t ProcessCommand(USB_CAN_message* cmd);
 
@@ -201,31 +201,57 @@ void USB_pushEndOfFrame(uint16_t frameID, uint16_t systemID, uint16_t numTrackSe
  */
 
 
-void SendACK(USB_msg* ret_msg)
+void SendACK(USB_CAN_message* cmd, USB_msg* ret_msg)
 {
-	ret_msg->CAN.id = msgID_ACK;
+	ret_msg->CAN.id = msgID_command;
+	ret_msg->CAN.timestamp = GetTime();
+	ret_msg->CAN.flags = 0;
+	ret_msg->CAN.len = 8;
+	ret_msg->CAN.data[0] = msgID_ACKcmd;
+	ret_msg->CAN.data[1] = cmd->data[1];
+	ret_msg->CAN.data[2] = cmd->data[2];
+	ret_msg->CAN.data[3] = cmd->data[3];
+	ret_msg->CAN.data[4] = cmd->data[4];
+	ret_msg->CAN.data[5] = cmd->data[5];
+	ret_msg->CAN.data[6] = cmd->data[6];
+	ret_msg->CAN.data[7] = cmd->data[7];
+}
+
+void SendNACK(USB_CAN_message* cmd, USB_msg* ret_msg)
+{
+	ret_msg->CAN.id = msgID_command;
 	ret_msg->CAN.timestamp = GetTime();
 	ret_msg->CAN.flags = 0;
 	ret_msg->CAN.len = 0;
+	ret_msg->CAN.len = 8;
+	ret_msg->CAN.data[0] = msgID_NACKcmd;
+	ret_msg->CAN.data[1] = cmd->data[1];
+	ret_msg->CAN.data[2] = cmd->data[2];
+	ret_msg->CAN.data[3] = cmd->data[3];
+	ret_msg->CAN.data[4] = cmd->data[4];
+	ret_msg->CAN.data[5] = cmd->data[5];
+	ret_msg->CAN.data[6] = cmd->data[6];
+	ret_msg->CAN.data[7] = cmd->data[7];
+
 }
 
-void SendNACK(USB_msg* ret_msg)
-{
-	ret_msg->CAN.id = msgID_NACK;
-	ret_msg->CAN.timestamp = GetTime();
-	ret_msg->CAN.flags = 0;
-	ret_msg->CAN.len = 0;
-
-}
-
-void SendNext(USB_msg* ret_msg)
+void SendNext(USB_CAN_message* cmd, USB_msg* ret_msg)
 {
 	if (MsgQueue_Ok != msgQueuePop(ret_msg))
 	{
-		ret_msg->CAN.id = msgID_queueEmpty;
+		ret_msg->CAN.id = msgID_command;
 		ret_msg->CAN.timestamp = GetTime();
 		ret_msg->CAN.flags = 0;
 		ret_msg->CAN.len = 0;
+		ret_msg->CAN.len = 8;
+		ret_msg->CAN.data[0] = msgID_queueEmptycmd;
+		ret_msg->CAN.data[1] = 0x00;
+		ret_msg->CAN.data[2] = 0x00;
+		ret_msg->CAN.data[3] = 0x00;
+		ret_msg->CAN.data[4] = 0x00;
+		ret_msg->CAN.data[5] = 0x00;
+		ret_msg->CAN.data[6] = 0x00;
+		ret_msg->CAN.data[7] = 0x00;
 	}
 }
 
@@ -235,14 +261,14 @@ void USB_ReadCommand(USB_CAN_message* cmd, USB_msg* ret_msg)
 	switch (cmd->id)
 	{
 	case msgID_command:
-		if ( ProcessCommand(cmd) != 0) SendNACK(ret_msg);
-		else SendACK(ret_msg);
+		if ( ProcessCommand(cmd) != 0) SendNACK(cmd,ret_msg);
+		else SendACK(cmd,ret_msg);
 		break;
 	case msgID_poll:
-		SendNext(ret_msg);
+		SendNext(cmd,ret_msg);
 		break;
 	default:
-		SendNACK(ret_msg);
+		SendNACK(cmd,ret_msg);
 		SetError(error_SW_comm_unknown);
 	}
 
@@ -278,12 +304,28 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 	switch(ID)
 	{
 	case msgID_setparametercmd :
-		if(!Lidar_WriteFifoPush( (add|RW_INTERNAL_MASK), (uint16_t) val))
-			SetError(error_SW_ADI);
+		switch(type)
+		{
+		case cmdParam_ADCRegister:
+			add |= RW_INTERNAL_MASK;
+		case cmdParam_AWLRegister:
+			if(!Lidar_WriteFifoPush( (add), (uint16_t) val)) SetError(error_SW_ADI);
+			break;
+		default:
+			return(2);
+		}
 		break;
 	case msgID_getParametercmd :
-		if(!Lidar_ReadFifoPush(add|RW_INTERNAL_MASK))
-			SetError(error_SW_ADI);
+		switch(type)
+		{
+		case cmdParam_ADCRegister:
+			add |= RW_INTERNAL_MASK;
+		case cmdParam_AWLRegister:
+			if(!Lidar_ReadFifoPush(add)) SetError(error_SW_ADI);
+			break;
+		default:
+			return(2);
+		}
 		break;
 	default:
 		SetError(error_SW_comm_unknown);
