@@ -19,5 +19,6 @@ typedef enum {
 MsgQueueError msgQueueReset();
 MsgQueueError msgQueuePush(USB_msg* msg);
 MsgQueueError msgQueuePop(USB_msg* msg);
+MsgQueueError msgQueueStatus();
 
 #endif /* MSG_QUEUE_H_ */

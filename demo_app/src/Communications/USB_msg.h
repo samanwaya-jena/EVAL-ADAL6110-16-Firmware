@@ -28,12 +28,27 @@ enum Msg_ID{
 	msgID_setparametercmd  = 0xC0, // send a parameter
 	msgID_getParametercmd  = 0xC1, // get a parameter (0xC2 response pushed in queue)
 	msgID_respParametercmd = 0xC2, // response to msgID_getParameter (0xC1)
-	// command reponses
-	msgID_ACKcmd           = 0xC8, // Command well received and understood
-	msgID_NACKcmd          = 0xC9, // Command not received or not understood or timed out
+	// command responses
+	msgID_ACKSetcmd        = 0xC8, // Command well received and understood
+	msgID_ACKGetcmd        = 0xC9, // Command well received and understood
+	msgID_NACKcmd          = 0xC3, // Command not received or not understood or timed out
 	msgID_queueEmptycmd    = 0xCA, // no message left to send (response to msgID_poll)
+	msgID_requestCookedcmd = 0xE0,
+	msgID_requestRawcmd    = 0xE1
 };
 
+
+enum Param_Type{
+	cmdParam_DetectionAlgo = 0x01,
+	cmdParam_DetectionParam = 0x02,
+	cmdParam_SensorRegister = 0x03,
+	cmdParam_ADCRegister = 0x05,
+	cmdParam_GlobalParam =  0x07,
+	cmdParam_GPIORegister = 0x08,
+	cmdParam_TrackingAlgo = 0x11,
+	cmdParam_TrackingParam = 0x12,
+	cmdParam_Date_Time     = 0x20
+};
 
 #define CAN_PAYLOAD_LENGTH 8    //in bytes
 #define RAW_NUM_SAMPLES    DEVICE_SAMPLING_LENGTH  // in 16b samples

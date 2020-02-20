@@ -16,7 +16,7 @@
 // System called functions
 void USB_pushStatus(void);
 void USB_pushBoot(void);
-void USB_pushParameter(uint16_t address, uint16_t value);
+void USB_pushParameter(uint16_t address, uint16_t value, uint8_t paramType);
 // DSP called functions
 void USB_pushRawData(uint16_t pixelID, uint16_t *buf);
 void USB_pushTrack(uint16_t trackID, int pixelID, float probability, float intensity,

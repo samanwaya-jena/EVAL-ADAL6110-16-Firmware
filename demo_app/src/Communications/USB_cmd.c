@@ -29,6 +29,8 @@ void SendNext(USB_CAN_message* cmd, USB_msg* ret_msg);
 
 uint8_t ProcessCommand(USB_CAN_message* cmd);
 
+extern uint8_t gSendCooked;
+extern uint8_t gSendRaw;
 
 
 inline uint32_t GetTime()
@@ -54,14 +56,14 @@ void USB_pushStatus()
 	msg.timestamp = GetTime();
 	msg.len = 4;
 	// put error/status code in payload
-	msg.data[0] = (errorFlags >>0) & 0xFF;
-	msg.data[1] = (errorFlags >>8) & 0xFF;
-	msg.data[2] = (errorFlags >>16) & 0xFF;
-	msg.data[3] = (errorFlags >>24) & 0xFF;
-	msg.data[4] = 0;
-	msg.data[5] = 0;
-	msg.data[6] = 0;
-	msg.data[7] = 0;
+	msg.data[0] = 0; // temperature
+	msg.data[1] = 0; //
+	msg.data[2] = 0; // Voltage
+	msg.data[3] = 0; //
+	msg.data[4] = 0; // frame rate
+	msg.data[7] = (errorFlags >>0) & 0xFF;  // sensor
+	msg.data[6] = (errorFlags >>8) & 0xFF;  // software
+	msg.data[5] = (errorFlags >>16) & 0xFF; // hardware
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
 			SetError(error_SW_comm_fifo_full);
@@ -76,8 +78,8 @@ void USB_pushBoot()
 	msg.len = 2;
 	msg.data[0] = FIRMWARE_MAJOR_REV;
 	msg.data[1] = FIRMWARE_MINOR_REV;
-	msg.data[2] = 0;
-	msg.data[3] = 0;
+	msg.data[2] = 0; // error CSM
+	msg.data[3] = 0; // BIST Values
 	msg.data[4] = 0;
 	msg.data[5] = 0;
 	msg.data[6] = 0;
@@ -87,7 +89,7 @@ void USB_pushBoot()
 		SetError(error_SW_comm_fifo_full);
 }
 
-void USB_pushParameter(uint16_t address, uint16_t value)
+void USB_pushParameter(uint16_t address, uint16_t value, uint8_t paramType)
 {
 	static USB_CAN_message msg;
 
@@ -96,7 +98,7 @@ void USB_pushParameter(uint16_t address, uint16_t value)
 	msg.timestamp = GetTime();
 	msg.len = 6;
 	msg.data[0] = msgID_respParametercmd;
-	msg.data[1] = 0;
+	msg.data[1] = paramType;
 	msg.data[2] = (uint8_t) (address&0xFF);
 	msg.data[3] = (uint8_t) (address>>8)&0xFF;
 	msg.data[4] = (uint8_t) (value&0xFF);
@@ -158,7 +160,7 @@ void USB_pushTrack(uint16_t trackID, int pixelID, float probability, float inten
 	distance *= 100; // expressed in cm
 	msg.data[2] = (uint8_t) ((int)distance)&0xFF;
 	msg.data[3] = (uint8_t) (((int)distance)>>8)&0xFF;
-	velocity = velocity<-100?-100:velocity>100?100:velocity;
+	//velocity = velocity<-100?-100:velocity>100?100:velocity;
 	velocity *= 100; // expressed in cm/s
 	msg.data[4] = (uint8_t) ((int)velocity)&0xFF;
 	msg.data[5] = (uint8_t)(((int)velocity)>>8)&0xFF;
@@ -207,7 +209,7 @@ void SendACK(USB_CAN_message* cmd, USB_msg* ret_msg)
 	ret_msg->CAN.timestamp = GetTime();
 	ret_msg->CAN.flags = 0;
 	ret_msg->CAN.len = 8;
-	ret_msg->CAN.data[0] = msgID_ACKcmd;
+	ret_msg->CAN.data[0] = (cmd->data[0]==msgID_setparametercmd)?msgID_ACKSetcmd:msgID_ACKGetcmd;
 	ret_msg->CAN.data[1] = cmd->data[1];
 	ret_msg->CAN.data[2] = cmd->data[2];
 	ret_msg->CAN.data[3] = cmd->data[3];
@@ -274,16 +276,6 @@ void USB_ReadCommand(USB_CAN_message* cmd, USB_msg* ret_msg)
 
 }
 
-enum{
-	cmdParam_DetectionAlgo = 0x01,
-	cmdParam_DetectionParam = 0x02,
-	cmdParam_AWLRegister = 0x03,
-	cmdParam_ADCRegister = 0x05,
-	cmdParam_GlobalParam =  0x07,
-	cmdParam_GPIORegister = 0x08,
-	cmdParam_TrackingAlgo = 0x11,
-	cmdParam_TrackingParam = 0x12
-};
 
 uint8_t ProcessCommand(USB_CAN_message* cmd)
 {
@@ -308,7 +300,7 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		{
 		case cmdParam_ADCRegister:
 			add |= RW_INTERNAL_MASK;
-		case cmdParam_AWLRegister:
+		case cmdParam_SensorRegister:
 			if(!Lidar_WriteFifoPush( (add), (uint16_t) val)) SetError(error_SW_ADI);
 			break;
 		default:
@@ -320,12 +312,18 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		{
 		case cmdParam_ADCRegister:
 			add |= RW_INTERNAL_MASK;
-		case cmdParam_AWLRegister:
+		case cmdParam_SensorRegister:
 			if(!Lidar_ReadFifoPush(add)) SetError(error_SW_ADI);
 			break;
 		default:
 			return(2);
 		}
+		break;
+	case msgID_requestCookedcmd :
+		gSendCooked = gSendCooked?0:1;;
+		break;
+	case msgID_requestRawcmd :
+		gSendRaw = gSendRaw?0:1;
 		break;
 	default:
 		SetError(error_SW_comm_unknown);

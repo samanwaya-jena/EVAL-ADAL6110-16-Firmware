@@ -30,6 +30,9 @@
  */
 
 
+uint8_t gSendCooked;
+uint8_t gSendRaw;
+
 
 uint16_t Lidar_POR_Values[][2] =
 {
@@ -444,6 +447,9 @@ void Lidar_InitADI(void) {
     int i;
     uint16_t dataToBeRead = 0;
     uint32_t waitTimer = 80000; //wait 200us @ 400mhz
+
+    gSendCooked =0;
+    gSendRaw =0;
 
 
 	if (hSpi == NULL)

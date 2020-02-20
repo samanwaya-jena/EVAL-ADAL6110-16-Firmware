@@ -63,11 +63,21 @@ MsgQueueError msgQueuePop(USB_msg* msg)
 
 	if (tail != head)
 	{
-		tail++;
+		++tail & QUEUE_POINTER_MASK;
 		memcpy(msg, &Queue[tail], sizeof(USB_msg));
 		retVal = MsgQueue_Ok;
 	}
 
 	//ENABLE_INT();
 	return(retVal);
+}
+
+
+MsgQueueError msgQueueStatus()
+{
+	if (head == tail)
+		return(MsgQueue_Empty);
+	else if (tail == (head+1) & QUEUE_POINTER_MASK)
+		return(MsgQueue_Full);
+	return(MsgQueue_Ok);
 }
