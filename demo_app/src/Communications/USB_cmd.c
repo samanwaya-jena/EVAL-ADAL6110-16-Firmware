@@ -320,10 +320,14 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		}
 		break;
 	case msgID_requestCookedcmd :
-		gSendCooked = gSendCooked?0:1;;
+		if(cmd->data[0])
+			gSendCooked = 1;
+		else
+			gSendCooked = 0;
 		break;
 	case msgID_requestRawcmd :
-		gSendRaw = gSendRaw?0:1;
+		if(cmd->data[0]) gSendRaw = 1;
+		else gSendRaw = 0;
 		break;
 	default:
 		SetError(error_SW_comm_unknown);

@@ -63,7 +63,7 @@ MsgQueueError msgQueuePop(USB_msg* msg)
 
 	if (tail != head)
 	{
-		++tail & QUEUE_POINTER_MASK;
+		tail = (tail+1) & QUEUE_POINTER_MASK;
 		memcpy(msg, &Queue[tail], sizeof(USB_msg));
 		retVal = MsgQueue_Ok;
 	}

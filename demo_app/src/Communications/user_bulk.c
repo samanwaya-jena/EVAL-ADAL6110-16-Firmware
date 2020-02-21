@@ -555,7 +555,6 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
         .fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error
     };
 
-    LED_BC3R_TGL(); // meanwhile blink LED when polled
     USB_CAN_message* usbCMDmsg = (USB_CAN_message *)&user_bulk_adi_loopback_buffer;
     USB_msg usbResp;
 
@@ -564,15 +563,18 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 			usbCMDmsg->data[5], usbCMDmsg->data[6], usbCMDmsg->data[7]);
     USB_ReadCommand(usbCMDmsg, &usbResp);
     if (usbResp.CAN.id != msgID_transmitRaw)
+    {
     	cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X)",
     			usbResp.CAN.id, usbResp.CAN.data[0], usbResp.CAN.data[1], usbResp.CAN.data[2], usbResp.CAN.data[3], usbResp.CAN.data[4],
 				usbResp.CAN.data[5], usbResp.CAN.data[6], usbResp.CAN.data[7]);
+    }
     else
+    {
     	cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X ", usbResp.CAN.id);
-
+    }
 
 	/* return message callback*/
-	transfer_params.num_bytes = sizeof(USB_msg);
+	transfer_params.num_bytes = (usbResp.CAN.id != msgID_transmitRaw)?sizeof(USB_raw_message):sizeof(USB_CAN_message);
 	transfer_params.p_data_buffer = (unsigned char*)&usbResp;
 	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.transfer_timeout_ms = 1000;

@@ -1024,9 +1024,10 @@ inline int ProcessReadWriteFifo(void)
 	uint16_t addrPlusRW = op >> 16;
 	uint16_t addr = addrPlusRW & ~RW_WRITE_MASK;
 	uint16_t data = op & 0xFFFF;
+	uint8_t type = (addrPlusRW & RW_INTERNAL_MASK)?cmdParam_SensorRegister:cmdParam_ADCRegister;
 	bool bWriteOp = ((addrPlusRW & RW_WRITE_MASK) != 0);
 
-	if (op & 0x80000000)
+	if (op & 0x80000000) // write param
 	{
 		switch (addr)
 		{
@@ -1068,9 +1069,7 @@ inline int ProcessReadWriteFifo(void)
 			ReadParamFromSPI(addr, &data);
 			break;
 		}
-
-		//TODO: new comm...
-		//user_CANFifoPushReadResp(addr, data);
+		USB_pushParameter(addr,data,type);
 	}
 
 	iReadWriteFifoTail = (iReadWriteFifoTail + 1) & READWRITEFIFO_MASK;
