@@ -129,9 +129,6 @@ void ADAL_ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
 void ADAL_WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
 
-
-extern int gAcq;
-
 //
 // Testing counters
 //

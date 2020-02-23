@@ -17,6 +17,7 @@
 //#include "Communications/user_bulk.h"
 #include "Communications/USB_cmd.h"
 #include "post_debug.h"
+#include "parameters.h"
 
 #ifdef USE_ALGO
 #include "algo.h"
@@ -30,8 +31,7 @@
  */
 
 
-uint8_t gSendCooked;
-uint8_t gSendRaw;
+uint16_t frame_ID;
 
 
 uint16_t Lidar_POR_Values[][2] =
@@ -444,9 +444,6 @@ void ADAL_InitADI(void) {
     int i;
     uint16_t dataToBeRead = 0;
     uint32_t waitTimer = 80000; //wait 200us @ 400mhz
-
-    gSendCooked =0;
-    gSendRaw =0;
 
 
 	if (hSpi == NULL)
@@ -878,25 +875,27 @@ void ADAL_FlashGain(uint16_t flashGain)
 
 void AddFakeData(void)
 {
-	static uint16_t dist = 1000;
-	//TODO: add new comm...
-/*
-	user_CANFifoPushDetection(0, dist, 100, 44);
-	user_CANFifoPushDetection(1, dist + 250, 100, 44);
-	user_CANFifoPushDetection(2, dist + 500, 100, 44);
-	user_CANFifoPushDetection(3, dist + 650, 100, 44);
-	user_CANFifoPushDetection(4, dist + 650, 100, 44);
-	user_CANFifoPushDetection(5, dist + 500, 100, 44);
-	user_CANFifoPushDetection(6, dist + 250, 100, 44);
-	user_CANFifoPushDetection(7, dist, 100, 44);
+	static uint16_t dist = 10;
 
-	//TODO: push in new Queue
-	user_CANFifoPushCompletedFrame();
-*/
-	dist += 100;
+	if(LiDARParameters[param_det_msg_decimation])
+	{
+		if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
+		{
+			USB_pushTrack(0, 0, 100, 44, dist, 0, 0);
+			USB_pushTrack(0, 1, 100, 44, dist + 250, 0, 0);
+			USB_pushTrack(0, 2, 100, 44, dist + 500, 0, 0);
+			USB_pushTrack(0, 3, 100, 44, dist + 650, 0, 0);
+			USB_pushTrack(0, 4, 100, 44, dist + 650, 0, 0);
+			USB_pushTrack(0, 5, 100, 44, dist + 500, 0, 0);
+			USB_pushTrack(0, 6, 100, 44, dist + 250, 0, 0);
+			USB_pushTrack(0, 7, 100, 44, dist, 0, 0);
+			USB_pushEndOfFrame(frame_ID, 0, 8);
+		}
+	}
+	dist += 1;
 
-	if (dist > 2500)
-		dist = 500;
+	if (dist > 35)
+		dist = 5;
 }
 
 
@@ -916,7 +915,7 @@ int DoAlgo(int16_t * pAcqFifo)
     for(ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
     {
         int i;
-        int chIdxArray = aChIdxArray[ch];
+        int chIdxArray = aChIdxArray[ch]; //LiDARParameters[param_channel_map_offset+ch]
         int chIdx = aChIdxADI[chIdxArray];
         detection_type* pDetections = &detections[ch * DEVICE_NUM_DET_PER_CH];
 
@@ -926,13 +925,14 @@ int DoAlgo(int16_t * pAcqFifo)
         //threshold2(pDetections, tmpAcqFloat, ch);
         threshold3(pDetections, tmpAcqFloat, ch);
 
-        if (pDetections->distance)
-        {
-
-        	numDet++;
-        	//USB_pushTrack(0x01, chIdxArray , 100, pDetections->intensity, pDetections->distance, 0x00, 0x00);
-            //user_CANFifoPushDetection(ch, (uint16_t) (pDetections->distance * 100.0), 0, (uint16_t) ((pDetections->intensity + 21)*2));
-        }
+        if (pDetections->distance && LiDARParameters[param_det_msg_decimation] && (LiDARParameters[param_det_msg_mask]&(1<<chIdxArray)))
+		{
+			if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
+			{
+				numDet++;
+				//USB_pushTrack(0x01, chIdxArray , 100, pDetections->intensity, pDetections->distance, 0x00, 0x00);
+			}
+		}
     }
 
     return numDet;
@@ -948,8 +948,6 @@ int DoAlgo(int16_t * pAcqFifo)
 // Acquisition control
 //
 
-int gAcq = true;
-
 static uint16_t BankInTransfer = 0;
 
 volatile int iFifoHead = 0;
@@ -964,14 +962,13 @@ void ADAL_Acq(uint16_t *pBank)
 {
 	*pBank = 0;
 	int numDet =0;
-	static uint16_t frame_ID;
 
 	if (BankInTransfer == 0)
 	{
 //		if (iReadWriteFifoHead != iReadWriteFifoTail)
 //			ProcessReadWriteFifo();
 
-		if (gAcq)
+		if (LiDARParameters[param_sensor_enable])
 			GetADIData_Start(&BankInTransfer, (uint16_t*) dataFifo[iFifoHead].AcqFifo);
 	}
 	else
@@ -989,16 +986,29 @@ void ADAL_Acq(uint16_t *pBank)
 			if (bAccDone)
 			{
 				frame_ID = (frame_ID+1) & 0xFFFF;
-				for(int ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
-				    {
-				        //USB_pushRawData(aChIdxArray[ch], (uint16_t*) pAcqFifo[ch*DEVICE_SAMPLING_LENGTH]);
-				    }
+				if(LiDARParameters[param_raw_msg_decimation])
+				{
+					if (0 == frame_ID%LiDARParameters[param_raw_msg_decimation])
+					{
+						for(int ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
+						{
+							if (LiDARParameters[param_raw_msg_mask]&(1<<LiDARParameters[param_channel_map_offset+ch]))
+							{
+								//USB_pushRawData(aChIdxArray[ch], (uint16_t*) pAcqFifo[ch*DEVICE_SAMPLING_LENGTH]);
+							}
+						}
+					}
+				}
 #ifdef USE_ALGO
 				numDet = DoAlgo(pAcqFifo);
 #endif //USE_ALGO
-
-				//USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
-			    //user_CANFifoPushCompletedFrame();
+				if(LiDARParameters[param_det_msg_decimation])
+				{
+					if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
+					{
+						//USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
+					}
+				}
 			}
 
             if (bAccDone)
@@ -1050,7 +1060,7 @@ void ADAL_Reset(void)
 
 	BankInTransfer = 0;
 
-	//frame_ID = 0;
+	frame_ID = 0;
 
 }
 

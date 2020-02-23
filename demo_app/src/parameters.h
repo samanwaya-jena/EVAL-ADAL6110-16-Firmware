@@ -15,7 +15,6 @@ typedef enum
 	param_deviceID = 0x00,
 	param_serialNumber,
 	param_sensor_enable,
-	param_status_period,  //in ms
 
 	param_acq_enable = 0x10,
 	param_DSP_enable,
@@ -28,10 +27,13 @@ typedef enum
 
 	param_detection_config = 0x30,  // 16 values reserved -- see algo for specifics
 	param_tracking_config = 0x40,   // 16 values reserved -- see algo for specifics
+	param_channel_map_offset = 0x50,
 
-
-	param_det_msg_decimation = 0x50, //0 to disable comm.
+	param_det_msg_decimation = 0x60, //0 to disable comm.
+	param_det_msg_mask,
 	param_raw_msg_decimation,
+	param_raw_msg_mask,
+	param_status_period, // in ms
 
 	number_of_param
 }param_index;

@@ -322,14 +322,12 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		}
 		break;
 	case msgID_requestCookedcmd :
-		if(cmd->data[0])
-			gSendCooked = 1;
-		else
-			gSendCooked = 0;
+		LiDARParameters[param_det_msg_decimation] = cmd->data[3];
+		LiDARParameters[param_det_msg_mask] = cmd->data[1] + (cmd->data[2]<<8);
 		break;
 	case msgID_requestRawcmd :
-		if(cmd->data[0]) gSendRaw = 1;
-		else gSendRaw = 0;
+		LiDARParameters[param_raw_msg_decimation] = cmd->data[3];
+		LiDARParameters[param_det_msg_mask] = cmd->data[1] + (cmd->data[2]<<8);
 		break;
 	default:
 		SetError(error_SW_comm_unknown);

@@ -215,12 +215,12 @@ void ProcessChar(char curChar)
     	break;
 
     case 's':
-      gAcq = 0;
-      break;
+    	LiDARParameters[param_sensor_enable] = 0;
+    	break;
 
     case 'q':
-      gAcq = 1;
-      break;
+    	LiDARParameters[param_sensor_enable] = 1;
+    	break;
 
 //    case 'z':
 //		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "a %d 1:%d 2:%d\r\n", iAcqNum, iAcqNum1, iAcqNum2);
