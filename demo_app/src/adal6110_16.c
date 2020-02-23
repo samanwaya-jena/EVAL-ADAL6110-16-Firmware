@@ -54,158 +54,8 @@ uint16_t Lidar_POR_Values[][2] =
 		{132, 0xC201}
 };
 
-uint16_t Lidar_InitValues[][2] =
-{
 
-    {Control0Address , 0x1F80},
-    {Control1Address , 0x8040},
-    //{DataControlAddress , },
-    {DelayBetweenFlashesAddress , 0x4000},
-    {ChannelEnableAddress , 0xFFFF},
-    {DataAcqMode , 0x0001},
-    {TriggerOutAddress , 0x1021},
-    {CH0ControlReg0Address , 0x2E1F},
-    {CH0ControlReg1Address , 0x0180},
-    {CH0ControlReg2Address , 0x00FF},
-    {CH1ControlReg0Address , 0x2E1F},
-    {CH1ControlReg1Address , 0x0180},
-    {CH1ControlReg2Address , 0x00FF},
-    {CH2ControlReg0Address , 0x2E1F},
-    {CH2ControlReg1Address , 0x0180},
-    {CH2ControlReg2Address , 0x00FF},
-    {CH3ControlReg0Address , 0x2E1F},
-    {CH3ControlReg1Address , 0x0180},
-    {CH3ControlReg2Address , 0x00FF},
-    {CH4ControlReg0Address , 0x2E1F},
-    {CH4ControlReg1Address , 0x0180},
-    {CH4ControlReg2Address , 0x00FF},
-    {CH5ControlReg0Address , 0x2E1F},
-    {CH5ControlReg1Address , 0x0180},
-    {CH5ControlReg2Address , 0x00FF},
-    {CH6ControlReg0Address , 0x2E1F},
-    {CH6ControlReg1Address , 0x0180},
-    {CH6ControlReg2Address , 0x00FF},
-    {CH7ControlReg0Address , 0x2E1F},
-    {CH7ControlReg1Address , 0x0180},
-    {CH7ControlReg2Address , 0x00FF},
-    {CH8ControlReg0Address , 0x2E1F},
-    {CH8ControlReg1Address , 0x0180},
-    {CH8ControlReg2Address , 0x00FF},
-    {CH9ControlReg0Address , 0x2E1F},
-    {CH9ControlReg1Address , 0x0180},
-    {CH9ControlReg2Address , 0x00FF},
-    {CH10ControlReg0Address , 0x2E1F},
-    {CH10ControlReg1Address , 0x0180},
-    {CH10ControlReg2Address , 0x00FF},
-    {CH11ControlReg0Address , 0x2E1F},
-    {CH11ControlReg1Address , 0x0180},
-    {CH11ControlReg2Address , 0x00FF},
-    {CH12ControlReg0Address , 0x2E1F},
-    {CH12ControlReg1Address , 0x0180},
-    {CH12ControlReg2Address , 0x00FF},
-    {CH13ControlReg0Address , 0x2E1F},
-    {CH13ControlReg1Address , 0x0180},
-    {CH13ControlReg2Address , 0x00FF},
-    {CH14ControlReg0Address , 0x2E1F},
-    {CH14ControlReg1Address , 0x0180},
-    {CH14ControlReg2Address , 0x00FF},
-    {CH15ControlReg0Address , 0x2E1F},
-    {CH15ControlReg1Address , 0x0180},
-    {CH15ControlReg2Address , 0x00FF},
-    //{GPIOCFG , },
-    //{SPICFG , },
-    //{THSMAX , },
-    //{THSMIN , },
-    {AGCDCBCTRL , 0x0104},
-    {AGCEN , 0x0000},
-    {DCEN , 0xFFFF},
-    {AGCDCBPID0, 0x0032},
-    {AGCDCBPID1 ,0x03e8},
-    {FRAMEDELAY , 0x8000},
-    //{STARTADDRPOINTER , },
-    //{SRAM_READY , },
-    {LFSRSEEDL , 0x9190},
-    {LFSRSEEDH , 0x0001},
-    //{SRAM_DATA , }*/
-	{Control0Address , 0x1F81},
-	{Control0Address , 0x1F82},
-};
 
-uint16_t Lidar_DefaultValues[][2] =
-{
-    {Control0Address , 0x1F80},
-    {Control1Address , 0x8040},
-    //{DataControlAddress , },
-    {DelayBetweenFlashesAddress , 0x4000},
-    {ChannelEnableAddress , 0xFFFF},
-    {DataAcqMode , 0x0001},
-    {TriggerOutAddress , 0x1021},
-    {CH0ControlReg0Address , 0x3C3F},
-    {CH0ControlReg1Address , 0x0B80},
-    {CH0ControlReg2Address , 0x00FF},
-    {CH1ControlReg0Address , 0x2E1F},
-    {CH1ControlReg1Address , 0x0180},
-    {CH1ControlReg2Address , 0x00FF},
-    {CH2ControlReg0Address , 0x2E1F},
-    {CH2ControlReg1Address , 0x0180},
-    {CH2ControlReg2Address , 0x00FF},
-    {CH3ControlReg0Address , 0x2E1F},
-    {CH3ControlReg1Address , 0x0180},
-    {CH3ControlReg2Address , 0x00FF},
-    {CH4ControlReg0Address , 0x2E1F},
-    {CH4ControlReg1Address , 0x0180},
-    {CH4ControlReg2Address , 0x00FF},
-    {CH5ControlReg0Address , 0x2E1F},
-    {CH5ControlReg1Address , 0x0180},
-    {CH5ControlReg2Address , 0x00FF},
-    {CH6ControlReg0Address , 0x2E1F},
-    {CH6ControlReg1Address , 0x0180},
-    {CH6ControlReg2Address , 0x00FF},
-    {CH7ControlReg0Address , 0x2E1F},
-    {CH7ControlReg1Address , 0x0180},
-    {CH7ControlReg2Address , 0x00FF},
-    {CH8ControlReg0Address , 0x2E1F},
-    {CH8ControlReg1Address , 0x0180},
-    {CH8ControlReg2Address , 0x00FF},
-    {CH9ControlReg0Address , 0x2E1F},
-    {CH9ControlReg1Address , 0x0180},
-    {CH9ControlReg2Address , 0x00FF},
-    {CH10ControlReg0Address , 0x2E1F},
-    {CH10ControlReg1Address , 0x0180},
-    {CH10ControlReg2Address , 0x00FF},
-    {CH11ControlReg0Address , 0x2E1F},
-    {CH11ControlReg1Address , 0x0180},
-    {CH11ControlReg2Address , 0x00FF},
-    {CH12ControlReg0Address , 0x2E1F},
-    {CH12ControlReg1Address , 0x0180},
-    {CH12ControlReg2Address , 0x00FF},
-    {CH13ControlReg0Address , 0x2E1F},
-    {CH13ControlReg1Address , 0x0180},
-    {CH13ControlReg2Address , 0x00FF},
-    {CH14ControlReg0Address , 0x2E1F},
-    {CH14ControlReg1Address , 0x0180},
-    {CH14ControlReg2Address , 0x00FF},
-    {CH15ControlReg0Address , 0x2E1F},
-    {CH15ControlReg1Address , 0x0180},
-    {CH15ControlReg2Address , 0x00FF},
-    //{GPIOCFG , },
-    //{SPICFG , },
-    //{THSMAX , },
-    //{THSMIN , },
-    {AGCDCBCTRL , 0x0104},
-    {AGCEN , 0x0000},
-    {DCEN , 0xFFFF},
-    //{AGCDCBPID0, },
-    //{AGCDCBPID1 , },
-    {FRAMEDELAY , 0x8000},
-    //{STARTADDRPOINTER , },
-    //{SRAM_READY , },
-    {LFSRSEEDL , 0x9190},
-    {LFSRSEEDH , 0x0001},
-    //{SRAM_DATA , }*/
-	{Control0Address , 0x1F81},
-	{Control0Address , 0x1F82}
-};
 
 int aChIdxADI[16] = {
   0,
@@ -226,6 +76,7 @@ int aChIdxADI[16] = {
   15
 };
 
+/*
 int aChIdxArray[16] = {
   7,
   8,
@@ -244,7 +95,7 @@ int aChIdxArray[16] = {
   0,
   15
 };
-
+*/
 
 #ifdef USE_DMA
 uint8_t spiMem[ADI_SPI_DMA_MEMORY_SIZE];
@@ -915,7 +766,7 @@ int DoAlgo(int16_t * pAcqFifo)
     for(ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
     {
         int i;
-        int chIdxArray = aChIdxArray[ch]; //LiDARParameters[param_channel_map_offset+ch]
+        int chIdxArray = LiDARParameters[param_channel_map_offset+ch];
         int chIdx = aChIdxADI[chIdxArray];
         detection_type* pDetections = &detections[ch * DEVICE_NUM_DET_PER_CH];
 
@@ -994,7 +845,7 @@ void ADAL_Acq(uint16_t *pBank)
 						{
 							if (LiDARParameters[param_raw_msg_mask]&(1<<LiDARParameters[param_channel_map_offset+ch]))
 							{
-								//USB_pushRawData(aChIdxArray[ch], (uint16_t*) pAcqFifo[ch*DEVICE_SAMPLING_LENGTH]);
+								//USB_pushRawData(LiDARParameters[param_channel_map_offset+ch], (uint16_t*) pAcqFifo[ch*DEVICE_SAMPLING_LENGTH]);
 							}
 						}
 					}

@@ -50,3 +50,9 @@ uint32_t GetError(void)
 	return(err);
 
 }
+
+
+int IsErrorSet(error_type err)
+{
+	return( (1<<err)&errorFlags);
+}

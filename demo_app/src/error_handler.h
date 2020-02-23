@@ -24,6 +24,7 @@ typedef enum{
 
 void SetError(error_type err);
 uint32_t GetError(void);
+int IsErrorSet(error_type err);
 
 
 #endif /* SRC_ERROR_H_ */

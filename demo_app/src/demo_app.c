@@ -13,7 +13,7 @@
 #include "Communications/user_bulk.h"
 #include "Communications/USB_cmd.h"
 #include "Communications/cld_bf70x_bulk_lib.h"
-#include "flash/flash_params.h"
+//#include "flash/flash_params.h"
 #include "PWR_Freq_Mode.h"
 #include "demo_app.h"
 
@@ -109,6 +109,7 @@ void InitApp()
 
 	if (main_state == MAIN_STATE_SYSTEM_INIT)
 	{
+		param_InitValues();
 		LP_DRIVER_POWER_ON();
 		LASER_OUTPUT_ENABLE();
 		LASER_PULSE1_ENABLE();
@@ -159,7 +160,7 @@ void DoMainStateRun()
 	uint16_t banknum = 0;
 	ADAL_Acq(&banknum);
 	if (!banknum)
-		ProcessReadWriteFifo();
+		param_ProcessReadWriteFifo();
 
 	if (banknum)
 	{

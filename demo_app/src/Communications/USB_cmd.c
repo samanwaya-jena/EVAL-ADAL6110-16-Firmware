@@ -303,7 +303,7 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		case cmdParam_ADCRegister:
 			add |= RW_INTERNAL_MASK;
 		case cmdParam_SensorRegister:
-			if(!Lidar_WriteFifoPush( (add), (uint16_t) val)) SetError(error_SW_ADI);
+			if(!param_WriteFifoPush( (add), (uint16_t) val)) SetError(error_SW_ADI);
 			break;
 		default:
 			return(2);
@@ -315,7 +315,7 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		case cmdParam_ADCRegister:
 			add |= RW_INTERNAL_MASK;
 		case cmdParam_SensorRegister:
-			if(!Lidar_ReadFifoPush(add)) SetError(error_SW_ADI);
+			if(!param_ReadFifoPush(add)) SetError(error_SW_ADI);
 			break;
 		default:
 			return(2);

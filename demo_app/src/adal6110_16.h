@@ -136,13 +136,5 @@ extern int iUSBnum;
 extern int iUSBnumOK;
 extern int iUSBnumEmpty;
 
-/*
-* default values
-*/
-extern uint16_t Lidar_InitValues[][2];
-extern uint16_t Lidar_DefaultValues[][2];
-
-
-
 
 #endif /* ADAL6110_H_ */

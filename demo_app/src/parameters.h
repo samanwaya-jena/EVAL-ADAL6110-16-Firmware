@@ -38,8 +38,6 @@ typedef enum
 	number_of_param
 }param_index;
 
-
-
 #define CONSOLE_MASK_LOG 0x01
 #define CONSOLE_MASK_USB 0x02
 #define CONSOLE_MASK
@@ -47,17 +45,17 @@ typedef enum
 #define RW_WRITE_MASK    0x8000
 #define RW_INTERNAL_MASK 0x4000
 
-
-
 extern uint16_t LiDARParameters[number_of_param]; // value of all functional parameters
-extern uint8_t  LiDARParamDir[number_of_param];   // 0 = read only, 1 = read/write
 
+void param_InitValues(void);
+void param_ResetFactoryDefault(void);
 
-int ProcessReadWriteFifo(void);
+void param_LoadConfig(void);
+void param_SaveConfig(void);
 
-int Lidar_ReadFifoPush(uint16_t _startAddress);
-int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data);
-
+int param_ProcessReadWriteFifo(void);
+int param_ReadFifoPush(uint16_t _startAddress);
+int param_WriteFifoPush(uint16_t _startAddress, uint16_t data);
 
 
 #endif /* PARAMETERS_H_ */
