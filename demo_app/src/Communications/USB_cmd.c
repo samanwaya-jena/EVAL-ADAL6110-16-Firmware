@@ -11,6 +11,8 @@
 #include <string.h>
 
 #include "USB_cmd.h"
+
+#include "../adal6110_16.h"
 #include "USB_msg.h"
 #include "cld_bf70x_bulk_lib.h"
 
@@ -18,7 +20,6 @@
 #include "../error_handler.h"
 #include "Msg_queue.h"
 
-#include "../Lidar_adal6110_16.h"
 #include "../parameters.h"
 
 

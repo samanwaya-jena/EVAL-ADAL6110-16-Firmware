@@ -5,8 +5,6 @@
 #ifndef SERIAL_CMD_H_
 #define SERIAL_CMD_H_
 
-extern int gLogData;
-
 void Serial_RxChar(char curChar);
 void Serial_Process(void);
 

@@ -18,25 +18,24 @@
 
 #include <string.h>
 #include <builtins.h>
+
+#include "../adal6110_16.h"
 #include "cld_bf70x_bulk_lib.h"
 
-//#include <ADSP-BF707_device.h>
-
-#include "PICANMessageDef.h"
 #include "Serial_cmd.h"
+#include "USB_cmd.h"
+
 #include "../demo_app.h"
 #include "../error_handler.h"
-
-#include "../Lidar_adal6110_16.h"
+#include "../parameters.h"
 
 #include "../post_debug.h"
 
-#include "USB_cmd.h"
 
 
 
 
-static CANMessage user_bulk_adi_loopback_buffer;
+static USB_CAN_message user_bulk_adi_loopback_buffer;
 
 /* Function prototypes */
 CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Transfer_Params * p_transfer_data);
@@ -71,7 +70,7 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
                                                             If the uart_num is set to
                                                             CLD_UART_DISABLE the CLD library
                                                             will not use a UART */
-    .uart_baud  = 1000000,/*115200,                               /* CLD Library CONSOLE print UART
+    .uart_baud  = 1000000,/*115200,                               * CLD Library CONSOLE print UART
                                                            baudrate. */
     .sclk0      = 100000000u,                           /* Blackfin SCLK0 frequency */
     .fp_console_rx_byte = user_bulk_console_rx_byte,    /* Function called when a byte
@@ -116,325 +115,6 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
 static uint16_t numPending = 0;
 
 static CLD_Time usb_time = 0;
-
-
-
-
-
-/* this section is a database and should be outside of this file
- * the files message_queue should be used to create a fixed memory space
- * and all the operator and validation required for proper operation of
- * queue.
- */
-#if 0
-#define DISABLE_INT() unsigned int _intm = cli()
-#define ENABLE_INT() sti(_intm)
-//
-// CAN messages FIFO out
-//
-
-volatile int iCANFifoHead = 0;
-volatile int iCANFifoTail = 0;
-
-#define CANFIFO_SIZE 128
-#define CANFIFO_MASK (CANFIFO_SIZE - 1)
-
-CANMessage canFifo[CANFIFO_SIZE];
-
-int user_CANFifoReset(void)
-{
-  DISABLE_INT();
-
-  iCANFifoHead = 0;
-  iCANFifoTail = 0;
-
-  ENABLE_INT();
-
-  return 0;
-}
-
-int CANFifoPushMsg(CANMessage * pCanMsg)
-{
-	int nextHead = (iCANFifoHead + 1) & CANFIFO_MASK;
-
-	if (nextHead != iCANFifoTail)
-	{
-		memcpy(&canFifo[iCANFifoHead], pCanMsg, sizeof(CANMessage));
-
-		iCANFifoHead = nextHead;
-
-		return 0;
-	}
-
-	return 1;
-}
-
-int user_CANFifoPushCompletedFrame(void)
-{
-	CANMessage canMsg;
-
-	canMsg.id = PICANMSG_ID_COMPLETEDFRAME;
-
-	return CANFifoPushMsg(&canMsg);
-}
-
-/*
- * End of Queue basic structure
- */
-
-/*
- * This section defines the message handled on the application layer
- * this should be in seperate file (comm_messages?)
- *
- * The files should include all the function to send and receive AWL_CAN_msg
- * that are used by Wagner
- */
-
-int user_CANFifoPushDetection(int ch, uint16_t dist, uint16_t vel, uint16_t snr)
-{
-	int ret;
-	CANMessage canMsg;
-
-	canMsg.id = PICANMSG_ID_OBSTACLETRACK;
-	canMsg.len = AWLCANMSG_LEN;
-	canMsg.data[0] = ch + 1;      //trackID
-	canMsg.data[1] = 0;           //...
-	canMsg.data[2] = 0x01 << ch;  //track->trackChannels.byteData
-	canMsg.data[3] = ch;          //track->trackMainChannel
-	canMsg.data[4] = 0;           //...
-	canMsg.data[5] = 99;          //track->probability
-	canMsg.data[6] = snr >> 0;          //track->intensity
-	canMsg.data[7] = snr >> 8;           //...
-
-	ret = CANFifoPushMsg(&canMsg);
-
-	if (ret)
-		return ret;
-
-	canMsg.id = PICANMSG_ID_OBSTACLEVELOCITY;
-	canMsg.len = AWLCANMSG_LEN;
-	canMsg.data[0] = ch + 1;      //trackID
-	canMsg.data[1] = 0;           //...
-	canMsg.data[2] = dist >> 0;   //Distance
-	canMsg.data[3] = dist >> 8;   //...
-	canMsg.data[4] = vel >> 0;    //Velocity
-	canMsg.data[5] = vel >> 8;    //...
-	canMsg.data[6] = 0;
-	canMsg.data[7] = 0;
-
-	return CANFifoPushMsg(&canMsg);
-}
-
-int user_CANFifoPushReadResp(uint16_t registerAddress, uint16_t data)
-{
-	CANMessage canMsg;
-
-	canMsg.id = PICANMSG_ID_COMMANDMESSAGE;
-	canMsg.len = AWLCANMSG_LEN;
-	canMsg.data[0] = PICANMSG_ID_CMD_RESPONSE_PARAMETER;
-
-	if (registerAddress & RW_INTERNAL_MASK)
-		canMsg.data[1] = PICANMSG_ID_CMD_PARAM_ADC_REGISTER;
-	else
-		canMsg.data[1] = PICANMSG_ID_CMD_PARAM_AWL_REGISTER;
-
-	registerAddress &= ~RW_INTERNAL_MASK;
-
-	canMsg.data[2] = (unsigned char) (registerAddress >> 0);
-	canMsg.data[3] = (unsigned char) (registerAddress >> 8);
-	canMsg.data[4] = (unsigned char) (data >> 0);
-	canMsg.data[5] = (unsigned char) (data >> 8);
-	canMsg.data[6] = 0;
-	canMsg.data[7] = 0;
-
-	return CANFifoPushMsg(&canMsg);
-}
-
-int user_CANFifoPushSensorStatus(void)
-{
-	CANMessage canMsg;
-
-	canMsg.id = PICANMSG_ID_SENSORSTATUS;
-	canMsg.len = AWLCANMSG_LEN;
-	canMsg.data[0] = 234 >> 0;
-	canMsg.data[1] = 234 >> 8;
-	canMsg.data[2] = 5 >> 0;
-	canMsg.data[3] = 5 >> 8;
-	canMsg.data[4] = 100;
-	canMsg.data[5] = 0;
-	canMsg.data[6] = 0;
-	canMsg.data[7] = 0;
-
-	return CANFifoPushMsg(&canMsg);
-}
-
-int user_CANFifoPushSensorBoot(void)
-{
-	CANMessage canMsg;
-
-	canMsg.id = PICANMSG_ID_SENSORBOOT;
-	canMsg.len = AWLCANMSG_LEN;
-	canMsg.data[0] = FIRMWARE_MAJOR_REV;
-	canMsg.data[1] = FIRMWARE_MINOR_REV;
-	canMsg.data[2] = 0;
-	canMsg.data[3] = 0;
-	canMsg.data[4] = 0;
-	canMsg.data[5] = 0;
-	canMsg.data[6] = 0;
-	canMsg.data[7] = 0;
-
-	return CANFifoPushMsg(&canMsg);
-}
-
-static int PollCanCommandMsg(CANMessage * pCanReq, CANMessage * pCanResp, int * pNum)
-{
-	int num = pCanReq->data[0];
-	int i;
-
-	if (num > CANFIFO_MASK)
-		num = CANFIFO_MASK;
-
-	for(i=0; i<num; i++)
-	{
-		if (iCANFifoHead != iCANFifoTail)
-		{
-			memcpy(pCanResp++, &canFifo[iCANFifoTail], sizeof(CANMessage));
-
-			iCANFifoTail = (iCANFifoTail + 1) & CANFIFO_MASK;
-		}
-	}
-
-	*pNum = num;
-
-	return 0;
-}
-
-
-
-static int ProcessLidarQueryCanCommandMsg(CANMessage * pCanReq, CANMessage * pCanResp)
-{
-	int _iCANFifoHead = iCANFifoHead;
-	int _iCANFifoTail = iCANFifoTail;
-
-	tDataFifo * pData = NULL;
-	uint16_t numPendingTemp = 0;
-
-	Lidar_GetDataFromFifo(&pData, &numPendingTemp);
-
-	int numCANMsg = 0;
-	if (_iCANFifoTail < _iCANFifoHead)
-		numCANMsg = _iCANFifoHead - _iCANFifoTail;
-	else if (_iCANFifoTail > _iCANFifoHead)
-		numCANMsg = (CANFIFO_SIZE - _iCANFifoTail) + _iCANFifoHead;
-
-	pCanResp->id = PICANMSG_ID_LIDARQUERY;
-
-	uint32_t * pNbrDataCycles = (uint32_t *) &pCanResp->data[0];
-	*pNbrDataCycles = numPendingTemp;
-
-	uint32_t * pNbrCANMsg = (uint32_t *) &pCanResp->data[4];
-	*pNbrCANMsg = numCANMsg;
-
-	return 0;
-}
-
-static CLD_USB_Data_Received_Return_Type ProcessGetData(CANMessage * pCanReq)
-{
-	tDataFifo * pData = NULL;
-
-	/* Parameters used to send Bulk IN data in response to the
-	   current command. */
-	static CLD_USB_Transfer_Params transfer_params =
-	{
-		.fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error
-	};
-
-	++iUSBnum;
-
-	Lidar_GetDataFromFifo(&pData, &numPending);
-
-	if (numPending)
-	{
-		uint16_t numReq = pCanReq->data[0];
-
-		if (numPending > numReq)
-			numPending = numReq;
-
-		iUSBnumOK += numPending;
-
-		/* Configure the USB Bulk IN transfer to read the number of bytes
-		   specified in the Memory Read command. */
-		transfer_params.num_bytes = numPending * sizeof(tDataFifo);
-
-		/* Set the Bulk In data buffer address to the starting address specified in the
-		   Memory Read command. */
-		transfer_params.p_data_buffer = (unsigned char*) pData;
-	}
-	else
-	{
-		++iUSBnumEmpty;
-
-		transfer_params.num_bytes = 0;
-		transfer_params.p_data_buffer = 0;
-	}
-	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
-	transfer_params.transfer_timeout_ms = 1000;
-
-	CLD_USB_Data_Transmit_Return_Type res = cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-
-	if (res != CLD_USB_TRANSMIT_SUCCESSFUL)
-		cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "Error!");
-
-    return CLD_USB_DATA_GOOD;
-}
-
-
-static int ProcessCanCommandMsg(CANMessage * pCanReq, CANMessage * pCanResp)
-{
-	memset(pCanResp, 0, sizeof(CANMessage));
-
-	switch (pCanReq->id)
-	{
-	case PICANMSG_ID_LIDARQUERY:
-		ProcessLidarQueryCanCommandMsg(pCanReq, pCanResp);
-		break;
-	case PICANMSG_ID_COMMANDMESSAGE:
-		if (pCanReq->data[0] == PICANMSG_ID_CMD_SET_PARAMETER &&
-			(pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_AWL_REGISTER ||
-			 pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER))
-		{
-			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
-			uint16_t data = * (uint16_t *) &pCanReq->data[4];
-
-			if (pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER)
-				registerAddress |= RW_INTERNAL_MASK;
-
-			Lidar_WriteFifoPush(registerAddress, data);
-		}
-		else if (pCanReq->data[0] == PICANMSG_ID_CMD_QUERY_PARAMETER &&
-				 (pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_AWL_REGISTER ||
-				  pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER))
-		{
-			uint16_t registerAddress = * (uint16_t *) &pCanReq->data[2];
-
-			if (pCanReq->data[1] == PICANMSG_ID_CMD_PARAM_ADC_REGISTER)
-				registerAddress |= RW_INTERNAL_MASK;
-
-			Lidar_ReadFifoPush(registerAddress);
-		}
-		break;
-	}
-
-	return 0;
-}
-
-#endif
-/*
- * End of message handling
- * All input and output messages
- */
-
-
 
 
 /*=============================================================================
@@ -526,13 +206,13 @@ CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Tr
 {
     CLD_USB_Transfer_Request_Return_Type rv = CLD_USB_TRANSFER_STALL;
 
-	if (cld_time_passed_ms(usb_time) >= 25u) // 40Hz!! quite slow
+	if (cld_time_passed_ms(usb_time) >= 25u)
 	{
 		usb_time = cld_time_get();
-		LED_BC3G_TGL();
+		SetError(error_SW_comm_timeout);
 	}
 
-    if (p_transfer_data->num_bytes == sizeof(CANMessage))
+    if (p_transfer_data->num_bytes == sizeof(USB_CAN_message))
 	{
 		/* Save the received data to the user_bulk_adi_loopback_data.cmd structure,
 		   and call user_bulk_adi_loopback_cmd_received once the data has been received. */
@@ -557,31 +237,36 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 
     USB_CAN_message* usbCMDmsg = (USB_CAN_message *)&user_bulk_adi_loopback_buffer;
     USB_msg usbResp;
-
-    cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "-->0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X) ",
-    		usbCMDmsg->id, usbCMDmsg->data[0], usbCMDmsg->data[1], usbCMDmsg->data[2], usbCMDmsg->data[3], usbCMDmsg->data[4],
-			usbCMDmsg->data[5], usbCMDmsg->data[6], usbCMDmsg->data[7]);
+    if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
+    {
+		cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "-->0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X) ",
+				usbCMDmsg->id, usbCMDmsg->data[0], usbCMDmsg->data[1], usbCMDmsg->data[2], usbCMDmsg->data[3], usbCMDmsg->data[4],
+				usbCMDmsg->data[5], usbCMDmsg->data[6], usbCMDmsg->data[7]);
+    }
     USB_ReadCommand(usbCMDmsg, &usbResp);
-    if (usbResp.CAN.id != msgID_transmitRaw)
+    if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
     {
-    	cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X)",
-    			usbResp.CAN.id, usbResp.CAN.data[0], usbResp.CAN.data[1], usbResp.CAN.data[2], usbResp.CAN.data[3], usbResp.CAN.data[4],
-				usbResp.CAN.data[5], usbResp.CAN.data[6], usbResp.CAN.data[7]);
+		if (usbResp.CAN.id != msgID_transmitRaw)
+		{
+			cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X)",
+					usbResp.CAN.id, usbResp.CAN.data[0], usbResp.CAN.data[1], usbResp.CAN.data[2], usbResp.CAN.data[3], usbResp.CAN.data[4],
+					usbResp.CAN.data[5], usbResp.CAN.data[6], usbResp.CAN.data[7]);
+		}
+		else
+		{
+			cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X ", usbResp.CAN.id);
+		}
     }
-    else
-    {
-    	cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X ", usbResp.CAN.id);
-    }
-
 	/* return message callback*/
 	transfer_params.num_bytes = (usbResp.CAN.id != msgID_transmitRaw)?sizeof(USB_raw_message):sizeof(USB_CAN_message);
 	transfer_params.p_data_buffer = (unsigned char*)&usbResp;
 	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.transfer_timeout_ms = 1000;
 	cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
-
-  	cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "\n\r");
-
+	if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
+	{
+		cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "\n\r");
+	}
     return CLD_USB_DATA_GOOD;
 }
 
@@ -597,7 +282,8 @@ Returns:        None.
 ==============================================================================*/
 static void user_bulk_adi_loopback_device_transfer_error (void)
 {
-	cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "CLD Bulk Device transfer error (aborted)!\n\r");
+	if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
+		cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "CLD Bulk Device transfer error (aborted)!\n\r");
 //    user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE;
 }
 
@@ -616,9 +302,10 @@ static void user_bulk_adi_loopback_bulk_in_transfer_complete (void)
 	 * Cette routine est utile avec la vieille comm... Autrement on n'a rien a faire
 	 * a la fin du transfert de donnees vers l'hote
 	 */
+	//todo: remove!
 	if (numPending)
 	{
-    	Lidar_ReleaseDataToFifo(numPending);  // incremente la tail du fifo de numPending...
+    	ADAL_ReleaseDataToFifo(numPending);  // incremente la tail du fifo de numPending...
     	numPending = 0;
 	}
 }

@@ -11,10 +11,10 @@
 #include <ADSP-BF707_device.h>
 #include <drivers\spi\adi_spi.h>
 
-#include "Flash/flash_params.h"
+//#include "Flash/flash_params.h"
 #include "demo_app.h"
-#include "Lidar_adal6110_16.h"
-#include "Communications/user_bulk.h"
+#include "adal6110_16.h"
+//#include "Communications/user_bulk.h"
 #include "Communications/USB_cmd.h"
 #include "post_debug.h"
 
@@ -56,7 +56,7 @@ uint16_t Lidar_POR_Values[][2] =
 
 uint16_t Lidar_InitValues[][2] =
 {
-    
+
     {Control0Address , 0x1F80},
     {Control1Address , 0x8040},
     //{DataControlAddress , },
@@ -129,12 +129,10 @@ uint16_t Lidar_InitValues[][2] =
     //{SRAM_DATA , }*/
 	{Control0Address , 0x1F81},
 	{Control0Address , 0x1F82},
-
 };
 
 uint16_t Lidar_DefaultValues[][2] =
 {
-    
     {Control0Address , 0x1F80},
     {Control1Address , 0x8040},
     //{DataControlAddress , },
@@ -209,7 +207,6 @@ uint16_t Lidar_DefaultValues[][2] =
 	{Control0Address , 0x1F82}
 };
 
-
 int aChIdxADI[16] = {
   0,
   1,
@@ -272,7 +269,7 @@ static void ClearSram(void);
  *  @param uint16 _data: data to send
  *
  */
-void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
+void ADAL_WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
 {
 	uint8_t ProBuffer1[4];
 
@@ -293,7 +290,7 @@ void WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
  *  @param uint16 *_dataPtr: pointer to the receive data buffer
  *
  */
-void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
+void ADAL_ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
 {
 	uint8_t ProBuffer1[2];
 	uint8_t RxBuffer1[2];
@@ -319,7 +316,7 @@ void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data)
  *  Suffucient space should be made for all the data in the block *_dataPtr
  *
  */
-void ReadDataFromSPI(uint16_t * pData, int num)
+void ADAL_ReadDataFromSPI(uint16_t * pData, int num)
 {
 	//TO CHANGE METHOD TO USE SRAMREADOUTADDR
 	uint8_t ProBuffer1[2] = {0xF8, 0x87}; //{LSB, MSB}
@@ -412,18 +409,18 @@ void ResetADI(void) {
 	uint32_t i = 600000; // 1.5ms @ 400mhz
 
 	//READ Control0Address
-	ReadParamFromSPI(Control0Address, &reg);
+	ADAL_ReadParamFromSPI(Control0Address, &reg);
 
 	//CLEAR BIT 0
 	reg &= 0xFFFE;
-	WriteParamToSPI(Control0Address, reg);
+	ADAL_WriteParamToSPI(Control0Address, reg);
 
 	while(i--){
 	}
 
 	//SET Bit 0
 	reg |= 0x0001;
-	WriteParamToSPI(Control0Address, reg);
+	ADAL_WriteParamToSPI(Control0Address, reg);
 	i = 600000;
 
 	while(i--){
@@ -443,7 +440,7 @@ void ResetADI(void) {
 /**
  * @brief initialize SPI port for ADI communication
  */
-void Lidar_InitADI(void) {
+void ADAL_InitADI(void) {
     int i;
     uint16_t dataToBeRead = 0;
     uint32_t waitTimer = 80000; //wait 200us @ 400mhz
@@ -523,112 +520,112 @@ void Lidar_InitADI(void) {
 
 	for (i=0; i<num; i++)
 	{
-		WriteParamToSPI(Lidar_POR_Values[i][0], Lidar_POR_Values[i][1]);
+		ADAL_WriteParamToSPI(Lidar_POR_Values[i][0], Lidar_POR_Values[i][1]);
 		//ReadParamFromSPI(Lidar_POR_Values[i][0], &dataToBeRead);
 	}
 
-	WriteParamToSPI(CH0ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH1ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH2ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH3ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH4ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH5ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH6ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH7ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH8ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH9ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH10ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH11ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH12ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH13ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH14ControlReg0Address, 0x003F);
-	WriteParamToSPI(CH15ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH0ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH1ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH2ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH3ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH4ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH5ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH6ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH7ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH8ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH9ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH10ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH11ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH12ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH13ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH14ControlReg0Address, 0x003F);
+	ADAL_WriteParamToSPI(CH15ControlReg0Address, 0x003F);
 
   	dataToBeRead = 0;
 
   	while(!dataToBeRead) { // Wait until bit 4 of register 0x92 is set
-  		ReadParamFromSPI(146, &dataToBeRead);
+  		ADAL_ReadParamFromSPI(146, &dataToBeRead);
   		if (dataToBeRead == 0xffff){
   			dataToBeRead = 0;
   		}
   		dataToBeRead = dataToBeRead & 8;
   	}
 
-	WriteParamToSPI(LFSRSEEDL, 0x9190);
-	WriteParamToSPI(LFSRSEEDH, 0x0001);
-	WriteParamToSPI(Control0Address, 0x1F80); // 8 accum = 0x0400, 16 accum = 0x0800 // 64 accum = 0x1F80 (ne pas dépasser)
-	WriteParamToSPI(Control1Address, 0x8040);
-	WriteParamToSPI(TriggerOutAddress, 0x1021); //2ns: 0x8021, 4ns: 0x1021
-	WriteParamToSPI(DataAcqMode, 0x0001); //2ns: 0x0000,  4ns :0x0001
-	WriteParamToSPI(DelayBetweenFlashesAddress, 0x4000); //0x4000 (1 frame period = 13.08 ms, 76.45 Hz MAX, measured with scope and FRAMEDELAY to minimum)
+	ADAL_WriteParamToSPI(LFSRSEEDL, 0x9190);
+	ADAL_WriteParamToSPI(LFSRSEEDH, 0x0001);
+	ADAL_WriteParamToSPI(Control0Address, 0x1F80); // 8 accum = 0x0400, 16 accum = 0x0800 // 64 accum = 0x1F80 (ne pas dépasser)
+	ADAL_WriteParamToSPI(Control1Address, 0x8040);
+	ADAL_WriteParamToSPI(TriggerOutAddress, 0x1021); //2ns: 0x8021, 4ns: 0x1021
+	ADAL_WriteParamToSPI(DataAcqMode, 0x0001); //2ns: 0x0000,  4ns :0x0001
+	ADAL_WriteParamToSPI(DelayBetweenFlashesAddress, 0x4000); //0x4000 (1 frame period = 13.08 ms, 76.45 Hz MAX, measured with scope and FRAMEDELAY to minimum)
 
-	WriteParamToSPI(CH0ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH1ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH2ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH3ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH4ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH5ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH6ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH7ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH8ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH9ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH10ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH11ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH12ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH13ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH14ControlReg0Address, 0x3C3F);
-	WriteParamToSPI(CH15ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH0ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH1ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH2ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH3ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH4ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH5ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH6ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH7ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH8ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH9ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH10ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH11ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH12ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH13ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH14ControlReg0Address, 0x3C3F);
+	ADAL_WriteParamToSPI(CH15ControlReg0Address, 0x3C3F);
 
-	WriteParamToSPI(CH0ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH1ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH2ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH3ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH4ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH5ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH6ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH7ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH8ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH9ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH10ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH11ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH12ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH13ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH14ControlReg1Address, 0x0180);
-	WriteParamToSPI(CH15ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH0ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH1ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH2ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH3ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH4ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH5ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH6ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH7ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH8ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH9ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH10ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH11ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH12ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH13ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH14ControlReg1Address, 0x0180);
+	ADAL_WriteParamToSPI(CH15ControlReg1Address, 0x0180);
 
-  	WriteParamToSPI(CH0ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH1ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH2ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH3ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH4ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH5ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH6ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH7ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH8ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH9ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH10ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH11ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH12ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH13ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH14ControlReg2Address, 0x00FF);
-  	WriteParamToSPI(CH15ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH0ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH1ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH2ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH3ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH4ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH5ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH6ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH7ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH8ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH9ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH10ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH11ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH12ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH13ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH14ControlReg2Address, 0x00FF);
+  	ADAL_WriteParamToSPI(CH15ControlReg2Address, 0x00FF);
 
-  	WriteParamToSPI(FRAMEDELAY, 0x8000); // Slow it down to max (3.86 ms gordon frame period with 64 accumulation)
-  	WriteParamToSPI(AGCDCBCTRL, 0x0014); // Default: 0x0104, Enable AGC to change anything: 0x0115
+  	ADAL_WriteParamToSPI(FRAMEDELAY, 0x8000); // Slow it down to max (3.86 ms gordon frame period with 64 accumulation)
+  	ADAL_WriteParamToSPI(AGCDCBCTRL, 0x0014); // Default: 0x0104, Enable AGC to change anything: 0x0115
 
-  	WriteParamToSPI(185, 0);
-  	WriteParamToSPI(77, 0xC23F);
-  	WriteParamToSPI(86, 0x823F);
-  	WriteParamToSPI(ChannelEnableAddress, 0xFFFF);
-  	WriteParamToSPI(AGCEN, 0x0000);
-  	WriteParamToSPI(DCEN, 0xFFFF);
-  	WriteParamToSPI(185, 1);
+  	ADAL_WriteParamToSPI(185, 0);
+  	ADAL_WriteParamToSPI(77, 0xC23F);
+  	ADAL_WriteParamToSPI(86, 0x823F);
+  	ADAL_WriteParamToSPI(ChannelEnableAddress, 0xFFFF);
+  	ADAL_WriteParamToSPI(AGCEN, 0x0000);
+  	ADAL_WriteParamToSPI(DCEN, 0xFFFF);
+  	ADAL_WriteParamToSPI(185, 1);
 
   	while(waitTimer--){ // Wait 200 us
   	}
 
-  	WriteParamToSPI(Control0Address, 0x1F81); // Set system ready to 1
-  	WriteParamToSPI(Control0Address, 0x1F82); // Set system ready to 1
+  	ADAL_WriteParamToSPI(Control0Address, 0x1F81); // Set system ready to 1
+  	ADAL_WriteParamToSPI(Control0Address, 0x1F82); // Set system ready to 1
 
 
   	//Apply last used config from flash
@@ -652,35 +649,6 @@ void Lidar_InitADI(void) {
 }
 
 
-int SaveConfigToFlash(int idx)
-{
-	if (idx == 0)
-	{
-		int num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
-		int i;
-		for (i = 0; i < num; i++)
-		{
-			ReadParamFromSPI(Lidar_InitValues[i][0], &Lidar_InitValues[i][1]);
-		}
-
-		return Flash_SaveConfig(idx, &Lidar_InitValues[0][0], num);
-	}
-	return(0);
-}
-
-void LoadDefaultConfig(int idx)
-{
-	if (idx == 0)
-	{
-		int num = sizeof(Lidar_DefaultValues) / sizeof(Lidar_DefaultValues[0]);
-		int i;
-		for (i = 0; i < num; i++)
-		{
-			WriteParamToSPI(Lidar_DefaultValues[i][0], Lidar_DefaultValues[i][1]);
-		}
-	}
-}
-
 void ForceGetADIData(uint16_t bankNum, uint16_t * pData) {
 	//1. Poll the Bank_Status register (Address 0xF6) until
 	//   register reads 0x1 or 0x2. This means data is ready at
@@ -688,26 +656,26 @@ void ForceGetADIData(uint16_t bankNum, uint16_t * pData) {
 	// N/A
 
 	//2. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x1
-	//WriteParamToSPI(UndocumentedF1Address, 0x01B0 | 0x0002);
+	//ADAL_WriteParamToSPI(UndocumentedF1Address, 0x01B0 | 0x0002);
 
 	//3. Immediately write to the corresponding bit in the
 	//   SRAM_READ register bit 0 for bank0 and bit 1 for
 	//   bank1 (Address 0x3). This will tell the AFE you intend
 	//   to transfer that data.
-	WriteParamToSPI(DataControlAddress, bankNum);
+	ADAL_WriteParamToSPI(DataControlAddress, bankNum);
 
 	//4. Read 1600 words from the SRAM by performing the
 	//   SRAM Read operation which is detailed in the figure
 	//   below. The SPI FSM will be locked into operation until
 	//   all 1600 words are read.
-	ReadDataFromSPI(pData, FRAME_NUM_PTS);
+	ADAL_ReadDataFromSPI(pData, FRAME_NUM_PTS);
 
 	//5. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x0
 	//WriteParamToSPI(UndocumentedF1Address, 0x01B0);
 
 	//6. Write 0x0 to the SRAM_READ register (Address 0x3)
 	//   to disengage the transfer intent.
-	WriteParamToSPI(DataControlAddress, 0x0000);
+	ADAL_WriteParamToSPI(DataControlAddress, 0x0000);
 }
 
 /**
@@ -726,11 +694,11 @@ static void ClearSram(void) {
  * @brief Retreive the data from the ADI device
  */
 
-void Lidar_GetADIData(uint16_t *pBank, uint16_t * pData) {
+void ADAL_GetADIData(uint16_t *pBank, uint16_t * pData) {
 	uint16_t bankStatus = 0;
 
 	*pBank = 0;
-	ReadParamFromSPI(SRAM_READY, &bankStatus);
+	ADAL_ReadParamFromSPI(SRAM_READY, &bankStatus);
 	if (bankStatus)
 	{
 		//1. Poll the Bank_Status register (Address 0xF6) until
@@ -739,26 +707,26 @@ void Lidar_GetADIData(uint16_t *pBank, uint16_t * pData) {
 		*pBank = bankStatus;
 
 		//2. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x1
-		//WriteParamToSPI(UndocumentedF1Address, 0x01B0 | 0x0002);
+		//ADAL_WriteParamToSPI(UndocumentedF1Address, 0x01B0 | 0x0002);
 
         //3. Immediately write to the corresponding bit in the
 		//   SRAM_READ register bit 0 for bank0 and bit 1 for
 		//   bank1 (Address 0x3). This will tell the AFE you intend
 		//   to transfer that data.
-		WriteParamToSPI(DataControlAddress, bankStatus);
+		ADAL_WriteParamToSPI(DataControlAddress, bankStatus);
 
 		//4. Read 1600 words from the SRAM by performing the
 		//   SRAM Read operation which is detailed in the figure
 		//   below. The SPI FSM will be locked into operation until
 		//   all 1600 words are read.
-		ReadDataFromSPI(pData, FRAME_NUM_PTS);
+		ADAL_ReadDataFromSPI(pData, FRAME_NUM_PTS);
 
 		//5. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x0
 		//WriteParamToSPI(UndocumentedF1Address, 0x01B0);
 
 		//6. Write 0x0 to the SRAM_READ register (Address 0x3)
 		//   to disengage the transfer intent.
-		WriteParamToSPI(DataControlAddress, 0x0000);
+		ADAL_WriteParamToSPI(DataControlAddress, 0x0000);
 	}
 }
 
@@ -775,7 +743,7 @@ void GetADIData_Start(uint16_t *pBank, uint16_t * pData) {
 
 	*pBank = 0;
 
-	ReadParamFromSPI(SRAM_READY, &bankStatus);
+	ADAL_ReadParamFromSPI(SRAM_READY, &bankStatus);
 	if (bankStatus)
 	{
 		//1. Poll the Bank_Status register (Address 0xF6) until
@@ -784,13 +752,13 @@ void GetADIData_Start(uint16_t *pBank, uint16_t * pData) {
 		*pBank = bankStatus;
 
 		//2. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x1
-		//WriteParamToSPI(UndocumentedF1Address, 0x01B0 | 0x0002);
+		//ADAL_WriteParamToSPI(UndocumentedF1Address, 0x01B0 | 0x0002);
 
         //3. Immediately write to the corresponding bit in the
 		//   SRAM_READ register bit 0 for bank0 and bit 1 for
 		//   bank1 (Address 0x3). This will tell the AFE you intend
 		//   to transfer that data.
-		WriteParamToSPI(DataControlAddress, bankStatus);
+		ADAL_WriteParamToSPI(DataControlAddress, bankStatus);
 
 		//4. Read 1600 words from the SRAM by performing the
 		//   SRAM Read operation which is detailed in the figure
@@ -816,90 +784,90 @@ void GetADIData_Stop(void)
 #endif //USE_DMA
 
 	//5. (TC1 ONLY) Write bit[1] of register address 0xF1 to 0x0
-	//WriteParamToSPI(UndocumentedF1Address, 0x01B0);
+	//ADAL_WriteParamToSPI(UndocumentedF1Address, 0x01B0);
 
 	//6. Write 0x0 to the SRAM_READ register (Address 0x3)
 	//   to disengage the transfer intent.
-	WriteParamToSPI(DataControlAddress, 0x0000);
+	ADAL_WriteParamToSPI(DataControlAddress, 0x0000);
 }
 
-void Lidar_Trig(void)
+void ADAL_Trig(void)
 {
 	uint16_t data;
 
-	ReadParamFromSPI(Control1Address, &data);
+	ADAL_ReadParamFromSPI(Control1Address, &data);
 
-	WriteParamToSPI(Control1Address, data | 0x4000);
+	ADAL_WriteParamToSPI(Control1Address, data | 0x4000);
 }
 
-void Lidar_SPITriggerMode(void)
+void ADAL_SPITriggerMode(void)
 {
 	uint16_t data;
 
-	ReadParamFromSPI(Control1Address, &data);
+	ADAL_ReadParamFromSPI(Control1Address, &data);
 
-	WriteParamToSPI(Control1Address, (data & ~0x4000) & ~0x8000);
+	ADAL_WriteParamToSPI(Control1Address, (data & ~0x4000) & ~0x8000);
 }
 
-void Lidar_FreerunMode(void)
+void ADAL_FreerunMode(void)
 {
 	uint16_t data;
 
-	ReadParamFromSPI(Control1Address, &data);
+	ADAL_ReadParamFromSPI(Control1Address, &data);
 
-	WriteParamToSPI(Control1Address, (data & ~0x4000) | 0x8000);
+	ADAL_WriteParamToSPI(Control1Address, (data & ~0x4000) | 0x8000);
 }
 
-void Lidar_ChannelEnable(int ch, int enable)
+void ADAL_ChannelEnable(int ch, int enable)
 {
 	uint16_t data;
 
-	ReadParamFromSPI(ChannelEnableAddress, &data);
+	ADAL_ReadParamFromSPI(ChannelEnableAddress, &data);
 
 	if (enable)
 		data |=  (1 << ch);
 	else
 		data &= ~(1 << ch);
 
-    WriteParamToSPI(ChannelEnableAddress, data);
+    ADAL_WriteParamToSPI(ChannelEnableAddress, data);
 }
 
-void Lidar_ChannelTIAFeedback(int ch, uint16_t feedback)
+void ADAL_ChannelTIAFeedback(int ch, uint16_t feedback)
 {
 	uint16_t data;
 	uint16_t temp = 0;
 
-	ReadParamFromSPI(CH0ControlReg1Address + ch * 4, &data);
+	ADAL_ReadParamFromSPI(CH0ControlReg1Address + ch * 4, &data);
 
 	data &= ~0x00FF;
 	temp = (uint8_t) feedback;
 	data |= temp;
 
-    WriteParamToSPI(CH0ControlReg1Address + ch * 4, data);
+    ADAL_WriteParamToSPI(CH0ControlReg1Address + ch * 4, data);
 }
 
-void Lidar_ChannelDCBal(int ch, uint16_t bal)
+void ADAL_ChannelDCBal(int ch, uint16_t bal)
 {
 	uint16_t data;
 
-	ReadParamFromSPI(CH0ControlReg2Address + ch * 4, &data);
+	ADAL_ReadParamFromSPI(CH0ControlReg2Address + ch * 4, &data);
 
 	data &= ~0x01FF;
 	data |= bal;
 
-    WriteParamToSPI(CH0ControlReg2Address + ch * 4, data);
+    ADAL_WriteParamToSPI(CH0ControlReg2Address + ch * 4, data);
 }
 
-void Lidar_FlashGain(uint16_t flashGain)
+void ADAL_FlashGain(uint16_t flashGain)
 {
 	uint16_t data;
 
-	ReadParamFromSPI(Control0Address, &data);
+	ADAL_ReadParamFromSPI(Control0Address, &data);
 
 	data &= ~0xFF10;
 	data |= (flashGain << 7) & 0xFF10;
 
-    WriteParamToSPI(Control0Address, data);
+    ADAL_WriteParamToSPI(Control0Address, data);
 }
 
 
@@ -992,7 +960,7 @@ volatile int iFifoTail = 0;
 
 static tDataFifo dataFifo[NUM_FIFO];
 
-void Lidar_Acq(uint16_t *pBank)
+void ADAL_Acq(uint16_t *pBank)
 {
 	*pBank = 0;
 	int numDet =0;
@@ -1046,7 +1014,7 @@ void Lidar_Acq(uint16_t *pBank)
 	}
 }
 
-void Lidar_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo)
+void ADAL_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo)
 {
 	if (iFifoHead != iFifoTail)
 	{
@@ -1064,18 +1032,18 @@ void Lidar_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo)
 	}
 }
 
-void Lidar_ReleaseDataToFifo(uint16_t numFifo)
+void ADAL_ReleaseDataToFifo(uint16_t numFifo)
 {
 	iFifoTail = (iFifoTail + numFifo) & NUM_FIFO_MASK;
 }
 
-void Lidar_Reset(void)
+void ADAL_Reset(void)
 {
 	//TODO: new comm...
     //user_CANFifoReset();
 
     //TODO DEBUG why it reboot the cpu
-	//Lidar_InitADI();
+	//ADAL_InitADI();
 
 	iFifoHead = 0;
 	iFifoTail = 0;

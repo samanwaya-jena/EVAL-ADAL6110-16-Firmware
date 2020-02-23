@@ -10,13 +10,14 @@
 #include <cdefBF70x_rom.h>
 //#include <ADSP-BF707_device.h>
 
-#include "Lidar_adal6110_16.h"
 #include "Communications/user_bulk.h"
 #include "Communications/USB_cmd.h"
 #include "Communications/cld_bf70x_bulk_lib.h"
 #include "flash/flash_params.h"
 #include "PWR_Freq_Mode.h"
 #include "demo_app.h"
+
+#include "adal6110_16.h"
 #include "parameters.h"
 
 #define USE_USB
@@ -79,7 +80,7 @@ int main(int argc, char *argv[])
 #else //USE_USB
                 {
                    	uint16_t banknum = 0;
-					Lidar_Acq(&banknum);
+					ADAL_Acq(&banknum);
                 }
 #endif //USE_USB
             break;
@@ -104,7 +105,7 @@ void InitApp()
 	if(adi_initComponents()) main_state = MAIN_STATE_ERROR;
 	if(!power_init()) main_state = MAIN_STATE_ERROR;
 	if(Flash_Init()) main_state = MAIN_STATE_ERROR;
-	Lidar_InitADI();
+	ADAL_InitADI();
 
 	if (main_state == MAIN_STATE_SYSTEM_INIT)
 	{
@@ -114,7 +115,6 @@ void InitApp()
 		LASER_PULSE2_ENABLE();
 	}
 }
-extern int gLogData;
 
 void DoMainStateRun()
 {
@@ -141,7 +141,7 @@ void DoMainStateRun()
 		USB_pushStatus();
 	}
 	// every second, log how many data has been logged
-	if ((gLogData & 1) && (cld_time_passed_ms(log_time) >= 1000u))
+	if ((LiDARParameters[param_console_log] & 1) && (cld_time_passed_ms(log_time) >= 1000u))
 	{
 		log_time = cld_time_get();
 		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (bank 1:%d / bank 2:%d / unknown:%d) USB %d (OK:%d, Empty:%d)\r\n",
@@ -157,7 +157,7 @@ void DoMainStateRun()
 	 * Lidar operations
 	 */
 	uint16_t banknum = 0;
-	Lidar_Acq(&banknum);
+	ADAL_Acq(&banknum);
 	if (!banknum)
 		ProcessReadWriteFifo();
 

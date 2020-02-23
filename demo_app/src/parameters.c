@@ -7,9 +7,17 @@
 
 #include <stdint.h>
 #include "parameters.h"
-#include "Lidar_adal6110_16.h"
+
+#include "adal6110_16.h"
 #include "Communications/USB_cmd.h"
 #include "Flash/flash_params.h"
+
+
+int SaveConfigToFlash(int idx);
+
+
+uint16_t LiDARParameters[number_of_param]; // value of all functional parameters
+uint8_t  LiDARParamDir[number_of_param];   // 0 = read only, 1 = read/write
 
 
 //
@@ -79,7 +87,7 @@ int ProcessReadWriteFifo(void)
 				//Lidar_Reset();
 				break;
 			case 0x4000:
-				Lidar_Reset();
+				ADAL_Reset();
 				break;
 			case 0x4001:
 				//Lidar_Reset();
@@ -92,7 +100,7 @@ int ProcessReadWriteFifo(void)
 				//Lidar_Reset();
 				break;
 			default:
-				WriteParamToSPI(addr, data);
+				ADAL_WriteParamToSPI(addr, data);
 				break;
 			}
 		}
@@ -105,7 +113,7 @@ int ProcessReadWriteFifo(void)
 			case 0x4001:
 				break;
 			default:
-				ReadParamFromSPI(addr, &data);
+				ADAL_ReadParamFromSPI(addr, &data);
 				break;
 			}
 			USB_pushParameter(addr,data,type);
@@ -116,4 +124,32 @@ int ProcessReadWriteFifo(void)
 	return 0;
 }
 
+void LoadDefaultConfig(int idx)
+{
+	if (idx == 0)
+	{
+		int num = 61;//sizeof(Lidar_DefaultValues) / sizeof(Lidar_DefaultValues[0]);
+		int i;
+		for (i = 0; i < num; i++)
+		{
+			ADAL_WriteParamToSPI(Lidar_DefaultValues[i][0], Lidar_DefaultValues[i][1]);
+		}
+	}
+}
 
+
+int SaveConfigToFlash(int idx)
+{
+	if (idx == 0)
+	{
+		int num = 61;//sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
+		int i;
+		for (i = 0; i < num; i++)
+		{
+			ADAL_ReadParamFromSPI(Lidar_InitValues[i][0], &Lidar_InitValues[i][1]);
+		}
+
+		return Flash_SaveConfig(idx, &Lidar_InitValues[0][0], num);
+	}
+	return(0);
+}
