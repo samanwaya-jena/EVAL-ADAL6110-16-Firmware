@@ -19,6 +19,7 @@
 #include "Msg_queue.h"
 
 #include "../Lidar_adal6110_16.h"
+#include "../parameters.h"
 
 
 uint32_t GetTime(void);

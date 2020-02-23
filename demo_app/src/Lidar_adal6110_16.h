@@ -129,9 +129,6 @@ void Lidar_Reset(void);
 void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
 void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
-int Lidar_ReadFifoPush(uint16_t _startAddress);
-int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data);
-
 void LoadDefaultConfig(int idx);
 
 extern int gAcq;

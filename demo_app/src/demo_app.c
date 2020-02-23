@@ -17,6 +17,7 @@
 #include "flash/flash_params.h"
 #include "PWR_Freq_Mode.h"
 #include "demo_app.h"
+#include "parameters.h"
 
 #define USE_USB
 
@@ -157,6 +158,8 @@ void DoMainStateRun()
 	 */
 	uint16_t banknum = 0;
 	Lidar_Acq(&banknum);
+	if (!banknum)
+		ProcessReadWriteFifo();
 
 	if (banknum)
 	{
