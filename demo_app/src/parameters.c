@@ -118,6 +118,8 @@ void param_InitValues(void)
 {
 	int i,num;
 
+	//todo: implement: load from flash if flash empty, read from default
+
 	memcpy((char*)LiDARParamDir,(char*)param_dir_values,sizeof(LiDARParamDir));
 	memcpy((char*)LiDARParameters,(char*)param_default,sizeof(LiDARParameters));
 
@@ -255,7 +257,7 @@ int param_ProcessReadWriteFifo(void)
 				break;
 			}
 		}
-		else
+		else // read
 		{
 			if(addr & RW_INTERNAL_MASK)
 			{
@@ -265,8 +267,8 @@ int param_ProcessReadWriteFifo(void)
 
 			USB_pushParameter(addr,data,type);
 		}
+		iReadWriteFifoTail = (iReadWriteFifoTail + 1) & READWRITEFIFO_MASK;
 	}
-	iReadWriteFifoTail = (iReadWriteFifoTail + 1) & READWRITEFIFO_MASK;
 
 	return 0;
 }

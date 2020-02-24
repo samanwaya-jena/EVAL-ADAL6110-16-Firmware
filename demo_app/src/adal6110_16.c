@@ -900,10 +900,7 @@ void ADAL_ReleaseDataToFifo(uint16_t numFifo)
 
 void ADAL_Reset(void)
 {
-	//TODO: new comm...
-    //user_CANFifoReset();
-
-    //TODO DEBUG why it reboot the cpu
+	//TODO DEBUG why it reboot the cpu
 	//ADAL_InitADI();
 
 	iFifoHead = 0;
@@ -912,7 +909,6 @@ void ADAL_Reset(void)
 	BankInTransfer = 0;
 
 	frame_ID = 0;
-
 }
 
 

@@ -135,10 +135,7 @@ User_Bulk_Init_Return_Code user_bulk_init (void)
 
     if (cld_rv == CLD_SUCCESS)
     {
-    	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\nFirmware version: %02d.%03d\n\r",
-    	    		FIRMWARE_MAJOR_REV, FIRMWARE_MINOR_REV );
         cld_lib_usb_connect();
-
         return USER_BULK_INIT_SUCCESS;
     }
     else if(cld_rv == CLD_FAIL )
@@ -237,13 +234,18 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 
     USB_CAN_message* usbCMDmsg = (USB_CAN_message *)&user_bulk_adi_loopback_buffer;
     USB_msg usbResp;
-    if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
+
+    LED_BC3G_ON();
+    if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB )
     {
 		cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "-->0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X) ",
 				usbCMDmsg->id, usbCMDmsg->data[0], usbCMDmsg->data[1], usbCMDmsg->data[2], usbCMDmsg->data[3], usbCMDmsg->data[4],
 				usbCMDmsg->data[5], usbCMDmsg->data[6], usbCMDmsg->data[7]);
-    }
+    }else
+    	cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, ".");
+
     USB_ReadCommand(usbCMDmsg, &usbResp);
+
     if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
     {
 		if (usbResp.CAN.id != msgID_transmitRaw)
@@ -257,6 +259,7 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 			cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X ", usbResp.CAN.id);
 		}
     }
+
 	/* return message callback*/
 	transfer_params.num_bytes = (usbResp.CAN.id != msgID_transmitRaw)?sizeof(USB_raw_message):sizeof(USB_CAN_message);
 	transfer_params.p_data_buffer = (unsigned char*)&usbResp;
@@ -303,11 +306,11 @@ static void user_bulk_adi_loopback_bulk_in_transfer_complete (void)
 	 * a la fin du transfert de donnees vers l'hote
 	 */
 	//todo: remove!
-	if (numPending)
-	{
-    	ADAL_ReleaseDataToFifo(numPending);  // incremente la tail du fifo de numPending...
-    	numPending = 0;
-	}
+	//if (numPending)
+	//{
+    //	ADAL_ReleaseDataToFifo(numPending);  // incremente la tail du fifo de numPending...
+    //	numPending = 0;
+	//}
 }
 
 /*=============================================================================
@@ -350,10 +353,10 @@ static void user_bulk_usb_event (CLD_USB_Event event)
 //            user_bulk_adi_loopback_data.state = ADI_BULK_LOOPBACK_DEVICE_STATE_IDLE;
         	break;
         case CLD_USB_BUS_SUSPEND:
-            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Suspend\n\r");
+            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Suspended\n\r");
             break;
         case CLD_USB_BUS_RESUME:
-            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Resume\n\r");
+            cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "CLD Bulk Device Resumed\n\r");
             break;
     }
 }

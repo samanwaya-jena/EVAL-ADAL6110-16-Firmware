@@ -13,7 +13,7 @@
 #include "Communications/user_bulk.h"
 #include "Communications/USB_cmd.h"
 #include "Communications/cld_bf70x_bulk_lib.h"
-//#include "flash/flash_params.h"
+#include "flash/flash_params.h"
 #include "PWR_Freq_Mode.h"
 #include "demo_app.h"
 
@@ -124,25 +124,24 @@ void DoMainStateRun()
     #define M_SECONDS(x)    (x%1000)
 
 	static CLD_Time log_time = 0;
+	static CLD_Time watchTime  = 0;
 
     static int iAcqNum = 0;
     static int iAcqNum1 = 0;
     static int iAcqNum2 = 0;
     static int iAcqNumX = 0;
-	static CLD_Time watchTime  = 0;
-	const  CLD_Time watchDelay = 500;
 
 	/*
 	 * Status validation and board behavior
 	 */
-	if (cld_time_passed_ms(watchTime) >= watchDelay)
+	if (cld_time_passed_ms(watchTime) >= LiDARParameters[param_status_period])//watchDelay)
 	{
 		watchTime = cld_time_get();
 		LED_BC2G_TGL();
 		USB_pushStatus();
 	}
 	// every second, log how many data has been logged
-	if ((LiDARParameters[param_console_log] & 1) && (cld_time_passed_ms(log_time) >= 1000u))
+	if ((LiDARParameters[param_console_log] & CONSOLE_MASK_LOG) && (cld_time_passed_ms(log_time) >= 1000u))
 	{
 		log_time = cld_time_get();
 		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (bank 1:%d / bank 2:%d / unknown:%d) USB %d (OK:%d, Empty:%d)\r\n",
