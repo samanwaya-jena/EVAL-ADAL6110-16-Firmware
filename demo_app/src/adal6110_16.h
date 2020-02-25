@@ -2,17 +2,15 @@
   Copyright 2018 Phantom Intelligence Inc.
 */
 
-#ifndef GUARDIAN_ADI_H_
-#define GUARDIAN_ADI_H_
+#ifndef ADAL6110_H_
+#define ADAL6110_H_
 
 #include "algo.h"
 
 
 #define DATA_NUM_PTS	(DEVICE_NUM_CHANNEL * DEVICE_SAMPLING_LENGTH)
-#define FRAME_NUM_PTS	DATA_NUM_PTS + (DEVICE_NUM_CHANNEL * 5) + 16
-//#define FRAME_NUM_PTS	DATA_NUM_PTS
-#define RW_WRITE_MASK    0x8000
-#define RW_INTERNAL_MASK 0x4000
+#define FRAME_NUM_PTS	DATA_NUM_PTS + (DEVICE_NUM_CHANNEL * 5) + 16  // extra debug data... not sent in rawdata message... Do we need it?
+//#define FRAME_NUM_PTS	DATA_NUM_PTS                                  // original length in frame
 
 typedef struct
 {
@@ -99,42 +97,37 @@ enum ADI_REGISTER_INDEX {
 /**
  * initialize SPI port for ADI communication
  */
-void Lidar_InitADI(void);
+void ADAL_InitADI(void);
 
 /**
  * Retreive the data from the ADI device
  */
-void Lidar_GetADIData(uint16_t *pBank, uint16_t * pData);
+void ADAL_GetADIData(uint16_t *pBank, uint16_t * pData);
 
-void Lidar_ChannelEnable(int ch, int enable);
-void Lidar_ChannelTIAFeedback(int ch, uint16_t feedback);
-void Lidar_ChannelDCBal(int ch, uint16_t bal);
+void ADAL_ChannelEnable(int ch, int enable);
+void ADAL_ChannelTIAFeedback(int ch, uint16_t feedback);
+void ADAL_ChannelDCBal(int ch, uint16_t bal);
 
-void Lidar_Trig(void);
-void Lidar_SPITriggerMode(void);
-void Lidar_FreerunMode(void);
-void Lidar_FlashGain(uint16_t flashGain);
+void ADAL_Trig(void);
+void ADAL_SPITriggerMode(void);
+void ADAL_FreerunMode(void);
+void ADAL_FlashGain(uint16_t flashGain);
 
 /*
  * Acquisition Control
  */
-void Lidar_Acq(uint16_t *pBank);
-void Lidar_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo);
-void Lidar_ReleaseDataToFifo(uint16_t numFifo);
-void Lidar_Reset(void);
+void ADAL_Acq(uint16_t *pBank);
+void ADAL_Reset(void);
+// TODO: remove old communication??
+void ADAL_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo);
+void ADAL_ReleaseDataToFifo(uint16_t numFifo);
 
 /*
- * Private read/write SPI functions
+ * Parameter read/write SPI functions
  */
-void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
-void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
+void ADAL_ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
+void ADAL_WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
-int Lidar_ReadFifoPush(uint16_t _startAddress);
-int Lidar_WriteFifoPush(uint16_t _startAddress, uint16_t data);
-
-void LoadDefaultConfig(int idx);
-
-extern int gAcq;
 
 //
 // Testing counters
@@ -143,4 +136,5 @@ extern int iUSBnum;
 extern int iUSBnumOK;
 extern int iUSBnumEmpty;
 
-#endif /* GUARDIAN_ADI_H_ */
+
+#endif /* ADAL6110_H_ */

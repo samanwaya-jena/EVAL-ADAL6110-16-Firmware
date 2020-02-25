@@ -1,8 +1,8 @@
 /*
-** ADSP-BF707 linker description file generated on May 07, 2019 at 11:31:25.
+** ADSP-BF707 linker description file generated on Sep 26, 2019 at 10:31:47.
 */
 /*
-** Copyright (C) 2000-2018 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2019 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected
 ** in the System Configuration utility. Changes to the LDF configuration
@@ -15,7 +15,7 @@
 ** placed within these sections are preserved when this file is re-generated.
 **
 ** Product      : CrossCore Embedded Studio
-** Tool Version : 6.2.0.1
+** Tool Version : 6.2.1.4
 */
 
 ARCHITECTURE(ADSP-BF707)
@@ -790,24 +790,20 @@ PROCESSOR P0
       /* First input the lists for C++ support that must be mapped
       ** contiguously into memory.
       */
+      L2_user_tables DEF_SECTION_QUAL
+      {
+         INPUT_SECTION_ALIGN(4)
+         FORCE_CONTIGUITY
+      } > MEM_L2_SRAM
+      
       L2_tables DEF_SECTION_QUAL
       {
          INPUT_SECTION_ALIGN(4)
          FORCE_CONTIGUITY
-         
-         /*$VDSG<insert-input-sections-at-the-start-of-L2_tables>  */
-         /* Text inserted between these $VDSG comments will be preserved */
-         /*$VDSG<insert-input-sections-at-the-start-of-L2_tables>  */
-         
          INPUT_SECTIONS( $OBJS_LIBS(ctor) )   /* global C++ constructors list */
          INPUT_SECTIONS( $OBJS_LIBS(ctorl) )  /* NULL terminator for ctor     */
          INPUT_SECTIONS( $OBJS_LIBS(.gdt) )   /* C++ exceptions data          */
          INPUT_SECTIONS( $OBJS_LIBS(.gdtl) )  /* NULL terminator for .gdt     */
-         
-         /*$VDSG<insert-input-sections-at-the-end-of-L2_tables>  */
-         /* Text inserted between these $VDSG comments will be preserved */
-         /*$VDSG<insert-input-sections-at-the-end-of-L2_tables>  */
-         
       } > MEM_L2_SRAM
       
       L2_bsz_prio0 ZERO_INIT
@@ -841,7 +837,6 @@ PROCESSOR P0
          /*$VDSG<input-sections-L2_prio0>                       */
          
          INPUT_SECTIONS( $OBJS_LIBS(L2_sram l2_sram) )
-         EXECUTABLE_NAME(__executable_name)
       } > MEM_L2_SRAM
       
       /* Next use any unused memory for any remaining unmapped inputs. */

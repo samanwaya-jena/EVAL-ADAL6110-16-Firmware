@@ -7,7 +7,7 @@
 
 #include <drivers\spi\adi_spi.h>
 
-#include "../common/flash.h"
+#include "flash.h"
 
 extern ADI_SPI_HANDLE hSpiFlash;
 

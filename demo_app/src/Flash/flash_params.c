@@ -17,13 +17,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "common/flash_errors.h"
-#include "common/flash.h"
 
-//#include "common/spi.h"
-//#include "post_debug.h"
-//#include "timer_isr.h"
-
+#include "flash.h"
+#include "flash_errors.h"
 #include "calc_crc.h"
 
 

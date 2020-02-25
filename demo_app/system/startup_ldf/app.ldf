@@ -1,8 +1,8 @@
 /*
-** ADSP-BF707 linker description file generated on May 03, 2019 at 13:43:52.
+** ADSP-BF707 linker description file generated on Sep 23, 2019 at 13:38:13.
 */
 /*
-** Copyright (C) 2000-2018 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2019 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected
 ** in the System Configuration utility. Changes to the LDF configuration
@@ -15,7 +15,7 @@
 ** placed within these sections are preserved when this file is re-generated.
 **
 ** Product      : CrossCore Embedded Studio
-** Tool Version : 6.2.0.1
+** Tool Version : 6.2.1.4
 */
 
 ARCHITECTURE(ADSP-BF707)
@@ -806,24 +806,20 @@ PROCESSOR P0
       /* First input the lists for C++ support that must be mapped
       ** contiguously into memory.
       */
+      L2_user_tables DEF_SECTION_QUAL
+      {
+         INPUT_SECTION_ALIGN(4)
+         FORCE_CONTIGUITY
+      } > MEM_L2_SRAM
+      
       L2_tables DEF_SECTION_QUAL
       {
          INPUT_SECTION_ALIGN(4)
          FORCE_CONTIGUITY
-         
-         /*$VDSG<insert-input-sections-at-the-start-of-L2_tables>  */
-         /* Text inserted between these $VDSG comments will be preserved */
-         /*$VDSG<insert-input-sections-at-the-start-of-L2_tables>  */
-         
          INPUT_SECTIONS( $OBJS_LIBS(ctor) )   /* global C++ constructors list */
          INPUT_SECTIONS( $OBJS_LIBS(ctorl) )  /* NULL terminator for ctor     */
          INPUT_SECTIONS( $OBJS_LIBS(.gdt) )   /* C++ exceptions data          */
          INPUT_SECTIONS( $OBJS_LIBS(.gdtl) )  /* NULL terminator for .gdt     */
-         
-         /*$VDSG<insert-input-sections-at-the-end-of-L2_tables>  */
-         /* Text inserted between these $VDSG comments will be preserved */
-         /*$VDSG<insert-input-sections-at-the-end-of-L2_tables>  */
-         
       } > MEM_L2_SRAM
       
       L2_bsz_prio0 ZERO_INIT
@@ -1009,7 +1005,6 @@ PROCESSOR P0
          INPUT_SECTION_ALIGN(4)
          INPUT_SECTIONS( $OBJS_LIBS(dmc_bank0 sdram_bank0 sdram0_bank0) )
          INPUT_SECTIONS( $OBJS_LIBS(sdram0 program) )
-         EXECUTABLE_NAME(__executable_name)
          
          /*$VDSG<insert-input-sections-at-the-start-of-sdram0_bank0>  */
          /* Text inserted between these $VDSG comments will be preserved */

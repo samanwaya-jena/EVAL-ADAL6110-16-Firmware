@@ -4,28 +4,32 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
+
+#include "../adal6110_16.h"
 #include "cld_bf70x_bulk_lib.h"
-#include "Lidar_adal6110_16.h"
+
+#include "../parameters.h"
+#include "../demo_app.h"
 
 
 
-int gLogData = 1;
-static uint16_t buf[FRAME_NUM_PTS];
+static uint16_t buf[FRAME_NUM_PTS]; // raw data communication buffer
 
-void ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
-void WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
 
 void Lidar_PrintInfo(void)
 {
 	uint16_t data;
 
-	ReadParamFromSPI(DeviceIDAddress, &data);
+	ADAL_ReadParamFromSPI(DeviceIDAddress, &data);
 
 	uint8_t mid = (data >> 8) & 0xFF;
 	uint8_t pid = (data >> 4) & 0x0F;
 	uint8_t rid = (data & 0x0F);
-
+	cld_console(CLD_CONSOLE_CYAN, CLD_CONSOLE_BLACK, "ADAL6110-16 Eval Kit \r\n");
+	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Device ID: 0x%04X\r\nSerial Number: 0x%04X\n\rFirmware version: %02d.%03d\n\r",
+			     LiDARParameters[param_deviceID],LiDARParameters[param_serialNumber],FIRMWARE_MAJOR_REV,FIRMWARE_MINOR_REV);
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar 0x%02x/0x%02x mid:%d pid:%d rid:%d\r\n", data & 0xFF, (data >> 8) & 0xFF, mid, pid, rid);
 }
 
@@ -44,7 +48,7 @@ void Lidar_DumpRegs(void)
 		uint16_t reg = regs[i];
 		uint16_t data = 0xFFFF;
 
-		ReadParamFromSPI(reg, &data);
+		ADAL_ReadParamFromSPI(reg, &data);
 
 		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%c%c: %c%c%c%c\r\n", hex[(reg>>4)&0xF], hex[(reg>>0)&0xF],
 				hex[(data>>12)&0xF], hex[(data>>8)&0xF], hex[(data>>4)&0xF], hex[(data>>0)&0xF]);
@@ -58,17 +62,17 @@ void Lidar_DumpRegs(void)
 		uint16_t data = 0xFFFF;
 		uint8_t tia_feedback,chx_cpd_select;
 
-		ReadParamFromSPI(ChannelEnableAddress, &data);
+		ADAL_ReadParamFromSPI(ChannelEnableAddress, &data);
 		en = (data & (1 << ch) );
 
-		ReadParamFromSPI(CH0ControlReg0Address + 4 * ch, &data);
+		ADAL_ReadParamFromSPI(CH0ControlReg0Address + 4 * ch, &data);
 		tia = data;
 
-		ReadParamFromSPI(CH0ControlReg1Address + 4 * ch, &data);
+		ADAL_ReadParamFromSPI(CH0ControlReg1Address + 4 * ch, &data);
 		chx_cpd_select =  (uint8_t) ((data >> 8) & 0x7);
 		tia_feedback = (uint8_t) (data & 0xFF);
 
-		ReadParamFromSPI(CH0ControlReg2Address + 4 * ch, &data);
+		ADAL_ReadParamFromSPI(CH0ControlReg2Address + 4 * ch, &data);
 		bal = (data & 0x01FF);
 
 		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%02d: %d %d %d %d %d\r\n", ch, (en) ? 1 : 0, tia,chx_cpd_select , tia_feedback, bal);
@@ -83,7 +87,7 @@ void Lidar_GetData(void)
 
 	memset(buf, 0, sizeof(buf));
 
-	Lidar_GetADIData(&banknum, buf);
+	ADAL_GetADIData(&banknum, buf);
 
 	uint16_t * pData = buf;
 
@@ -137,7 +141,7 @@ void Lidar_GetDataCSV(void)
 
 	memset(buf, 0, sizeof(buf));
 
-	Lidar_GetADIData(&banknum, buf);
+	ADAL_GetADIData(&banknum, buf);
 
 	uint16_t * pData = buf;
 
@@ -160,7 +164,44 @@ void Lidar_GetDataCSV(void)
 	}
 }
 
-
+uint8_t c2i(char c)
+{
+	switch( c)
+	{
+	case '1':
+		return(0x01);
+	case '2':
+		return(0x02);
+	case '3':
+		return(0x03);
+	case '4':
+		return(0x04);
+	case '5':
+		return(0x05);
+	case '6':
+		return(0x06);
+	case '7':
+		return(0x07);
+	case '8':
+		return(0x08);
+	case '9':
+		return(0x09);
+	case 'A':
+		return(0x0A);
+	case 'B':
+		return(0x0B);
+	case 'C':
+		return(0x0C);
+	case 'D':
+		return(0x0D);
+	case 'E':
+		return(0x0E);
+	case 'F':
+		return(0x0F);
+	default:
+		return(0x00);
+	}
+}
 
 
 #define MAX_CMD_SIZE  16
@@ -171,6 +212,7 @@ static char debugCmd[MAX_CMD_SIZE];
 void ProcessChar(char curChar)
 {
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%c", curChar);
+	int i;
 
 	if (curChar == '\r')
 	{
@@ -191,7 +233,11 @@ void ProcessChar(char curChar)
 //    	break;
 
     case 'l':
-   		gLogData = !gLogData;
+   		LiDARParameters[param_console_log] ^= CONSOLE_MASK_LOG;
+   		if(LiDARParameters[param_console_log] & CONSOLE_MASK_LOG)
+   			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition log set\n\r");
+   		else
+   			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition log cleared\n\r");
     	break;
 
     case 'a':
@@ -207,20 +253,20 @@ void ProcessChar(char curChar)
     	break;
 
     case 'I':
-    	Lidar_InitADI();
+    	ADAL_InitADI();
     	break;
 
     case 'G':
-    	Lidar_Trig();
+    	ADAL_Trig();
     	break;
 
     case 's':
-      gAcq = 0;
-      break;
+    	LiDARParameters[param_sensor_enable] = 0;
+    	break;
 
     case 'q':
-      gAcq = 1;
-      break;
+    	LiDARParameters[param_sensor_enable] = 1;
+    	break;
 
 //    case 'z':
 //		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "a %d 1:%d 2:%d\r\n", iAcqNum, iAcqNum1, iAcqNum2);
@@ -228,11 +274,11 @@ void ProcessChar(char curChar)
 //		break;
 
     case 't':
-    	Lidar_SPITriggerMode();
+    	ADAL_SPITriggerMode();
     	break;
 
     case 'f':
-    	Lidar_FreerunMode();
+    	ADAL_FreerunMode();
     	break;
 
     case 'd':
@@ -240,36 +286,36 @@ void ProcessChar(char curChar)
     	break;
 
     case '1':
-   		Lidar_ChannelEnable(0, 1);
+   		ADAL_ChannelEnable(0, 1);
     	break;
 
     case '!':
-   		Lidar_ChannelEnable(0, 0);
+   		ADAL_ChannelEnable(0, 0);
     	break;
 
     case '2':
-   		Lidar_ChannelEnable(1, 1);
+   		ADAL_ChannelEnable(1, 1);
     	break;
 
     case '@':
-   		Lidar_ChannelEnable(1, 0);
+   		ADAL_ChannelEnable(1, 0);
     	break;
 
     case 'g':
     {
-    	int i = 1;
+    	i = 1;
     	uint16_t flashGain = 0;
 
     	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
     		flashGain = flashGain * 10 + debugCmd[i++] - '0';
 
-    	Lidar_FlashGain(flashGain);
+    	ADAL_FlashGain(flashGain);
     	break;
     }
 
     case 'b':
     {
-    	int i = 1;
+    	i = 1;
     	uint16_t bal = 0;
     	int ch = 0;
 
@@ -282,13 +328,13 @@ void ProcessChar(char curChar)
     	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
     		bal = bal * 10 + debugCmd[i++] - '0';
 
-    	Lidar_ChannelDCBal(ch, bal);
+    	ADAL_ChannelDCBal(ch, bal);
     	break;
     }
 
     case 'F':
     {
-    	int i = 1;
+    	i = 1;
     	uint16_t feedback = 0;
     	int ch = 0;
 
@@ -301,9 +347,24 @@ void ProcessChar(char curChar)
     	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
     		feedback = feedback * 10 + debugCmd[i++] - '0';
 
-    	Lidar_ChannelTIAFeedback(ch, feedback);
+    	ADAL_ChannelTIAFeedback(ch, feedback);
     	break;
     }
+    case 'u':
+   		LiDARParameters[param_console_log] ^= CONSOLE_MASK_USB;
+   		if(LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
+   			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"USB log set\n\r");
+   		else
+   			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"USB log cleared\n\r");
+    	break;
+
+    case 'N':
+    	i = 1;
+    	if (LiDARParameters[param_serialNumber])
+    		cld_console(CLD_CONSOLE_RED,CLD_CONSOLE_BLACK,"Serial number already set to: 0x%04X\n\r",LiDARParameters[param_serialNumber]);
+    	else
+    		LiDARParameters[param_serialNumber] = atoi(debugCmd+2);
+    	break;
 
     }
 

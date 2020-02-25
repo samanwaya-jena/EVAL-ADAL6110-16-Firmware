@@ -8,4 +8,6 @@ int Flash_ResetToFactoryDefault(int idx);
 int Flash_SaveConfig(int idx, uint16_t * pParams, int num);
 int Flash_LoadConfig(int idx, uint16_t * pParams, int * pNum);
 
+void LoadDefaultConfig(int idx);
+
 #endif //_FLASH_PARAMS_H_
