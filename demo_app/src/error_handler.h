@@ -16,9 +16,10 @@ typedef enum{
 	error_SW_DSP ,
 	error_SW_flash ,
 
-	error_SW_comm_fifo_full = 4,
+	error_SW_comm_fifo_full = 8,
 	error_SW_comm_timeout,
 	error_SW_comm_unknown,
+	error_SW_comm_USB_send,
 	error_numberOfErrors
 } error_type;
 

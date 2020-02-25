@@ -18,7 +18,8 @@ static char* errText[error_numberOfErrors] = {"ADAL6110_16 malfunction",
 											  "",
 											  "Outbound message Queue full",
 											  "USB communication timeout",
-											  "USB unknown incoming message"};
+											  "USB unknown incoming message",
+											  "USB outbound message error"};
 
 void SetError(error_type err)
 {

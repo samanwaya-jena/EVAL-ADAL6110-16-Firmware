@@ -112,7 +112,7 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
     .fp_cld_usb_event_callback = user_bulk_usb_event,
 };
 
-static uint16_t numPending = 0;
+//static uint16_t numPending = 0;
 
 static CLD_Time usb_time = 0;
 
@@ -265,7 +265,10 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 	transfer_params.p_data_buffer = (unsigned char*)&usbResp;
 	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.transfer_timeout_ms = 1000;
-	cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
+
+	if (CLD_USB_TRANSMIT_SUCCESSFUL != cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params))
+		SetError(error_SW_comm_USB_send);
+
 	if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
 	{
 		cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "\n\r");
