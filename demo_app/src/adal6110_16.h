@@ -9,8 +9,8 @@
 
 
 #define DATA_NUM_PTS	(DEVICE_NUM_CHANNEL * DEVICE_SAMPLING_LENGTH)
-#define FRAME_NUM_PTS	DATA_NUM_PTS + (DEVICE_NUM_CHANNEL * 5) + 16
-//#define FRAME_NUM_PTS	DATA_NUM_PTS
+#define FRAME_NUM_PTS	DATA_NUM_PTS + (DEVICE_NUM_CHANNEL * 5) + 16  // extra debug data... not sent in rawdata message... Do we need it?
+//#define FRAME_NUM_PTS	DATA_NUM_PTS                                  // original length in frame
 
 typedef struct
 {

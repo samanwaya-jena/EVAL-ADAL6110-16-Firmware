@@ -401,10 +401,10 @@ void ADAL_InitADI(void) {
 
 	ADAL_WriteParamToSPI(LFSRSEEDL, 0x9190);
 	ADAL_WriteParamToSPI(LFSRSEEDH, 0x0001);
-	ADAL_WriteParamToSPI(Control0Address, 0x1F80); // 8 accum = 0x0400, 16 accum = 0x0800 // 64 accum = 0x1F80 (ne pas dépasser)
+	ADAL_WriteParamToSPI(Control0Address, 0x1F80);    // 8 accum = 0x0400, 16 accum = 0x0800 // 64 accum = 0x1F80 (ne pas dépasser)
 	ADAL_WriteParamToSPI(Control1Address, 0x8040);
 	ADAL_WriteParamToSPI(TriggerOutAddress, 0x1021); //2ns: 0x8021, 4ns: 0x1021
-	ADAL_WriteParamToSPI(DataAcqMode, 0x0001); //2ns: 0x0000,  4ns :0x0001
+	ADAL_WriteParamToSPI(DataAcqMode, 0x0001);       //2ns: 0x0000,  4ns :0x0001
 	ADAL_WriteParamToSPI(DelayBetweenFlashesAddress, 0x4000); //0x4000 (1 frame period = 13.08 ms, 76.45 Hz MAX, measured with scope and FRAMEDELAY to minimum)
 
 	ADAL_WriteParamToSPI(CH0ControlReg0Address, 0x3C3F);
@@ -424,6 +424,7 @@ void ADAL_InitADI(void) {
 	ADAL_WriteParamToSPI(CH14ControlReg0Address, 0x3C3F);
 	ADAL_WriteParamToSPI(CH15ControlReg0Address, 0x3C3F);
 
+	// this block is set to 0x0B80 in documentation revB... Who's right?
 	ADAL_WriteParamToSPI(CH0ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
 	ADAL_WriteParamToSPI(CH1ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
 	ADAL_WriteParamToSPI(CH2ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
@@ -847,6 +848,7 @@ void ADAL_Acq(uint16_t *pBank)
 							{
 								USB_pushRawData(LiDARParameters[param_channel_map_offset+ch], (uint16_t*) pAcqFifo[ch*DEVICE_SAMPLING_LENGTH]);
 							}
+							//TODO: create a message to send the debug info (last (DEVICE_NUM_CHANNEL*5)+16  data of the buffer) as aquired using DATA_NUM_PTS
 						}
 					}
 				}
