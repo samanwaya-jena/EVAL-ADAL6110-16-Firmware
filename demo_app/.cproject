@@ -50,9 +50,9 @@
 								<option id="compiler.option.additionaldirectories.941841025" name="Additional include directories (-I):" superClass="compiler.option.additionaldirectories" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
 								</option>
-								<option id="compiler.option.interprocdoptim.1085508003" superClass="compiler.option.interprocdoptim" value="false" valueType="boolean"/>
-								<option id="compiler.option.annotations.1217538951" superClass="compiler.option.annotations" value="false" valueType="boolean"/>
-								<option id="compiler.option.inlining.1339803825" superClass="compiler.option.inlining" value="compiler.option.inlining.enumerated.automatic" valueType="enumerated"/>
+								<option id="compiler.option.interprocdoptim.1085508003" name="Interprocedural optimization (-ipa)" superClass="compiler.option.interprocdoptim" value="false" valueType="boolean"/>
+								<option id="compiler.option.annotations.1217538951" name="Do not generate annotations (-no-annotate)" superClass="compiler.option.annotations" value="false" valueType="boolean"/>
+								<option id="compiler.option.inlining.1339803825" name="Inlining (fewer calls but larger code image)" superClass="compiler.option.inlining" value="compiler.option.inlining.enumerated.automatic" valueType="enumerated"/>
 								<inputType id="compiler.inputType.656416036" name="C/C++ Source" superClass="compiler.inputType"/>
 							</tool>
 							<tool command="ccblkfn" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="blackfin.toolchain.linker.1036829820" name="CrossCore Blackfin Linker" superClass="blackfin.toolchain.linker">

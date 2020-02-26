@@ -54,7 +54,7 @@ enum Param_Type{
 
 #define CAN_PAYLOAD_LENGTH 8    //in bytes
 #define RAW_NUM_SAMPLES    DEVICE_SAMPLING_LENGTH  // in 16b samples
-#define RAW_PAYLOAD_LENGTH RAW_NUM_SAMPLES*2 + 4  //in bytes
+#define RAW_PAYLOAD_LENGTH RAW_NUM_SAMPLES*sizeof(uint16_t)  //in bytes
 #define RAW_SYNCH_VALUES {0x7fff, 0x8000}
 
 typedef struct{
@@ -69,12 +69,12 @@ typedef struct{
 
 typedef struct {
 	uint8_t  id;
-    uint8_t  reserved; // not used
+    uint8_t  reserved;    // not used
     uint16_t pixelNumber; // logical pixel index in array
     uint16_t timestamp;   // timestamp in ms
     uint16_t payloadsize; // includes all of the following data (102 *2)
-    uint16_t synch[2]; // infinite values to mark the start of the payload
-	uint16_t data[RAW_NUM_SAMPLES];// payload of 16 bits values
+    uint16_t synch[2];    // infinite values to mark the start of the payload
+	uint16_t data[RAW_NUM_SAMPLES]; // payload of 16 bits values
 } USB_raw_message;
 
 typedef union{
