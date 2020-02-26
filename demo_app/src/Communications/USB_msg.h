@@ -20,6 +20,8 @@ enum Msg_ID{
 	msgID_trackInfo        = 0x0A, // track information (id, pixel, Intensity, confidence)
 	msgID_trackValue       = 0x0B, // track information (id, distance, velocity, acceleration)
 	msgID_FrameDone        = 0x09, // all the data in the current frame were sent
+	//msgID_Alarms           = 0x10, // send the alarms (if implemented)
+	//msgID_distance_intensity=0x3C, // send detection distance and intensity (untracked)
 	//Input messages, answered from queue, msgID_queueEmptycmd if queue is empty
 	msgID_poll             = 0x56, // get a message from the queue
 	// input messages, ack/nack answer
