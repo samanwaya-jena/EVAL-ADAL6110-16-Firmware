@@ -12,13 +12,13 @@
 
 typedef enum
 {
-	param_deviceID = 0x00,
-	param_serialNumber,
-	param_sensor_enable,
+	param_deviceID = 0x00,  // byte1:family, byte2:configuration
+	param_manufDate,        // byte1:year (2000-2255), byte2: month (1-12)
+	param_serialNumber,     // unique number (if rollover, use in conjunction with date)
 
 	param_acq_enable = 0x10,
 	param_DSP_enable,
-	param_console_log, // bitfield
+	param_console_log,      // bitfield
 
 	param_detection_algo = 0x20,
 	param_tracking_algo,
@@ -35,6 +35,7 @@ typedef enum
 	param_raw_msg_mask,
 	param_status_period, // in ms
 
+	param_last_address = 0x6F,
 	number_of_param
 }param_index;
 
@@ -45,7 +46,9 @@ typedef enum
 #define RW_WRITE_MASK    0x8000
 #define RW_INTERNAL_MASK 0x4000
 
-extern uint16_t LiDARParameters[number_of_param]; // value of all functional parameters
+
+extern uint16_t LiDARParameters[number_of_param]; // value of all functional parameters -- 32 bits flash registers -- also easier to cast in float
+
 
 void param_InitValues(void);
 void param_ResetFactoryDefault(void);

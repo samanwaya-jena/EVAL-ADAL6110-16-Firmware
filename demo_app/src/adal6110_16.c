@@ -817,10 +817,7 @@ void ADAL_Acq(uint16_t *pBank)
 
 	if (BankInTransfer == 0)
 	{
-//		if (iReadWriteFifoHead != iReadWriteFifoTail)
-//			ProcessReadWriteFifo();
-
-		if (LiDARParameters[param_sensor_enable])
+		if (LiDARParameters[param_acq_enable])
 			GetADIData_Start(&BankInTransfer, (uint16_t*) dataFifo[iFifoHead].AcqFifo);
 	}
 	else
@@ -848,18 +845,20 @@ void ADAL_Acq(uint16_t *pBank)
 							{
 								USB_pushRawData(LiDARParameters[param_channel_map_offset+ch], (uint16_t*) pAcqFifo[ch*DEVICE_SAMPLING_LENGTH]);
 							}
-							//TODO: create a message to send the debug info (last (DEVICE_NUM_CHANNEL*5)+16  data of the buffer) as aquired using DATA_NUM_PTS
 						}
 					}
 				}
-#ifdef USE_ALGO
-				numDet = DoAlgo(pAcqFifo);
-#endif //USE_ALGO
-				if(LiDARParameters[param_det_msg_decimation])
+				if (LiDARParameters[param_DSP_enable])
 				{
-					if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
+#ifdef USE_ALGO
+					numDet = DoAlgo(pAcqFifo);
+#endif //USE_ALGO
+					if(LiDARParameters[param_det_msg_decimation])
 					{
-						USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
+						if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
+						{
+							USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
+						}
 					}
 				}
 			}

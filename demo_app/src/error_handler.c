@@ -14,7 +14,7 @@
 static uint32_t errorFlags;
 static char* errText[error_numberOfErrors] = {"ADAL6110_16 malfunction",
 		                                      "DSP error",
-											  "Configuration CRC fault",
+											  "Configuration fault",
 											  "",
 											  "Outbound message Queue full",
 											  "USB communication timeout",

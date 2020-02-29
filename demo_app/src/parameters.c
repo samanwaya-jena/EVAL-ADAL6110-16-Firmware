@@ -100,9 +100,11 @@ uint16_t ADAL_currentValues[][2] =
 void param_ResetFactoryDefault()
 {
 	uint16_t serNum = LiDARParameters[param_serialNumber];
+	uint16_t date   = LiDARParameters[param_manufDate];
 	memcpy((char*)LiDARParameters,(char*)param_default,sizeof(LiDARParameters));
 	memcpy((char*)LiDARParamDir,(char*)param_dir_values,sizeof(LiDARParamDir));
 	LiDARParameters[param_serialNumber] = serNum; // keeps the serial number;
+	LiDARParameters[param_manufDate] = date; // and date;
 
 	memcpy((char*)ADAL_currentValues,(char*)ADAL_DefaultValues,sizeof(ADAL_DefaultValues));
 
@@ -121,12 +123,16 @@ void param_InitValues(void)
 	//todo: implement: load from flash if flash empty, read from default
 
 	memcpy((char*)LiDARParamDir,(char*)param_dir_values,sizeof(LiDARParamDir));
-	memcpy((char*)LiDARParameters,(char*)param_default,sizeof(LiDARParameters));
 
-	num = sizeof(ADAL_currentValues) / sizeof(ADAL_currentValues[0]);
-	for (i = 0; i < num; i++)
-		ADAL_WriteParamToSPI(ADAL_currentValues[i][0], ADAL_currentValues[i][1]);
+	param_LoadConfig();
+	if(!IsErrorSet(error_SW_flash))
+	{
+		memcpy((char*)LiDARParameters,(char*)param_default,sizeof(LiDARParameters));
 
+		num = sizeof(ADAL_currentValues) / sizeof(ADAL_currentValues[0]);
+		for (i = 0; i < num; i++)
+			ADAL_WriteParamToSPI(ADAL_currentValues[i][0], ADAL_currentValues[i][1]);
+	}
 }
 
 
@@ -134,15 +140,15 @@ void param_LoadConfig(void)
 {
 	int num,i;
 
-	num = number_of_param;
-	if( Flash_LoadConfig(0, LiDARParameters, &num))
+	num = number_of_param/2; // saved in 32bits instead of 16
+	if( Flash_LoadConfig(0, (uint16_t*)LiDARParameters, &num))
 	{
-		if (num!=number_of_param)
+		if (num!=number_of_param/2)
 			SetError(error_SW_flash);
 	}else
 		SetError(error_SW_flash);
 
-	num = sizeof(ADAL_currentValues) / sizeof(ADAL_currentValues[0]);
+	num = sizeof(ADAL_currentValues) / sizeof(ADAL_currentValues[0]); // number of 16bits pair of values in array
 	if( Flash_LoadConfig(1, (uint16_t*)ADAL_currentValues, &num))
 	{
 		if (num == sizeof(ADAL_currentValues) / sizeof(ADAL_currentValues[0]))
@@ -169,7 +175,7 @@ void param_SaveConfig(void)
 		ADAL_ReadParamFromSPI(ADAL_currentValues[i][0], &ADAL_currentValues[i][1]);
 	}
 	Flash_SaveConfig(1, (uint16_t*)ADAL_currentValues, num);
-	Flash_SaveConfig(0, LiDARParameters, number_of_param);
+	Flash_SaveConfig(0, (uint16_t*)LiDARParameters, number_of_param/2);
 }
 
 

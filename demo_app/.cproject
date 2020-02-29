@@ -75,7 +75,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/Communications/cld_bf70x_bulk_lib.dlb&quot;"/>
 								</option>
 								<option id="linker.option.misrachecksrcfiles.1127082766" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-								<option id="blackfin.linker.option.memusage.102133300" name="Memory Usage" superClass="blackfin.linker.option.memusage" useByScannerDiscovery="false" value="blackfin.linker.option.memusage.enumerated.internalsramonly" valueType="enumerated"/>
+								<option id="blackfin.linker.option.memusage.102133300" name="Memory Usage" superClass="blackfin.linker.option.memusage" useByScannerDiscovery="false" value="blackfin.linker.option.memusage.enumerated.sramcache" valueType="enumerated"/>
 								<inputType id="linker.doj.input.1918017046" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.925817650" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
@@ -180,6 +180,7 @@
 								<option id="linker.option.libdoj.1251559440" name="Additional libraries and object files:" superClass="linker.option.libdoj" valueType="libFiles">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/cld_bf70x_bulk_lib.dlb&quot;"/>
 								</option>
+								<option id="blackfin.linker.option.memusage.909182924" name="Memory Usage" superClass="blackfin.linker.option.memusage" value="blackfin.linker.option.memusage.enumerated.sramandsdram" valueType="enumerated"/>
 								<inputType id="linker.doj.input.258462543" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.1098090604" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">

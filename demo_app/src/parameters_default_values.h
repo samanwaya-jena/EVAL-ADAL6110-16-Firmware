@@ -14,14 +14,15 @@
 #define READONLY  0
 #define READWRITE 1
 
-#define DEVICEID   0x0000
+#define DEVICEID   0x0A03  // PI's device ID 0-9 are internal, A is EVAL-ADAL6110-16, configuration 3 (production hardware and configuration)
+#define DATENULL   0x0000  //0x1402 or 5122 for 2020-02
 #define SERIALNULL 0x0000
 
 
 uint16_t param_default [number_of_param]=
-{DEVICEID, SERIALNULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       // 0x00 sensor
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x10 Enable switches
-1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x20 algo selection and general params
+{DEVICEID, DATENULL , SERIALNULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       // 0x00 sensor
+0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x10 Enable switches
+1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x20 algo selection and general params
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x30 detection algo param
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x40 tracking algo param
 7,  8,  6,  9,  5,  10,  4,  11,  3,  12,  2,  13,  1,  14,  0,  15,   // 0x50 channel mapping
@@ -29,7 +30,7 @@ uint16_t param_default [number_of_param]=
 };
 
 uint8_t param_dir_values[number_of_param]=
-{READONLY, READONLY, READWRITE, READONLY, READONLY, READONLY, READONLY, READONLY, // 0x00 sensor
+{READONLY, READONLY, READONLY, READWRITE, READONLY, READONLY, READONLY, READONLY, // 0x00 sensor
  READONLY, READONLY, READONLY, READONLY, READONLY, READONLY, READONLY, READONLY,
  READWRITE,READWRITE,READWRITE,READWRITE,READWRITE,READWRITE,READWRITE,READWRITE,// 0x10 Enable switches
  READWRITE,READWRITE,READWRITE,READWRITE,READWRITE,READWRITE,READWRITE,READWRITE,

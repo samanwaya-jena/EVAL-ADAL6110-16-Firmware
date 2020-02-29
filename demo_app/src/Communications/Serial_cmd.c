@@ -28,8 +28,11 @@ void Lidar_PrintInfo(void)
 	uint8_t pid = (data >> 4) & 0x0F;
 	uint8_t rid = (data & 0x0F);
 	cld_console(CLD_CONSOLE_CYAN, CLD_CONSOLE_BLACK, "ADAL6110-16 Eval Kit \r\n");
-	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Device ID: 0x%04X\r\nSerial Number: 0x%04X\n\rFirmware version: %02d.%03d\n\r",
-			     LiDARParameters[param_deviceID],LiDARParameters[param_serialNumber],FIRMWARE_MAJOR_REV,FIRMWARE_MINOR_REV);
+	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Device ID: 0x%04X\r\n", LiDARParameters[param_deviceID]);
+	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Manufacturing date: 2%03d/%d\r\n", LiDARParameters[param_manufDate]>>8,LiDARParameters[param_manufDate]&0x0F);
+	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Serial Number: 0x%04X\n\r", LiDARParameters[param_serialNumber]);
+	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Firmware version: %02d.%03d\n\r",FIRMWARE_MAJOR_REV,FIRMWARE_MINOR_REV);
+
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar 0x%02x/0x%02x mid:%d pid:%d rid:%d\r\n", data & 0xFF, (data >> 8) & 0xFF, mid, pid, rid);
 }
 
@@ -261,11 +264,11 @@ void ProcessChar(char curChar)
     	break;
 
     case 's':
-    	LiDARParameters[param_sensor_enable] = 0;
+    	LiDARParameters[param_acq_enable] = 0;
     	break;
 
     case 'q':
-    	LiDARParameters[param_sensor_enable] = 1;
+    	LiDARParameters[param_acq_enable] = 1;
     	break;
 
 //    case 'z':
@@ -365,7 +368,20 @@ void ProcessChar(char curChar)
     	else
     		LiDARParameters[param_serialNumber] = atoi(debugCmd+2);
     	break;
-
+    case 'D':
+       	i = 1;
+       	if (LiDARParameters[param_manufDate])
+       		cld_console(CLD_CONSOLE_RED,CLD_CONSOLE_BLACK,"Date already set to:  2%03d/%d\r\n",
+       				    LiDARParameters[param_manufDate]>>8,LiDARParameters[param_manufDate]&0x0F);
+       	else
+       		LiDARParameters[param_manufDate] = atoi(debugCmd+2);
+       	break;
+    case 'S':
+    	param_SaveConfig();
+    	break;
+    default:
+    	cld_console(CLD_CONSOLE_RED,CLD_CONSOLE_BLACK,"Say again...\r\n");
+    	break;
     }
 
     debugCmdIdx = 0;

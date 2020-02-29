@@ -67,7 +67,6 @@ int main(int argc, char *argv[])
                     main_state = MAIN_STATE_ERROR;
                 }
 #else //USE_USB
-            	LED_BC2R_OFF();
                 main_state = MAIN_STATE_RUN;
 #endif //USE_USB
                 break;
