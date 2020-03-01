@@ -101,8 +101,9 @@ void param_ResetFactoryDefault()
 {
 	uint16_t serNum = LiDARParameters[param_serialNumber];
 	uint16_t date   = LiDARParameters[param_manufDate];
+
 	memcpy((char*)LiDARParameters,(char*)param_default,sizeof(LiDARParameters));
-	memcpy((char*)LiDARParamDir,(char*)param_dir_values,sizeof(LiDARParamDir));
+
 	LiDARParameters[param_serialNumber] = serNum; // keeps the serial number;
 	LiDARParameters[param_manufDate] = date; // and date;
 
@@ -120,18 +121,13 @@ void param_InitValues(void)
 {
 	int i,num;
 
-	//todo: implement: load from flash if flash empty, read from default
-
 	memcpy((char*)LiDARParamDir,(char*)param_dir_values,sizeof(LiDARParamDir));
 
 	param_LoadConfig();
-	if(!IsErrorSet(error_SW_flash))
-	{
-		memcpy((char*)LiDARParameters,(char*)param_default,sizeof(LiDARParameters));
 
-		num = sizeof(ADAL_currentValues) / sizeof(ADAL_currentValues[0]);
-		for (i = 0; i < num; i++)
-			ADAL_WriteParamToSPI(ADAL_currentValues[i][0], ADAL_currentValues[i][1]);
+	if(IsErrorSet(error_SW_flash))
+	{
+		param_ResetFactoryDefault();
 	}
 }
 
@@ -240,13 +236,10 @@ int param_ProcessReadWriteFifo(void)
 			case 0x3FFE:
 			case 0x7FFE:
 				param_SaveConfig();
-				//SaveConfigToFlash(0);
 				break;
 			case 0x3FFF:
 			case 0x7FFF:
 				param_ResetFactoryDefault();
-				//Flash_ResetToFactoryDefault(0);
-				//LoadDefaultConfig(0);
 				//ADAL_Reset();
 				break;
 			case RW_INTERNAL_MASK+param_deviceID://0x4000: // device ID
