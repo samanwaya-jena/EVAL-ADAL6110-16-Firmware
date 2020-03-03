@@ -12,10 +12,15 @@
 #include "Communications/cld_bf70x_bulk_lib.h"
 
 static uint32_t errorFlags;
-static char* errText[error_numberOfErrors] = {"ADAL6110_16 malfunction",
-		                                      "DSP error",
+static char* errText[error_numberOfErrors] = {"Bootup error",
+		                                      "ADAL6110_16 malfunction",
+											  "DSP error",
 											  "Configuration fault",
 											  "",
+											  "",
+											  "",
+											  "",
+
 											  "Outbound message Queue full",
 											  "USB communication timeout",
 											  "USB unknown incoming message",

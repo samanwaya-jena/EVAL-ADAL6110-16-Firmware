@@ -876,6 +876,7 @@ void ADAL_Acq(uint16_t *pBank)
 	}
 }
 
+/*
 void ADAL_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo)
 {
 	if (iFifoHead != iFifoTail)
@@ -898,6 +899,7 @@ void ADAL_ReleaseDataToFifo(uint16_t numFifo)
 {
 	iFifoTail = (iFifoTail + numFifo) & NUM_FIFO_MASK;
 }
+*/
 
 void ADAL_Reset(void)
 {

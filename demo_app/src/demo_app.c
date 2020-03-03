@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
             	User_Bulk_Init_Return_Code rv = user_bulk_init();
                 if (rv == USER_BULK_INIT_SUCCESS)
                 {
+            		param_InitValues();
                 	USB_pushBoot();
                     main_state = MAIN_STATE_RUN;
                 }
@@ -108,7 +109,6 @@ void InitApp()
 
 	if (main_state == MAIN_STATE_SYSTEM_INIT)
 	{
-		param_InitValues();
 		LP_DRIVER_POWER_ON();
 		LASER_OUTPUT_ENABLE();
 		LASER_PULSE1_ENABLE();

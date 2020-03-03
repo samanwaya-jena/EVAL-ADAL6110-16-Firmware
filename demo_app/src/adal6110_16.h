@@ -119,8 +119,8 @@ void ADAL_FlashGain(uint16_t flashGain);
 void ADAL_Acq(uint16_t *pBank);
 void ADAL_Reset(void);
 // TODO: remove old communication??
-void ADAL_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo);
-void ADAL_ReleaseDataToFifo(uint16_t numFifo);
+//void ADAL_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo);
+//void ADAL_ReleaseDataToFifo(uint16_t numFifo);
 
 /*
  * Parameter read/write SPI functions

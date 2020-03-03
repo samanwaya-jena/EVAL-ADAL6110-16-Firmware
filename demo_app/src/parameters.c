@@ -14,6 +14,8 @@
 
 #include "adal6110_16.h"
 #include "Communications/USB_cmd.h"
+#include "Communications/cld_bf70x_bulk_lib.h"
+
 
 
 
@@ -124,11 +126,6 @@ void param_InitValues(void)
 	memcpy((char*)LiDARParamDir,(char*)param_dir_values,sizeof(LiDARParamDir));
 
 	param_LoadConfig();
-
-	if(IsErrorSet(error_SW_flash))
-	{
-		param_ResetFactoryDefault();
-	}
 }
 
 
@@ -137,7 +134,7 @@ void param_LoadConfig(void)
 	int num,i;
 
 	num = number_of_param/2; // saved in 32bits instead of 16
-	if( Flash_LoadConfig(0, (uint16_t*)LiDARParameters, &num))
+	if( !Flash_LoadConfig(0, (uint16_t*)LiDARParameters, &num))
 	{
 		if (num!=number_of_param/2)
 			SetError(error_SW_flash);
@@ -145,7 +142,7 @@ void param_LoadConfig(void)
 		SetError(error_SW_flash);
 
 	num = sizeof(ADAL_currentValues) / sizeof(ADAL_currentValues[0]); // number of 16bits pair of values in array
-	if( Flash_LoadConfig(1, (uint16_t*)ADAL_currentValues, &num))
+	if(!Flash_LoadConfig(1, (uint16_t*)ADAL_currentValues, &num))
 	{
 		if (num == sizeof(ADAL_currentValues) / sizeof(ADAL_currentValues[0]))
 		{
