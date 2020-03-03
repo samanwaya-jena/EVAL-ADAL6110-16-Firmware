@@ -30,7 +30,7 @@ void Lidar_PrintInfo(void)
 	cld_console(CLD_CONSOLE_CYAN, CLD_CONSOLE_BLACK, "ADAL6110-16 Eval Kit \r\n");
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Device ID: 0x%04X\r\n", LiDARParameters[param_deviceID]);
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Manufacturing date: 2%03d/%d\r\n", LiDARParameters[param_manufDate]>>8,LiDARParameters[param_manufDate]&0x0F);
-	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Serial Number: 0x%04X\n\r", LiDARParameters[param_serialNumber]);
+	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Serial Number: %04d\n\r", LiDARParameters[param_serialNumber]);
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Firmware version: %02d.%03d\n\r",FIRMWARE_MAJOR_REV,FIRMWARE_MINOR_REV);
 
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar 0x%02x/0x%02x mid:%d pid:%d rid:%d\r\n", data & 0xFF, (data >> 8) & 0xFF, mid, pid, rid);
