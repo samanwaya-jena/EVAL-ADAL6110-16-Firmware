@@ -190,16 +190,22 @@ uint8_t c2i(char c)
 	case '9':
 		return(0x09);
 	case 'A':
+	case 'a':
 		return(0x0A);
 	case 'B':
+	case 'b':
 		return(0x0B);
 	case 'C':
+	case 'c':
 		return(0x0C);
 	case 'D':
+	case 'd':
 		return(0x0D);
 	case 'E':
+	case 'e':
 		return(0x0E);
 	case 'F':
+	case 'f':
 		return(0x0F);
 	default:
 		return(0x00);

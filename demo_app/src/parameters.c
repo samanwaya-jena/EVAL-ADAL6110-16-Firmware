@@ -243,7 +243,7 @@ int param_ProcessReadWriteFifo(void)
 				ADAL_Reset();
 				break;
 			default:
-				if (type == cmdParam_SensorRegister)
+				if (type == cmdParam_SensorRegister & LiDARParamDir[addr&~RW_INTERNAL_MASK]!=READONLY)
 					LiDARParameters[addr&~RW_INTERNAL_MASK] = data;
 				else
 				{

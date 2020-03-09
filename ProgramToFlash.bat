@@ -18,4 +18,11 @@ ECHO Programming %TargetName% to SPI Flash
 REM "%CCESDir%\cldp.exe" -proc ADSP-BF707 -emu 1000 -driver "%DriverPath%" -cmd info -verbose -log 
 REM popd
 
+set DEVICELISTFILE = wagner_list.csv
+set LISTPATH = .
+
+ECHO Editing device informations from %DEVICELISTFILE
+
+rem python configdev.py "%LISTPATH%/%DEVICELISTFILE%"
+
 :DONE

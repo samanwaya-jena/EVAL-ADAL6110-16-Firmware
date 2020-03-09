@@ -478,8 +478,8 @@ void ADAL_InitADI(void) {
 
 
   	//Apply last used config from flash
-  	//num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
-	//numParams = num;
+ // 	num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
+//	numParams = num;
 
 //	if(Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams))
 //	{
