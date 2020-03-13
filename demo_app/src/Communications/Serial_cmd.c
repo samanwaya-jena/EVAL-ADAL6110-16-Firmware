@@ -27,11 +27,11 @@ void Lidar_PrintInfo(void)
 	uint8_t mid = (data >> 8) & 0xFF;
 	uint8_t pid = (data >> 4) & 0x0F;
 	uint8_t rid = (data & 0x0F);
-	cld_console(CLD_CONSOLE_CYAN, CLD_CONSOLE_BLACK, "ADAL6110-16 Eval Kit \r\n");
+	cld_console(CLD_CONSOLE_CYAN,  CLD_CONSOLE_BLACK, "ADAL6110-16 Eval Kit\r\n");
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Device ID: 0x%04X\r\n", LiDARParameters[param_deviceID]);
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Manufacturing date: 2%03d/%d\r\n", LiDARParameters[param_manufDate]>>8,LiDARParameters[param_manufDate]&0x0F);
-	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Serial Number: %04d\n\r", LiDARParameters[param_serialNumber]);
-	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Firmware version: %02d.%03d\n\r",FIRMWARE_MAJOR_REV,FIRMWARE_MINOR_REV);
+	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Serial Number: %04d\r\n", LiDARParameters[param_serialNumber]);
+	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Firmware version: %02d.%03d\r\n",FIRMWARE_MAJOR_REV,FIRMWARE_MINOR_REV);
 
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Lidar 0x%02x/0x%02x mid:%d pid:%d rid:%d\r\n", data & 0xFF, (data >> 8) & 0xFF, mid, pid, rid);
 }
@@ -372,18 +372,26 @@ void ProcessChar(char curChar)
     	if (LiDARParameters[param_serialNumber])
     		cld_console(CLD_CONSOLE_RED,CLD_CONSOLE_BLACK,"Serial number already set to: 0x%04X\n\r",LiDARParameters[param_serialNumber]);
     	else
+    	{
     		LiDARParameters[param_serialNumber] = atoi(debugCmd+2);
+    		cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Serial number set to: 0x%04X\n\r",LiDARParameters[param_serialNumber]);
+    	}
     	break;
     case 'D':
        	i = 1;
        	if (LiDARParameters[param_manufDate])
-       		cld_console(CLD_CONSOLE_RED,CLD_CONSOLE_BLACK,"Date already set to:  2%03d/%d\r\n",
+       		cld_console(CLD_CONSOLE_RED,CLD_CONSOLE_BLACK,"Date already set to:  20%02d/%02d\r\n",
        				    LiDARParameters[param_manufDate]>>8,LiDARParameters[param_manufDate]&0x0F);
        	else
+       	{
        		LiDARParameters[param_manufDate] = atoi(debugCmd+2);
+   			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Date set to:  20%02d/%02d\r\n",
+   				    LiDARParameters[param_manufDate]>>8,LiDARParameters[param_manufDate]&0x0F);
+       	}
        	break;
     case 'S':
     	param_SaveConfig();
+    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Configuration saved to Flash memory\r\n");
     	break;
     default:
     	cld_console(CLD_CONSOLE_RED,CLD_CONSOLE_BLACK,"Say again...\r\n");
