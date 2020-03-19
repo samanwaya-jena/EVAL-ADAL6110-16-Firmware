@@ -94,11 +94,13 @@ def read_info(sp):
 	infocmd = b'i\r'
 	datain = b'read'
 	global serialnumber,month,year,devicetype
-	ser = 0
+	ser, minv, majv, ID, yy, mm = 0, 0, 0, 0, 0, 0
 	try:
+		print("reading device info...")
+		time.sleep(0.5)
 		sp.timeout = 0.5
 		sp.write(infocmd)
-		while b'' != datain: 
+		while True: 
 			datain = sp.readline()
 			data = re.search(r'(\w+): ',datain.decode('ascii'))
 			if data:
@@ -114,22 +116,20 @@ def read_info(sp):
 					ser = int(data.group(1))
 				elif data.group(1) == 'version':
 					data = re.search(r': (\w+).(\w+)',datain.decode('ascii'))
-					majv = data.group(1)
-					minv = data.group(2)
+					majv = int(data.group(1))
+					minv = int(data.group(2))
 			elif re.search(r'Lidar',datain.decode('ascii')): #last line data...
-				datain = b''	
+				print("\tType 0x{:04X} with firmware version {:02d}.{:03d}".format(ID, majv, minv),end='')
+				if ser:
+					print(" that has serial number {0:04d} programmed on 20{1:02d}/{2:02d}".format(ser, yy, mm))
+				else:
+					print(" without serial information")
+				break				
 	except:
 		print("Exception occured in read_info()")
 		raise
-	else:
-		print("Device found!\r\n\tType 0x{:04X} with firmware version {:02d}.{:03d}".format(ID, majv, minv),end='')
-		if ser == 0:
-			print(" without serial information")
-		else:
-			print(" that has serial number {0:04d} programmed on 20{1:02d}/{2:02d}".format(ser, yy, mm))
 	finally:
-		if ser or (majv == 0 and minv < 12): return False
-		else: return True
+		return ser
 		
 
 def send_cmd(sp,cmd,val,OK_val):
@@ -141,15 +141,16 @@ def send_cmd(sp,cmd,val,OK_val):
 	try:
 		wait_for_answer = 1
 		progcmd = "{:s} {:d}\r".format(cmd,val)
+		#print("sending: {:s}".format(progcmd))
 		sp.write(progcmd.encode('ascii'))
 		while wait_for_answer:
 			datain = sp.readline()
-			print(datain.decode('ascii'))  #todo: remove trace code	
+			#print(datain.decode('ascii'))  #todo: remove trace code	
 			if re.search(OK_val,datain.decode('ascii')):
-				print("message answered")  #todo: remove trace code	
+				#print("message answered")  #todo: remove trace code	
 				return True
 			elif re.search(r'Say again',datain.decode('ascii')):
-				print("whooops!")          #todo: remove trace code	
+				#print("whooops!")          #todo: remove trace code	
 				return False
 		return
 	except:
@@ -177,24 +178,32 @@ def configure_device():
 	'''
 		Programing the flash information
 	'''
+	ser, mm = 0, 0
 	global portname
+	numretry = 15
+	print("opening port {:s} for configuration".format(portname))
 	try:
 		sp = serial.Serial(portname, 1000000,xonxoff=True,timeout=1)
+		print("Power the device")
 		datain = b''
-		while b'' == datain:
-			datain = sp.readline() #wait for the boot message
-		while b'' != datain:
-			datain = sp.readline() #skip the boot message
-			if re.search(r'Enumerated',datain.decode('ascii')):
-				datain = b''
-		if True: #read_info(sp):
+		while not re.search(r'Enumerated',datain.decode('ascii')):
+			datain = sp.readline()
+			if numretry == 0:
+				print("Please reboot the device")
+				numretry = 15
+		if read_info(sp) == 0:
 			program_device(sp)
-			read_info(sp)
-			if ser != serialnumber or mm != month:
-				raise
+			ser = read_info(sp)
+			if ser != serialnumber:
+				print("Configuration mismatch! found serial {:04d} instead of {:04d}".format(ser,serialnumber))
+				return False
+			else:
+				print("config OK, writing to flash")
+				sp.write("S\r")
 		else: 
 			print("Previous configuration detected")
-			raise
+			return False
+		return True
 				
 	except OSError:
 		print("Failed to open serial port {}".format(portname))
@@ -202,25 +211,25 @@ def configure_device():
 	except:
 		print('Error in configure_device()')
 		raise
-	else:
-		print("config OK, writing to flash")
-		sp.write(b'S\r\n')
-		sp.close()
 	finally:
-		pass
+		if sp: sp.close()
+		
 
 if __name__== "__main__":
+	'''
+		Configuration software for EVAL-ADAL6110-16 modules
+	'''
 	try:
 		check_arguments()
 		check_file()
-		configure_device()
+		if configure_device():
+			timetext = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			with open(filename,'a') as f:
+				f.write("{0:s}\t{1:04d}\t0x{2:04X}\n".format(timetext,serialnumber,devicetype))
+			print("configuration of unit #{:04d} of type 0x{:04X} done at {:s}".format(serialnumber,devicetype,timetext))
 	except:
 		print("An error occured!")
-	else:
-		timetext = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-		with open(filename,'a') as f:
-			f.write("{0:s}\t{1:04d}\t0x{2:04X}\n".format(timetext,serialnumber,devicetype))
-		print("configuration of unit #{:04d} of type 0x{:04X} done at {:s}".format(serialnumber,devicetype,timetext))
+		raise
 	finally: 
 		print("\n\rExiting configuration software")
 	
