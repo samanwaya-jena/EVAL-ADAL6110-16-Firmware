@@ -24,6 +24,8 @@ demo_app - This is the Lidar test application
 
 Flash_programmer - This application is used to generate the flash programmer and support the Flash device on the Wagner board
 
+configdev.py - configuration script that read from a database file to configure a device via the serial port. run without argument for help
+
 Instructions to flash:
 ----------------------
 
