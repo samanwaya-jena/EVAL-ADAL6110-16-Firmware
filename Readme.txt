@@ -13,8 +13,8 @@ Note:
 --------------------
 
 At this time, only the "Debug" configuration is fonctionnal.
-
 The script "ProgramToFlash.bat" can be used to program the binary in the serial Flash.
+
 
 Project Description:
 --------------------
@@ -23,6 +23,7 @@ BF707_init: this is the bootloader of the application. It's base on the referenc
 demo_app: This is the Lidar test application
 Flash_programmer: This application is used to generate the flash programmer and support the Flash device on the Wagner board
 configdev.py: configuration script that read from a database file to configure a device via the serial port. run without argument for help
+
 
 Instructions to flash:
 --------------------
@@ -34,7 +35,8 @@ Instructions to flash:
 3) edit the xml configuration script for 50MHz clock --- to be validated...
 4) In a command shell execute the batch file.
     You should see in the screen some dot(.......) while it program
-	
+
+
 Instructions to configure:
 --------------------
 
