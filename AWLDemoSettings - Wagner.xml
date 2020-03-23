@@ -1,0 +1,1083 @@
+<?xml version="1.0"?>
+<config>
+
+  <layout>
+    <!-- default layout at startup.  Tells which windows and parts of
+	       screen are displayed. -->
+    <displaySettingsWindow>false</displaySettingsWindow>
+    <display2DWindow>true</display2DWindow>
+    <displayAScanViewWindow>true</displayAScanViewWindow>
+    <displayTableViewWindow>false</displayTableViewWindow>
+    <display3DWindow>false</display3DWindow>
+    <displayCameraWindow>false</displayCameraWindow>
+
+    <!-- Tells which settings tabs are displayed -->
+    <TabSettingCalibration>true</TabSettingCalibration>
+    <TabSettingControl>false</TabSettingControl>
+    <TabSettingStatus>false</TabSettingStatus>
+    <TabSettingRegisters>true</TabSettingRegisters>
+    <TabSettingGPIOs>false</TabSettingGPIOs>
+    <TabSettingAlgoControl>false</TabSettingAlgoControl>
+    <TabSettingTrackerControl>false</TabSettingTrackerControl>
+    <TabSettingAScan>true</TabSettingAScan>
+    <TabSettingMisc>true</TabSettingMisc>
+
+
+    <!-- velocity units: display velocity in km/h or m/s
+	       0:  Units are in m/s
+	       1: Units are in km/h -->
+    <velocityUnits>1</velocityUnits>
+
+    <!-- displayed logo: empty string means no logo -->
+    <logoFileName>./Images/Logos/ADI_Logo.png</logoFileName>
+
+    <!-- Name of file containing displayed icon -->
+    <iconFileName>./Images/Logos/AWLQtDemo.ico</iconFileName>
+
+    <!-- displayShowSize:: Default display mode for the main window
+         Possible values are:
+         "FullScreen" - Show full screen
+         "Maximized" - Show maximized
+         "Minimized" - Show Minimized
+         "Normal" = Show normal
+         Defaults to "Normal"
+         -->
+    <displayShowSize>FullScreen</displayShowSize>
+  </layout>
+
+  <debug>
+    <enableDebugFile>false</enableDebugFile>
+    <enableLogFile>false</enableLogFile>
+  </debug>
+
+   <video>
+    <displayCrosshair>false</displayCrosshair>
+    <displayTime> true </displayTime>
+  </video>
+  
+  <receivers>
+    <receiverQty>1</receiverQty>
+    <receiver0>
+      <!-- The receiverType determines which desccendant of the Receiver class is used in the configuration.
+		       This is greatly incluence by  comm port communications.
+		       Valid values currently possible are "EasySyncCAN",  "KvaserLeaf", "SocketCAN", "PosixUDP", "PosixTTY", "LibUSB", "TCP" or "Simulator" (case sensistive!) -->
+      <receiverType>LibUSB</receiverType>
+
+      <!-- The receiverRegisterSet determines which version of the RegisterConfiguration is accessible for the sensor.
+		       This is usually incluenced by model and firmare version.
+		       Valid values currently possible are "registerDescription_RevC",  "registerDescription_RevD" (case sensistive!) for AWL -->
+      <receiverRegisterSet>registerDescription_ADI</receiverRegisterSet>
+
+      <!-- The receiverChannelGeometry identifies which version of the sensor Geometry is used..
+		       The sensor geomtretry describes the optical configuration (qty and optical FOVs of each channel) and also depends on lensing.
+		       Valid values currently possible are "GeometryAWL7",  and "GeometryAWL16Array" (case sensistive!) -->
+      <receiverChannelGeometry>GeometryADI1x16Array</receiverChannelGeometry>
+
+      <!-- The LibUSB Vendor id -->
+      <libUsbVendorId>1611</libUsbVendorId>
+      <!-- The LibUSB Product id -->
+      <libUsbProductId>30755</libUsbProductId>
+      <!-- The LibUSB input end point -->
+      <libUsbEndPointIn>129</libUsbEndPointIn>
+      <!-- The LibUSB output end point -->
+      <libUsbEndPointOut>1</libUsbEndPointOut>
+      <!-- The LibUSB time out -->
+      <libUsbTimeOut>1000</libUsbTimeOut>
+      
+      <!-- In LibUSB and TCP devices devices there some esensor models addd some extra info after the wave acquisition payload (Gordon and later Guardians).  
+          Earlier versions did not produce footer payload.  Boolean.
+          if not defined, the value assumes there is footer payload-->
+      <xmitsFooterData>true</xmitsFooterData>
+
+
+       <!-- Frame rate in Hz.  Set to 0 to use default frame rate -->
+      <frameRate>0</frameRate>
+
+      <!-- Channel mask: Controls which channels are processed at AWL Unit Level -->
+      <!--This is a bit mask for channels 0 to 7. Enter the mask in decimal -->
+      <channelMask>65535</channelMask>
+
+      <!-- Message mask flags: 
+		       Controls which messages are sent to client unit
+		       if msgEnableObstacle is true, all displays will
+		       be configured for track mode operation -->
+      <msgEnableObstacle>true</msgEnableObstacle>
+      <msgEnableDistance_1_4>false</msgEnableDistance_1_4>
+      <msgEnableDistance_5_8>false</msgEnableDistance_5_8>
+      <msgEnableIntensity_1_4>false</msgEnableIntensity_1_4>
+      <msgEnableIntensity_5_8>false</msgEnableIntensity_5_8>
+      <msgEnableDistanceIntensity>false</msgEnableDistanceIntensity>
+      <msgEnableObstacleCompact>true</msgEnableObstacleCompact>
+      <msgEnableRaw>false</msgEnableRaw>
+ 
+      <sensorGeometry>
+        <position>
+          <!-- positionFromBumper -->
+          <forward>0.06</forward>
+          <!-- lateral offet -->
+          <left>0.0</left>
+          <!-- height -->
+          <up>0.08</up>
+         </position>
+        <orientation>
+          <pitch>0.0</pitch>
+          <roll>0.0</roll>
+          <yaw>0.0</yaw>
+        </orientation>
+      </sensorGeometry>
+
+      <displayedRangeMin>0.0</displayedRangeMin>
+      <displayedRangeMax>60</displayedRangeMax>
+      <rangeOffset>0.0</rangeOffset>
+    </receiver0>
+
+
+<receiver1>
+      <!-- The receiverType determines which desccendant of the Receiver class is used in the configuration.
+		       This is greatly incluence by  comm port communications.
+		       Valid values currently possible are "EasySyncCAN",  "KvaserLeaf", "SocketCAN", "PosixUDP", "PosixTTY", "LibUSB", "TCP" or "Simulator" (case sensistive!) -->
+      <receiverType>LibUSB</receiverType>
+
+      <!-- The receiverRegisterSet determines which version of the RegisterConfiguration is accessible for the sensor.
+		       This is usually incluenced by model and firmare version.
+		       Valid values currently possible are "registerDescription_RevC",  "registerDescription_RevD" (case sensistive!) for AWL -->
+      <receiverRegisterSet>registerDescription_ADI</receiverRegisterSet>
+
+      <!-- The receiverChannelGeometry identifies which version of the sensor Geometry is used..
+		       The sensor geomtretry describes the optical configuration (qty and optical FOVs of each channel) and also depends on lensing.
+		       Valid values currently possible are "GeometryAWL7",  and "GeometryAWL16Array" (case sensistive!) -->
+      <receiverChannelGeometry>GeometryADI1x16Array</receiverChannelGeometry>
+
+        <!-- The LibUSB Vendor id -->
+      <libUsbVendorId>1611</libUsbVendorId>
+      <!-- The LibUSB Product id -->
+      <libUsbProductId>30755</libUsbProductId>
+      <!-- The LibUSB input end point -->
+      <libUsbEndPointIn>129</libUsbEndPointIn>
+      <!-- The LibUSB output end point -->
+      <libUsbEndPointOut>1</libUsbEndPointOut>
+      <!-- The LibUSB time out -->
+      <libUsbTimeOut>1000</libUsbTimeOut>
+  
+      <!-- In LibUSB and TCP devices devices there some esensor models addd some extra info after the wave acquisition payload (Gordon and later Guardians).  
+          Earlier versions did not produce footer payload.  Boolean.
+          if not defined, the value assumes there is footer payload-->
+      <xmitsFooterData>true</xmitsFooterData>
+
+
+  
+      <!-- Frame rate in Hz.  Set to 0 to use default frame rate -->
+      <frameRate>0</frameRate>
+
+        <!-- Channel mask: Controls which channels are processed at AWL Unit Level -->
+      <!--This is a bit mask for channels 0 to 7. Enter the mask in decimal -->
+      <channelMask>65535</channelMask>
+
+      <!-- Message mask flags: 
+		       Controls which messages are sent to client unit
+		       if msgEnableObstacle is true, all displays will
+		       be configured for track mode operation -->
+      <msgEnableObstacle>true</msgEnableObstacle>
+      <msgEnableDistance_1_4>false</msgEnableDistance_1_4>
+      <msgEnableDistance_5_8>false</msgEnableDistance_5_8>
+      <msgEnableIntensity_1_4>false</msgEnableIntensity_1_4>
+      <msgEnableIntensity_5_8>false</msgEnableIntensity_5_8>
+      <msgEnableDistanceIntensity>false</msgEnableDistanceIntensity>
+      <msgEnableObstacleCompact>true</msgEnableObstacleCompact>
+      <msgEnableRaw>false</msgEnableRaw>
+ 
+      <sensorGeometry>
+        <position>
+          <!-- positionFromBumper -->
+          <forward>0.04</forward>
+          <!-- lateral offet -->
+          <left>-0.06</left>
+          <!-- height -->
+          <up>0.025</up>
+         </position>
+        <orientation>
+          <pitch>0.0</pitch>
+          <roll>0.0</roll>
+          <yaw>30.0</yaw>
+        </orientation>
+      </sensorGeometry>
+
+      <displayedRangeMin>1.0</displayedRangeMin>
+      <displayedRangeMax>60</displayedRangeMax>
+      <rangeOffset>0.0</rangeOffset>
+    </receiver1>
+
+<receiver2>
+      <!-- The receiverType determines which desccendant of the Receiver class is used in the configuration.
+		       This is greatly incluence by  comm port communications.
+		       Valid values currently possible are "EasySyncCAN",  "KvaserLeaf", "SocketCAN", "PosixUDP", "PosixTTY", "LibUSB", "TCP" or "Simulator" (case sensistive!) -->
+      <receiverType>LibUSB</receiverType>
+
+      <!-- The receiverRegisterSet determines which version of the RegisterConfiguration is accessible for the sensor.
+		       This is usually incluenced by model and firmare version.
+		       Valid values currently possible are "registerDescription_RevC",  "registerDescription_RevD" (case sensistive!) for AWL -->
+      <receiverRegisterSet>registerDescription_ADI</receiverRegisterSet>
+
+      <!-- The receiverChannelGeometry identifies which version of the sensor Geometry is used..
+		       The sensor geomtretry describes the optical configuration (qty and optical FOVs of each channel) and also depends on lensing.
+		       Valid values currently possible are "GeometryAWL7",  and "GeometryAWL16Array" (case sensistive!) -->
+      <receiverChannelGeometry>GeometryADI1x16Array</receiverChannelGeometry>
+
+          <!-- The LibUSB Vendor id -->
+      <libUsbVendorId>1611</libUsbVendorId>
+      <!-- The LibUSB Product id -->
+      <libUsbProductId>30755</libUsbProductId>
+      <!-- The LibUSB input end point -->
+      <libUsbEndPointIn>129</libUsbEndPointIn>
+      <!-- The LibUSB output end point -->
+      <libUsbEndPointOut>1</libUsbEndPointOut>
+      <!-- The LibUSB time out -->
+      <libUsbTimeOut>1000</libUsbTimeOut>
+ 
+      <!-- In LibUSB and TCP devices devices there some esensor models addd some extra info after the wave acquisition payload (Gordon and later Guardians).  
+          Earlier versions did not produce footer payload.  Boolean.
+          if not defined, the value assumes there is footer payload-->
+      <xmitsFooterData>true</xmitsFooterData>
+
+       <!-- Frame rate in Hz.  Set to 0 to use default frame rate -->
+      <frameRate>0</frameRate>
+
+      <!-- Channel mask: Controls which channels are processed at AWL Unit Level -->
+      <!--This is a bit mask for channels 0 to 7. Enter the mask in decimal -->
+      <channelMask>65535</channelMask>
+
+      <!-- Message mask flags: 
+		       Controls which messages are sent to client unit
+		       if msgEnableObstacle is true, all displays will
+		       be configured for track mode operation -->
+      <msgEnableObstacle>true</msgEnableObstacle>
+      <msgEnableDistance_1_4>false</msgEnableDistance_1_4>
+      <msgEnableDistance_5_8>false</msgEnableDistance_5_8>
+      <msgEnableIntensity_1_4>false</msgEnableIntensity_1_4>
+      <msgEnableIntensity_5_8>false</msgEnableIntensity_5_8>
+      <msgEnableDistanceIntensity>false</msgEnableDistanceIntensity>
+      <msgEnableObstacleCompact>true</msgEnableObstacleCompact>
+      <msgEnableRaw>false</msgEnableRaw>
+ 
+      <sensorGeometry>
+        <position>
+          <!-- positionFromBumper -->
+          <forward>0.04</forward>
+          <!-- lateral offet -->
+          <left>0.06</left>
+          <!-- height -->
+          <up>0.025</up>
+         </position>
+        <orientation>
+          <pitch>0.0</pitch>
+          <roll>0.0</roll>
+          <yaw>-30.0</yaw>
+        </orientation>
+      </sensorGeometry>
+
+      <displayedRangeMin>1.0</displayedRangeMin>
+      <displayedRangeMax>60</displayedRangeMax>
+      <rangeOffset>0.0</rangeOffset>
+    </receiver2>
+  </receivers>
+
+  <cameras>
+    <cameraQty>1</cameraQty>
+
+    <camera0>
+      <!-- cameraName:
+	    Camera index, as used in openCV.
+       Indexes start at 0, up to 99. 
+       To the index, you a can add a number (multiple of 100) to specify specific OpenCV camera driver handler.
+       XIMEA Cameras, add 1100 to the camera index (default XIMEA camera would be "1100").
+       A non-numeric camera name can be used to specify a video file.-->
+      <cameraName>0</cameraName>  <!-- Camera #1 is the computer webcam in a 2 camera setup -->
+
+      <!-- cameraFlip:
+       if true, 180 degree rotation of the camera image, 
+       for cameras that need to be fixed upside down. -->
+      <cameraFlip>false</cameraFlip>
+
+      <position>
+        <!-- positionFromBumper -->
+        <forward>0.03</forward>
+        <!-- lateral offet -->
+        <left>0</left>
+        <!-- height -->
+        <up>0.13</up>
+      </position>
+      <orientation>
+        <pitch>0.0</pitch>
+        <roll>0.0</roll>
+        <yaw>0.0</yaw>
+      </orientation>
+
+      <!-- Comment out unused cameras
+		< MS_LIFECAM_CINEMA >
+		<fov>
+			<x>47.4</x>
+			<y>30.6</y>
+		</fov>
+
+		< MS_LIFECAM_HD6000 @640x360 >
+		<fov>
+			<x>45.0</x>
+			<y>39.0</y>
+		</fov>
+
+		< MS_LIFECAM_HD5000 @640x360 >
+			<fov>
+			<x>45.0</x>
+			<y>39.0</y>
+		</fov>
+    
+     < LOGITECH_C270 @640 x 480 >
+    <fov>
+      <x>42.0</x>
+      <y>27.0</y>
+    </fov>
+
+     < XIMEA with 3.6mm lensing (M12 Lenses PT-03618MP)>
+    <fov>
+      <x>96.75</x>
+      <y>72.5</y>
+     </fov>
+     < radial distorsion correction parameters >
+     <radialCorrectionK1>-.16</radialCorrectionK1>
+     <radialCorrectionK2>0.0</radialCorrectionK2>
+
+
+     < XIMEA with 6mm lensing (M12 Lenses PT-0620BMP) >
+      <fov>
+        <x>54.6</x>
+        <y>41.3</y>
+      </fov>
+      <radialCorrectionK1>-.06</radialCorrectionK1>
+      <radialCorrectionK2>0.0</radialCorrectionK2>
+  
+  
+     < XIMEA with 8mm lensing (M12 Lenses PT-0820BMP) >
+      <fov>
+        <x>45.0</x>
+        <y>34.0</y>
+      </fov>
+      <radialCorrectionK1>-.04</radialCorrectionK1>
+      <radialCorrectionK2>0.0</radialCorrectionK2>
+
+      End Comment out unused cameras -->
+
+
+      <!-- XIMEA with 8mm lensing (M12 Lenses PT-0820BMP) -->
+      <fov>
+        <x>82.1</x>
+        <y>52.2</y>
+      </fov>
+      <radialCorrectionK1>0.0</radialCorrectionK1>
+      <radialCorrectionK2>0.0</radialCorrectionK2>
+    </camera0>
+
+    <cameraWebcamSample>
+      <!-- cameraName:
+	    Camera index, as used in openCV.
+       Indexes start at 0, up to 99. 
+       To the index, you a can add a number (multiple of 100) to specify specific OpenCV camera driver handler.
+       XIMEA Cameras, add 1100 to the camera index (default XIMEA camera would be "1100").
+       A non-numeric camera name can be used to specify a video file.-->
+      <cameraName>1</cameraName> <!-- Camera #1 is the computer webcam in a 2 camera setup -->
+
+      <!-- cameraFlip:
+       if true, 180 degree rotation of the camera image, 
+       for cameras that need to be fixed upside down. -->
+      <cameraFlip>false</cameraFlip>
+
+      <position>
+        <!-- positionFromBumper -->
+        <forward>0</forward>
+        <!-- lateral offet -->
+        <left>0</left>
+        <!-- height -->
+        <up>0</up>
+      </position>
+      <orientation>
+        <pitch>0.0</pitch>
+        <roll>0.0</roll>
+        <yaw>0.0</yaw>
+      </orientation>
+
+        <!-- MS_LIFECAM_HD5000 @640x360 -->
+      <fov>
+        <x>45.0</x>
+        <y>39.0</y>
+      </fov>
+      <!-- radial distorsion correction parameters -->
+      <radialCorrectionK1>0.0</radialCorrectionK1>
+      <radialCorrectionK2>0.0</radialCorrectionK2>
+    </cameraWebcamSample>
+
+
+    <cameraXimea3_6mmSample>
+      <!-- cameraName:
+	    Camera index, as used in openCV.
+       Indexes start at 0, up to 99. 
+       To the index, you a can add a number (multiple of 100) to specify specific OpenCV camera driver handler.
+       XIMEA Cameras, add 1100 to the camera index.
+       An non-numeric camera name can be used to specify a video file.-->
+      <cameraName>1100</cameraName> <!-- Camera #1100 is first Ximea in a 2 camera setup -->
+
+      <!-- cameraFlip:
+       if true, 180 degree rotation of the camera image, 
+ 
+     for cameras that need to be fixed upside down. -->
+      <cameraFlip>true</cameraFlip>
+
+      <position>
+        <!-- positionFromBumper -->
+        <forward>0</forward>
+        <!-- lateral offet -->
+        <left>0.0</left>
+        <!-- height -->
+        <up>0</up>
+      </position>
+      <orientation>
+        <pitch>0.0</pitch>
+        <roll>0.0</roll>
+        <yaw>0.0</yaw>
+      </orientation>
+
+      <!-- XIMEA with 3.6mm lensing. F1.8 -->
+      <fov>
+        <x>96.75</x>
+        <y>72.5</y>
+      </fov>
+      <!-- radial distorsion correction parameters -->
+      <radialCorrectionK1>-.16</radialCorrectionK1>
+      <radialCorrectionK2>0.0</radialCorrectionK2>
+    </cameraXimea3_6mmSample>
+
+  </cameras>
+  
+
+  
+  <displayTableView>
+    <displayedDetectionsPerChannelInTableView>2</displayedDetectionsPerChannelInTableView>
+  </displayTableView>
+
+  <display2D>
+    <carWidth>1.78</carWidth>
+    <!-- Car width in meters -->
+    <carLength>4.53</carLength>
+    <!-- Car width in meters -->
+    <carHeight>1.44</carHeight>
+    <!-- LaneWidth in meters 3.7 -->
+    <laneWidth>-1</laneWidth>
+    <!--Lane width in meters -->
+
+    <!-- velocity for colorCoding in m/s -->
+    <maxVelocity>30.0</maxVelocity>
+
+    <!-- zeroVelocity is velocity at which we consider 
+	     a target to be static (-zeroVelocity to +zeroVelocity) -->
+    <!-- in m/s -->
+    <zeroVelocity>1.0</zeroVelocity>
+
+    <!-- Merge detection Mode
+	     0:		eNoMerge - don't merge targets
+	     1: 		eRadial - According to radial distance
+	     2:		eLongitudinal - According to bumper distance -->
+    <mergeDetectionMode>0</mergeDetectionMode>
+
+    <!-- mergeDisplayMode 
+	     0: NONE
+	     1: Rectangle under detection 
+	        (Still display distance individually)
+	     2: Rectangle without detection, display only one distance
+	     3: Rectangle with detections, but only one distance -->
+    <mergeDisplayMode>0</mergeDisplayMode>
+
+    <!-- measureMode
+	     0: Radial
+	     1: Longitudinal distance from bumper 
+       2: Cartesian coordinates from bumper -->
+    <measureMode>1</measureMode>
+
+    <!-- colorCode
+	     0: Colors indicate distances
+	     1: Colors indicate speed 
+       2: Colors indicate obstacle type according to classifier
+       3: Colors correspond to channel "color"
+       4: Colors indicate Threat Level-->
+    <colorCode>4</colorCode>
+   
+    <!-- displayDistances
+	     0: Hide all distances
+	     1: Show all distances 
+     -->
+    <displayDistances>0</displayDistances>
+
+
+    <!-- displayZoom
+	     0: Display only area to the front of car
+	     1: Display front and rear of car 
+       2: Display from displayedRangeMin to displayedRangeMax (autoZoom)
+     -->
+    <displayZoom>0</displayZoom>
+
+    <!-- mergeAcceptance
+       distance before we merge targets
+       Merge acceptance is in 2D view coordinates, so:
+        - X is lateral
+        - Y is forward    -->
+    <mergeAcceptance>
+      <x>3.0</x>
+      <y>1.0</y>
+    </mergeAcceptance>
+
+    <!-- showPalette
+       Rectangle color code indicator to the side is hiiden/displayed.
+       0: Hide
+       1: Show
+     -->
+    <showPalette>0</showPalette>
+  </display2D>
+
+  <scope>
+    <!-- interval in ms -->
+    <timerInterval>30</timerInterval>
+    <!-- scope window:determine what curves are displayed -->
+    <displayScopeDistance>true</displayScopeDistance>
+    <displayScopeVelocity>true</displayScopeVelocity>
+  </scope>
+
+
+  <dynamicTesting>
+    <!-- Max deceleration of the vehicle with full brakes on
+	     Kusano-Gaeble
+	     (http://www.sbes.vt.edu/gabler/publications/Kusano-Gabler-SAE-TTC_EDRs-2011-01-0576.pdf)
+	     Give estimates of 0.52G (0.52 * 9,8m/s2) or 5,096 m/s2
+	     Specify in m/s2 -->
+    <brakingDeceleration>5.096</brakingDeceleration>
+
+    <!-- Current speed of vehicle
+	     Travel speed is a variable that should be taken from 
+	     CAN measurements.
+	     In the meantime, we have a variable for that
+	     Specify in m/s, use <NN>km/h(60.0 * 1000)/(60*60) -->
+    <travelSpeed>33.32</travelSpeed>
+    <alertQty> 3 </alertQty>
+    <alert0>
+      <alertType>decelerationToStop</alertType>  <!-- Alert type can be "distanceWithin", "distanceOutside", "speed", "acceleration", "decelerationToStop", "TTC"(time to collision) -->
+      <alertReceiver>0</alertReceiver>
+      <alertChannels> 65535 </alertChannels> <!-- Bitmask for channels 0 to 16.  Enter in decimal (unsigned int 16 bit - 0 to 65535) -->
+      <alertMin> 1.0</alertMin>  <!-- Leave min empty for minimum possible value for a float -->
+      <alertMax>2.0</alertMax> <!-- Leave max empty for maximum possible value for a float -->
+      <alertLevel>1</alertLevel> <!-- Alert level can be 0 (none), 1 (low), 2 (warn) or 3 (critical) -->
+    </alert0>
+
+    <alert1>
+      <alertType>decelerationToStop</alertType> <!-- Alert type can be "distanceWithin", "distanceOutside", "speed", "acceleration", "decelerationToStop", "TTC"(time to collision) -->
+      <alertReceiver>0</alertReceiver>
+       <alertChannels> 65535 </alertChannels> <!-- Bitmask for channels 0 to 16.  Enter in decimal (unsigned int 16 bit - 0 to 65535) -->
+      <alertMin> 2.0</alertMin> <!-- Leave min empty for minimum possible value for a float -->
+      <alertMax>3.0</alertMax>  <!-- Leave max empty for maximum possible value for a float -->
+      <alertLevel>2</alertLevel><!-- Alert level can be 0 (none), 1 (low), 2 (warn) or 3 (critical) -->
+    </alert1>
+
+    <alert2>
+      <alertType>decelerationToStop</alertType>  <!-- Alert type can be "distanceWithin", "distanceOutside", "speed", "acceleration", "decelerationToStop", "TTC"(time to collision) -->
+      <alertReceiver>0</alertReceiver>
+      <alertChannels> 65535 </alertChannels> <!-- Bitmask for channels 0 to 16.  Enter in decimal (unsigned int 16 bit - 0 to 65535) -->
+      <alertMin>3.0</alertMin> <!-- Leave min empty for minimum possible value for a float -->
+      <alertMax></alertMax>    <!-- Leave max empty for maximum possible value for a float -->
+      <alertLevel>3</alertLevel> <!-- Alert level can be 0 (none), 1 (low), 2 (warn) or 3 (critical) -->
+    </alert2>
+    
+     <alert3Ignored>
+      <alertType>distanceOutside</alertType>  <!-- Alert type can be "distanceWithin", "distanceOutside", "speed", "acceleration", "decelerationToStop", "TTC"(time to collision) -->
+       <alertReceiver>0</alertReceiver>
+       <alertChannels> 1 </alertChannels>
+      <alertMin>5.0</alertMin> <!-- Leave min empty for minimum possible value for a float -->
+      <alertMax>10.0</alertMax>    <!-- Leave max empty for maximum possible value for a float -->
+      <alertLevel>3</alertLevel> <!-- Alert level can be 0 (none), 1 (low), 2 (warn) or 3 (critical) -->
+    </alert3Ignored>
+
+     <alert4Ignored>
+      <alertType>distanceOutside</alertType> <!-- Alert type can be "distanceWithin", "distanceOutside", "speed", "acceleration", "decelerationToStop", "TTC"(time to collision) -->
+       <alertReceiver>0</alertReceiver>
+       <alertChannels> 2 </alertChannels>
+      <alertMin>5.0</alertMin> <!-- Leave min empty for minimum possible value for a float -->
+      <alertMax>10.0</alertMax>    <!-- Leave max empty for maximum possible value for a float -->
+      <alertLevel>3</alertLevel> <!-- Alert level can be 0 (none), 1 (low), 2 (warn) or 3 (critical) -->
+    </alert4Ignored>
+
+    <alert5Ignored>
+      <alertType>distanceOutside</alertType>
+      <!-- Alert type can be "distanceWithin", "distanceOutside", "speed", "acceleration", "decelerationToStop", "TTC"(time to collision) -->
+      <alertReceiver>0</alertReceiver>
+      <alertChannels> 4 </alertChannels>
+      <alertMin>5.0</alertMin> <!-- Leave min empty for minimum possible value for a float -->
+      <alertMax>10.0</alertMax>    <!-- Leave max empty for maximum possible value for a float -->
+      <alertLevel>3</alertLevel> <!-- Alert level can be 0 (none), 1 (low), 2 (warn) or 3 (critical) -->
+    </alert5Ignored>
+
+    <alert6Ignored>
+      <alertType>distanceOutside</alertType>  <!-- Alert type can be "distanceWithin", "distanceOutside", "speed", "acceleration", "decelerationToStop", "TTC"(time to collision) -->
+      <alertReceiver>0</alertReceiver>
+      <alertChannels> 8 </alertChannels>
+      <alertMin>5.0</alertMin> <!-- Leave min empty for minimum possible value for a float -->
+      <alertMax>10.0</alertMax>    <!-- Leave max empty for maximum possible value for a float -->
+      <alertLevel>3</alertLevel> <!-- Alert level can be 0 (none), 1 (low), 2 (warn) or 3 (critical) -->
+    </alert6Ignored>
+  </dynamicTesting>
+
+
+
+
+
+  <registerDescription_ADI>
+  
+    <!-- Registers for Wagner evaluation board based on ADI Gordon -->
+    <registersFPGA label="ADAL6110-16 Registers">
+
+      <register>
+        <index>R0</index>
+        <address>0</address>
+        <description>DEVICE</description>
+      </register>
+      <register>
+        <index>R1</index>
+        <address>1</address>
+        <description>CONTROL_0</description>
+      </register>
+      <register>
+        <index>R2</index>
+        <address>2</address>
+        <description>CONTROL_1</description>
+      </register>
+      <register>
+        <index>R3</index>
+        <address>3</address>
+        <description>SRAM_READ</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R4</index>
+        <address>4</address>
+        <description>FLASH_DELAY</description>
+      </register>
+      <register>
+        <index>R7</index>
+        <address>7</address>
+        <description>TIMING</description>
+      </register>
+      <!-- Channel 0 -->
+      <register>
+        <index>R13</index>
+        <address>13</address>
+        <description>CH0_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R14</index>
+        <address>14</address>
+        <description>CH0_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R15</index>
+        <address>15</address>
+        <description>CH0_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 1 -->
+      <register>
+        <index>R17</index>
+        <address>17</address>
+        <description>CH1_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R18</index>
+        <address>18</address>
+        <description>CH1_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R19</index>
+        <address>19</address>
+        <description>CH1_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 2 -->
+      <register>
+        <index>R21</index>
+        <address>21</address>
+        <description>CH2_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R22</index>
+        <address>22</address>
+        <description>CH2_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R23</index>
+        <address>23</address>
+        <description>CH2_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 3 -->
+      <register>
+        <index>R25</index>
+        <address>25</address>
+        <description>CH3_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R26</index>
+        <address>26</address>
+        <description>CH3_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R27</index>
+        <address>27</address>
+        <description>CH3_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 4 -->
+      <register>
+        <index>R29</index>
+        <address>29</address>
+        <description>CH4_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R30</index>
+        <address>30</address>
+        <description>CH4_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R31</index>
+        <address>31</address>
+        <description>CH4_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 5 -->
+      <register>
+        <index>R33</index>
+        <address>33</address>
+        <description>CH5_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R34</index>
+        <address>34</address>
+        <description>CH5_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R35</index>
+        <address>35</address>
+        <description>CH5_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 6 -->
+      <register>
+        <index>R37</index>
+        <address>37</address>
+        <description>CH6_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R38</index>
+        <address>38</address>
+        <description>CH6_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R39</index>
+        <address>39</address>
+        <description>CH6_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 7 -->
+      <register>
+        <index>R41</index>
+        <address>41</address>
+        <description>CH7_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R42</index>
+        <address>42</address>
+        <description>CH7_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R43</index>
+        <address>43</address>
+        <description>CH7_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 8 -->
+      <register>
+        <index>R45</index>
+        <address>45</address>
+        <description>CH8_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R46</index>
+        <address>46</address>
+        <description>CH8_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R47</index>
+        <address>47</address>
+        <description>CH8_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 9 -->
+      <register>
+        <index>R49</index>
+        <address>49</address>
+        <description>CH9_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R50</index>
+        <address>50</address>
+        <description>CH9_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R51</index>
+        <address>51</address>
+        <description>CH9_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 10 -->
+      <register>
+        <index>R53</index>
+        <address>53</address>
+        <description>CH10_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R54</index>
+        <address>54</address>
+        <description>CH10_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R55</index>
+        <address>55</address>
+        <description>CH10_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 11 -->
+      <register>
+        <index>R57</index>
+        <address>57</address>
+        <description>CH11_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R58</index>
+        <address>58</address>
+        <description>CH11_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R59</index>
+        <address>59</address>
+        <description>CH11_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 12 -->
+      <register>
+        <index>R61</index>
+        <address>61</address>
+        <description>CH12_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R62</index>
+        <address>62</address>
+        <description>CH12_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R63</index>
+        <address>63</address>
+        <description>CH12_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 13 -->
+      <register>
+        <index>R65</index>
+        <address>65</address>
+        <description>CH13_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R66</index>
+        <address>66</address>
+        <description>CH13_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R67</index>
+        <address>67</address>
+        <description>CH13_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 14 -->
+      <register>
+        <index>R69</index>
+        <address>69</address>
+        <description>CH14_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R70</index>
+        <address>70</address>
+        <description>CH14_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R71</index>
+        <address>71</address>
+        <description>CH14_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+      <!-- Channel 15 -->
+      <register>
+        <index>R73</index>
+        <address>73</address>
+        <description>CH15_CONTROL_0</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R74</index>
+        <address>74</address>
+        <description>CH15_CONTROL_1</description>
+        <advanced>1</advanced>
+      </register>
+      <register>
+        <index>R75</index>
+        <address>75</address>
+        <description>CH15_CONTROL_2</description>
+        <advanced>1</advanced>
+      </register>
+
+    </registersFPGA>
+
+    <registersADC label="CPU Registers">
+    
+      <register>
+        <index>0</index>
+        <address>0</address>
+        <description>Software Reset</description>
+      </register>
+      
+      <register>
+        <index>1</index>
+        <address>1</address>
+        <description>Wagner: Max Acc</description>
+      </register>
+
+      <!--register>
+        <index>254</index>
+        <address>254</address>
+        <description>SAVE_CONFIG_TO_FLASH</description>
+      </register>
+
+      <register>
+        <index>255</index>
+        <address>255</address>
+        <description>RESET_FACTORY_DEFAULT</description>
+      </register-->
+
+    </registersADC>
+
+    <GPIOs>
+    </GPIOs>
+
+    <algos>
+      <defaultAlgo>1</defaultAlgo>
+    </algos> 
+    <trackers>
+	    <defaultTracker>1</defaultTracker>
+    </trackers>
+  </registerDescription_ADI>
+
+
+  
+  <GeometryADI1x16Array>
+    <!-- For multi-line sensors define wraparound and number of sensors per line.
+           If sensor does not support wrap around, write a wierdly high number that 
+           exceeds sensor physical range -->
+    <lineWrapAround>-1</lineWrapAround>
+    <channelsPerLine>16</channelsPerLine>
+
+    <arraySize>
+      <x>16</x>
+      <y>1</y>
+    </arraySize>
+    <arrayFOV>
+      <x>37.1</x>
+      <y>5.7</y>
+    </arrayFOV>
+    <pixelSpacing>
+      <x>0.1</x>
+      <y>1.5</y>
+    </pixelSpacing>
+    <arrayOffset>
+      <x>0.0</x>
+      <y>0.0</y>
+    </arrayOffset>
+
+    <maxRange>60.0</maxRange>
+
+    <maxAscanRange>60.0</maxAscanRange>
+    
+    <displayColor>
+      <red>255</red>
+      <green>128</green>
+      <blue>128</blue>
+    </displayColor>
+
+    <displayColorLine0>
+      <red>192</red>
+      <green>192</green>
+      <blue>192</blue>
+    </displayColorLine0>
+
+    <displayColorLine1>
+      <red>255</red>
+      <green>0</green>
+      <blue>0</blue>
+    </displayColorLine1>
+
+  </GeometryADI1x16Array>
+  
+</config>
