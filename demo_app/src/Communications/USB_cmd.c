@@ -179,6 +179,8 @@ void USB_pushEndOfFrame(uint16_t frameID, uint16_t systemID, uint16_t numTrackSe
 {
 	USB_CAN_message msg;
 
+	cld_console(CLD_CONSOLE_PURPLE, CLD_CONSOLE_BLACK, " Frame Id: 0x%04X Pushed to msg queue with %d detection(s)\r\n", frameID, numTrackSent);
+
 	msg.id = msgID_FrameDone;
 	msg.timestamp = GetTime();
 	msg.flags = 0x00;
@@ -211,7 +213,7 @@ void SendACK(USB_CAN_message* cmd, USB_msg* ret_msg)
 	ret_msg->CAN.timestamp = GetTime();
 	ret_msg->CAN.flags = 0;
 	ret_msg->CAN.len = 8;
-	ret_msg->CAN.data[0] = (cmd->data[0]==msgID_setparametercmd)?msgID_ACKSetcmd:msgID_ACKGetcmd;
+	ret_msg->CAN.data[0] = (cmd->data[0]==msgID_getParametercmd)?msgID_ACKGetcmd:msgID_ACKSetcmd;
 	ret_msg->CAN.data[1] = cmd->data[1];
 	ret_msg->CAN.data[2] = cmd->data[2];
 	ret_msg->CAN.data[3] = cmd->data[3];
@@ -324,6 +326,16 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 	case msgID_requestCookedcmd :
 		LiDARParameters[param_det_msg_decimation] = cmd->data[3];
 		LiDARParameters[param_det_msg_mask] = cmd->data[1] + (cmd->data[2]<<8);
+		if( LiDARParameters[param_det_msg_decimation] )
+		{
+			LiDARParameters[param_DSP_enable] = 1; // force detection...
+			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Cooked data requested at 1:%d decimation with 0x%04X mask\r\n",
+					LiDARParameters[param_det_msg_decimation],LiDARParameters[param_det_msg_mask]);
+		}else
+		{
+			LiDARParameters[param_DSP_enable] = 0; // stop detection...
+			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Cooked data cancelled\r\n");
+		}
 		break;
 	case msgID_requestRawcmd :
 		LiDARParameters[param_raw_msg_decimation] = cmd->data[3];

@@ -35,8 +35,8 @@ enum Msg_ID{
 	msgID_ACKGetcmd        = 0xC9, // Command well received and understood
 	msgID_NACKcmd          = 0xC3, // Command not received or not understood or timed out
 	msgID_queueEmptycmd    = 0xCA, // no message left to send (response to msgID_poll)
-	msgID_requestCookedcmd = 0xE0,
-	msgID_requestRawcmd    = 0xE1
+	msgID_requestCookedcmd = 0xE1,
+	msgID_requestRawcmd    = 0xE0
 };
 
 

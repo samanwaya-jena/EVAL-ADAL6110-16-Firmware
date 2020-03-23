@@ -89,8 +89,11 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
     /* Function called when bulk OUT data has been received. */
     .fp_bulk_out_data_received = user_bulk_bulk_out_data_received,
 
-    .usb_bus_max_power = 0,                             /* The ADSP-BF707 EZ-Board is
-                                                           self-powered (not USB bus-powered) */
+    .usb_bus_max_power = 250,                             /* The ADSP-BF707 EZ-Board is self-powered (not USB bus-powered)
+                                                            .usb_bus_max_power = 0
+                                                            EVAL_ADAL6110_16 is USB powered and draw the maximum allowable current (500 mA)
+                                                            power expressed on 8b in 2mA increment*/
+
 
     .device_descriptor_bcdDevice = 0x0100,              /* Set USB Device Descriptor
                                                            firmware version to 1.00 */
@@ -114,7 +117,7 @@ static CLD_BF70x_Bulk_Lib_Init_Params user_bulk_init_params =
 
 //static uint16_t numPending = 0;
 
-static CLD_Time usb_time = 0;
+//static CLD_Time usb_time = 0;
 
 
 /*=============================================================================
@@ -203,11 +206,6 @@ CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Tr
 {
     CLD_USB_Transfer_Request_Return_Type rv = CLD_USB_TRANSFER_STALL;
 
-	if (cld_time_passed_ms(usb_time) >= 25u)
-	{
-		usb_time = cld_time_get();
-		SetError(error_SW_comm_timeout);
-	}
 
     if (p_transfer_data->num_bytes == sizeof(USB_CAN_message))
 	{
@@ -235,12 +233,15 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
     USB_CAN_message* usbCMDmsg = (USB_CAN_message *)&user_bulk_adi_loopback_buffer;
     USB_msg usbResp;
 
-    LED_BC3G_ON();
+    LED_BC3G_OFF();  // indicator LED for communication
     if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB )
     {
-		cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "-->0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X) ",
-				usbCMDmsg->id, usbCMDmsg->data[0], usbCMDmsg->data[1], usbCMDmsg->data[2], usbCMDmsg->data[3], usbCMDmsg->data[4],
-				usbCMDmsg->data[5], usbCMDmsg->data[6], usbCMDmsg->data[7]);
+    	if(usbCMDmsg->id != msgID_poll)
+    	{
+    		cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "-->0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X) ",
+    							usbCMDmsg->id, usbCMDmsg->data[0], usbCMDmsg->data[1], usbCMDmsg->data[2], usbCMDmsg->data[3],
+								usbCMDmsg->data[4], usbCMDmsg->data[5], usbCMDmsg->data[6], usbCMDmsg->data[7]);
+    	}
     }else
     	cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, ".");
 
@@ -250,9 +251,12 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
     {
 		if (usbResp.CAN.id != msgID_transmitRaw)
 		{
-			cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X)",
-					usbResp.CAN.id, usbResp.CAN.data[0], usbResp.CAN.data[1], usbResp.CAN.data[2], usbResp.CAN.data[3], usbResp.CAN.data[4],
-					usbResp.CAN.data[5], usbResp.CAN.data[6], usbResp.CAN.data[7]);
+			if(usbResp.CAN.id != msgID_command || usbResp.CAN.data[0] != msgID_queueEmptycmd)
+			{
+				cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X)",
+						usbResp.CAN.id, usbResp.CAN.data[0], usbResp.CAN.data[1], usbResp.CAN.data[2], usbResp.CAN.data[3],
+						usbResp.CAN.data[4], usbResp.CAN.data[5], usbResp.CAN.data[6], usbResp.CAN.data[7]);
+			}
 		}
 		else
 		{
@@ -261,18 +265,26 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
     }
 
 	/* return message callback*/
-	transfer_params.num_bytes = (usbResp.CAN.id != msgID_transmitRaw)?sizeof(USB_raw_message):sizeof(USB_CAN_message);
+	transfer_params.num_bytes = (usbResp.CAN.id == msgID_transmitRaw)?sizeof(USB_raw_message):sizeof(USB_CAN_message);
 	transfer_params.p_data_buffer = (unsigned char*)&usbResp;
-	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
+	transfer_params.callback.fp_usb_in_transfer_complete = NULL; //user_bulk_adi_loopback_bulk_in_transfer_complete;
+	transfer_params.fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error; // error function while transmit
 	transfer_params.transfer_timeout_ms = 1000;
 
-	if (CLD_USB_TRANSMIT_SUCCESSFUL != cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params))
+	//TODO: validate if we should block while trying to send
+	if( CLD_USB_TRANSMIT_SUCCESSFUL != cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params))
 		SetError(error_SW_comm_USB_send);
+	//while( CLD_USB_TRANSMIT_SUCCESSFUL != cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
 
-	if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
+	if( (LiDARParameters[param_console_log] & CONSOLE_MASK_USB) &&
+			(usbCMDmsg->id != msgID_poll ||
+					(usbResp.CAN.id != msgID_transmitRaw &&
+							(usbResp.CAN.id != msgID_command || usbResp.CAN.data[0] != msgID_queueEmptycmd) )))
 	{
 		cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, "\n\r");
 	}
+	LED_BC3G_ON(); // END of indicator LED for communication
+
     return CLD_USB_DATA_GOOD;
 }
 

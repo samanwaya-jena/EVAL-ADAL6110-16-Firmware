@@ -779,11 +779,14 @@ int DoAlgo(int16_t * pAcqFifo)
 
         if (pDetections->distance && LiDARParameters[param_det_msg_decimation] && (LiDARParameters[param_det_msg_mask]&(1<<chIdxArray)))
 		{
-			if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
-			{
-				numDet++;
-				//USB_pushTrack(0x01, chIdxArray , 100, pDetections->intensity, pDetections->distance, 0x00, 0x00);
-			}
+        	if ( LiDARParameters[param_det_msg_decimation] )
+        	{
+				if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
+				{
+					numDet++;
+					USB_pushTrack(0x01, chIdxArray , 100, pDetections->intensity, pDetections->distance, 0x00, 0x00);
+				}
+        	}
 		}
     }
 
@@ -853,14 +856,15 @@ void ADAL_Acq(uint16_t *pBank)
 #ifdef USE_ALGO
 					numDet = DoAlgo(pAcqFifo);
 #endif //USE_ALGO
-					if(LiDARParameters[param_det_msg_decimation])
+				}
+				if(LiDARParameters[param_det_msg_decimation] || LiDARParameters[param_raw_msg_decimation])
+				{
+					if (0 == frame_ID%LiDARParameters[param_det_msg_decimation] || 0 == frame_ID%LiDARParameters[param_raw_msg_decimation])
 					{
-						if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
-						{
-							USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
-						}
+						USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
 					}
 				}
+
 			}
 
             if (bAccDone)
