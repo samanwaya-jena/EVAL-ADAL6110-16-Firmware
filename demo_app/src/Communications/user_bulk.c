@@ -221,6 +221,37 @@ CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Tr
     return rv;
 }
 
+void PrepResp(USB_msg *resp, unsigned char *buff)
+{
+	uint16_t* buff16;
+	uint32_t* buff32;
+	int i;
+
+	if (resp->RAW.id == msgID_transmitRaw)
+	{
+		buff[0] = resp->RAW.id;
+		buff[1] = 0x00;
+		buff16 = (uint16_t*)buff;
+		buff16[2] = resp->RAW.pixelNumber;
+		buff16[3] = resp->RAW.timestamp;
+		buff16[4] = resp->RAW.payloadsize;
+		buff16[5] = resp->RAW.synch[0];
+		buff16[6] = resp->RAW.synch[1];
+		for(i=0;i<100;i++)
+			buff16[7+i] = resp->RAW.data[i];
+	}else
+	{
+		buff32 = (uint32_t*)buff;
+		buff32[0] = resp->CAN.id;
+		buff32[1] = resp->CAN.timestamp;
+		buff[8] = resp->CAN.flags;
+		for (i = 0; i<10; i++)
+			buff[10+i] = resp->CAN.data[i];
+		buff[18] = resp->CAN.pad1;
+		buff[19] = resp->CAN.pad2;
+	}
+}
+
 static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 {
     /* Parameters used to send Bulk IN data in response to the
@@ -232,6 +263,9 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 
     USB_CAN_message* usbCMDmsg = (USB_CAN_message *)&user_bulk_adi_loopback_buffer;
     USB_msg usbResp;
+    unsigned char xmit_buff[212];
+    int canlen = 20;
+    int rawlen = 212;
 
     LED_BC3G_OFF();  // indicator LED for communication
     if( LiDARParameters[param_console_log] & CONSOLE_MASK_USB )
@@ -265,16 +299,16 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
     }
 
 	/* return message callback*/
-	transfer_params.num_bytes = (usbResp.CAN.id == msgID_transmitRaw)?sizeof(USB_raw_message):sizeof(USB_CAN_message);
-	transfer_params.p_data_buffer = (unsigned char*)&usbResp;
+    //todo: validate the buffer integrity...
+    PrepResp(&usbResp, xmit_buff);
+	transfer_params.num_bytes = (usbResp.CAN.id == msgID_transmitRaw)?rawlen:canlen;//sizeof(USB_raw_message):sizeof(USB_CAN_message);
+	transfer_params.p_data_buffer = (unsigned char*)xmit_buff;//(unsigned char*)&usbResp;
 	transfer_params.callback.fp_usb_in_transfer_complete = NULL; //user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error; // error function while transmit
 	transfer_params.transfer_timeout_ms = 1000;
 
-	//TODO: validate if we should block while trying to send
 	if( CLD_USB_TRANSMIT_SUCCESSFUL != cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params))
 		SetError(error_SW_comm_USB_send);
-	//while( CLD_USB_TRANSMIT_SUCCESSFUL != cld_bf70x_bulk_lib_transmit_bulk_in_data(&transfer_params);
 
 	if( (LiDARParameters[param_console_log] & CONSOLE_MASK_USB) &&
 			(usbCMDmsg->id != msgID_poll ||

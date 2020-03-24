@@ -56,7 +56,7 @@ void USB_pushStatus()
 	msg.id = msgID_sensorStatus;
 	msg.flags = 0;
 	msg.timestamp = GetTime();
-	msg.len = 4;
+	msg.len = 8;
 	// put error/status code in payload
 	msg.data[0] = 0; // temperature
 	msg.data[1] = 0; //
@@ -77,7 +77,7 @@ void USB_pushBoot()
 	msg.id = msgID_sensorBoot;
 	msg.flags = 0;
 	msg.timestamp = GetTime();
-	msg.len = 2;
+	msg.len = 4;
 	msg.data[0] = FIRMWARE_MAJOR_REV;
 	msg.data[1] = FIRMWARE_MINOR_REV;
 	msg.data[2] = 0; // error CSM
@@ -98,13 +98,15 @@ void USB_pushParameter(uint16_t address, uint16_t value, uint8_t paramType)
 	msg.id = msgID_command;
 	msg.flags = 0;
 	msg.timestamp = GetTime();
-	msg.len = 6;
+	msg.len = 8;
 	msg.data[0] = msgID_respParametercmd;
 	msg.data[1] = paramType;
 	msg.data[2] = (uint8_t) (address&0xFF);
 	msg.data[3] = (uint8_t) (address>>8)&0xFF;
 	msg.data[4] = (uint8_t) (value&0xFF);
 	msg.data[5] = (uint8_t) (value>>8)&0xFF;
+	msg.data[4] = (uint8_t) (value>>16&0xFF);
+	msg.data[5] = (uint8_t) (value>>24)&0xFF;
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
 		SetError(error_SW_comm_fifo_full);
@@ -133,8 +135,8 @@ void USB_pushTrack(uint16_t trackID, int pixelID, float probability, float inten
 	msg.timestamp = GetTime();
 	msg.flags = 0;
 	msg.len = 8;
-	msg.pad1 = 0;
-	msg.pad2 = 0;
+	msg.pad1 = 0xEA;
+	msg.pad2 = 0x1C;
 
 	// send info
 	msg.id = msgID_trackInfo;
@@ -170,7 +172,7 @@ void USB_pushTrack(uint16_t trackID, int pixelID, float probability, float inten
 	msg.data[6] = (uint8_t)((int)acceleration)&0xFF;
 	msg.data[7] = (uint8_t)(((int)acceleration)>>8)&0xFF;
 
-	if( MsgQueue_Ok != msgQueuePush( (USB_msg*) &msg))
+	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
 		SetError(error_SW_comm_fifo_full);
 
 }

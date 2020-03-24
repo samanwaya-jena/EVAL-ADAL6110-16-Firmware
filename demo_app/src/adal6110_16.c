@@ -767,26 +767,22 @@ int DoAlgo(int16_t * pAcqFifo)
     for(ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
     {
         int i;
-        int chIdxArray = LiDARParameters[param_channel_map_offset+ch];
-        int chIdx = aChIdxADI[chIdxArray];
+        int chIndex = LiDARParameters[param_channel_map_offset+ch];
         detection_type* pDetections = &detections[ch * DEVICE_NUM_DET_PER_CH];
 
         for(i=0; i<DEVICE_SAMPLING_LENGTH; ++i)
-            tmpAcqFloat[i] = (float) pAcqFifo[chIdx * DEVICE_SAMPLING_LENGTH + i];
+            tmpAcqFloat[i] = (float) pAcqFifo[ch * DEVICE_SAMPLING_LENGTH + i];
 
         //threshold2(pDetections, tmpAcqFloat, ch);
         threshold3(pDetections, tmpAcqFloat, ch);
 
-        if (pDetections->distance && LiDARParameters[param_det_msg_decimation] && (LiDARParameters[param_det_msg_mask]&(1<<chIdxArray)))
+        if (pDetections->distance && LiDARParameters[param_det_msg_decimation] && (LiDARParameters[param_det_msg_mask]&(1<<chIndex)))
 		{
-        	if ( LiDARParameters[param_det_msg_decimation] )
-        	{
-				if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
-				{
-					numDet++;
-					USB_pushTrack(0x01, chIdxArray , 100, pDetections->intensity, pDetections->distance, 0x00, 0x00);
-				}
-        	}
+			if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
+			{
+				numDet++;
+				USB_pushTrack(0x01, chIndex , 100, pDetections->intensity, pDetections->distance, 0, 0);
+			}
 		}
     }
 
