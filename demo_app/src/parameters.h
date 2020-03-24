@@ -39,8 +39,9 @@ typedef enum
 	number_of_param
 }param_index;
 
-#define CONSOLE_MASK_LOG 0x01
-#define CONSOLE_MASK_USB 0x02
+#define CONSOLE_MASK_LOG  0x01
+#define CONSOLE_MASK_USB  0x02
+#define CONSOLE_MASK_DIST 0x04
 #define CONSOLE_MASK
 
 #define RW_WRITE_MASK    0x8000

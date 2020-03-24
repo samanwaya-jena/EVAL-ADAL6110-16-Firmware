@@ -133,7 +133,7 @@ void USB_pushTrack(uint16_t trackID, int pixelID, float probability, float inten
 	USB_CAN_message msg;
 
 	msg.timestamp = GetTime();
-	msg.flags = 0;
+	msg.flags = 0xF0;
 	msg.len = 8;
 	msg.pad1 = 0xEA;
 	msg.pad2 = 0x1C;
@@ -308,6 +308,7 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 			add |= RW_INTERNAL_MASK;
 		case cmdParam_SensorRegister:
 			if(!param_WriteFifoPush( (add), (uint16_t) val)) SetError(error_SW_ADI);
+			cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Update request of parameter: 0x%04X to value 0x%04X\r\n",add,val);
 			break;
 		default:
 			return(2);
@@ -320,6 +321,7 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 			add |= RW_INTERNAL_MASK;
 		case cmdParam_SensorRegister:
 			if(!param_ReadFifoPush(add)) SetError(error_SW_ADI);
+			cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Value request of parameter: 0x%04X\r\n",add,val);
 			break;
 		default:
 			return(2);
@@ -331,17 +333,27 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		if( LiDARParameters[param_det_msg_decimation] )
 		{
 			LiDARParameters[param_DSP_enable] = 1; // force detection...
-			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Cooked data requested at 1:%d decimation with 0x%04X mask\r\n",
+			cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Cooked data requested at 1:%d decimation with 0x%04X mask\r\n",
 					LiDARParameters[param_det_msg_decimation],LiDARParameters[param_det_msg_mask]);
 		}else
 		{
-			LiDARParameters[param_DSP_enable] = 0; // stop detection...
-			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Cooked data cancelled\r\n");
+			LiDARParameters[param_DSP_enable] = LiDARParameters[param_raw_msg_decimation]?1:0; // stop detection...
+			cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Cooked data cancelled\r\n");
 		}
 		break;
 	case msgID_requestRawcmd :
 		LiDARParameters[param_raw_msg_decimation] = cmd->data[3];
 		LiDARParameters[param_det_msg_mask] = cmd->data[1] + (cmd->data[2]<<8);
+		if( LiDARParameters[param_raw_msg_decimation] )
+		{
+			LiDARParameters[param_DSP_enable] = 1; // force detection...
+			cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Raw data requested at 1:%d decimation with 0x%04X mask\r\n",
+					LiDARParameters[param_raw_msg_decimation],LiDARParameters[param_raw_msg_mask]);
+		}else
+		{
+			LiDARParameters[param_DSP_enable] = LiDARParameters[param_det_msg_decimation]?1:0; // stop detection...
+			cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Cooked data cancelled\r\n");
+		}
 		break;
 	default:
 		SetError(error_SW_comm_unknown);

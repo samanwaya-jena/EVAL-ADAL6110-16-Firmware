@@ -393,6 +393,13 @@ void ProcessChar(char curChar)
     	param_SaveConfig();
     	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Configuration saved to Flash memory\r\n");
     	break;
+    case 'r':
+    	LiDARParameters[param_console_log] ^= CONSOLE_MASK_DIST;
+    	if(LiDARParameters[param_console_log] & CONSOLE_MASK_DIST)
+			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Distance log set\n\r");
+		else
+			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Distance log cleared\n\r");
+    	break;
     default:
     	cld_console(CLD_CONSOLE_RED,CLD_CONSOLE_BLACK,"Say again...\r\n");
     	break;

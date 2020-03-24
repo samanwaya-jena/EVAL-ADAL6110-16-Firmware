@@ -16,6 +16,7 @@
 #include "adal6110_16.h"
 //#include "Communications/user_bulk.h"
 #include "Communications/USB_cmd.h"
+#include "Communications/cld_bf70x_bulk_lib.h"
 #include "post_debug.h"
 #include "parameters.h"
 
@@ -762,6 +763,8 @@ int DoAlgo(int16_t * pAcqFifo)
 	int ch;
 	int numDet;
     detection_type detections[DEVICE_NUM_CHANNEL * DEVICE_NUM_DET_PER_CH];
+    float dist[DEVICE_NUM_CHANNEL];
+    static CLD_Time last_time = 0;
 
     numDet = 0;
     for(ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
@@ -785,7 +788,13 @@ int DoAlgo(int16_t * pAcqFifo)
 			}
 		}
     }
-
+    if( (cld_time_passed_ms(last_time) > 500) && (LiDARParameters[param_console_log]&CONSOLE_MASK_DIST) )
+    {
+    	last_time = cld_time_get();
+    	for(ch=0;ch<DEVICE_NUM_CHANNEL;ch++) dist[LiDARParameters[param_channel_map_offset+ch]]=detections[ch*DEVICE_NUM_DET_PER_CH].distance;
+    	for(ch=0;ch<DEVICE_NUM_CHANNEL;ch++) cld_console(CLD_CONSOLE_CYAN,CLD_CONSOLE_BLACK,"%2d: %2.2f\t",ch,dist[ch]);
+    	cld_console(CLD_CONSOLE_CYAN,CLD_CONSOLE_BLACK,"\r");
+    }
     return numDet;
 }
 #endif //USE_ALGO

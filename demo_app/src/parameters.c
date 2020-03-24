@@ -233,10 +233,12 @@ int param_ProcessReadWriteFifo(void)
 			case 0x3FFE:
 			case 0x7FFE:
 				param_SaveConfig();
+				cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Parameters saved to flash\r\n");
 				break;
 			case 0x3FFF:
 			case 0x7FFF:
 				param_ResetFactoryDefault();
+				cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"All parameter reseted to default values\r\n");
 				//ADAL_Reset();
 				break;
 			case RW_INTERNAL_MASK+param_deviceID://0x4000: // device ID
@@ -244,11 +246,15 @@ int param_ProcessReadWriteFifo(void)
 				break;
 			default:
 				if (type == cmdParam_SensorRegister & LiDARParamDir[addr&~RW_INTERNAL_MASK]!=READONLY)
+				{
 					LiDARParameters[addr&~RW_INTERNAL_MASK] = data;
+					cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"software parameter 0x%04X set to 0x%04X\r\n",addr&~RW_INTERNAL_MASK,data);
+				}
 				else
 				{
 					//figure how to keep local copy
 					ADAL_WriteParamToSPI(addr, data);
+					cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"ADAL6110 internal register 0x%04X set to 0x%04X\r\n",addr,data);
 				}
 				break;
 			}
@@ -258,9 +264,12 @@ int param_ProcessReadWriteFifo(void)
 			if(addr & RW_INTERNAL_MASK)
 			{
 				data = LiDARParameters[addr&~RW_INTERNAL_MASK];
+				cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"software parameter 0x%04X read with value 0x%04X\r\n",addr&~RW_INTERNAL_MASK,data);
 			}else
+			{
 				ADAL_ReadParamFromSPI(addr, &data);
-
+				cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"ADAL6110 internal register 0x%04X read with value 0x%04X\r\n",addr,data);
+			}
 			USB_pushParameter(addr,data,type);
 		}
 		iReadWriteFifoTail = (iReadWriteFifoTail + 1) & READWRITEFIFO_MASK;

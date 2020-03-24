@@ -303,7 +303,7 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
     PrepResp(&usbResp, xmit_buff);
 	transfer_params.num_bytes = (usbResp.CAN.id == msgID_transmitRaw)?rawlen:canlen;//sizeof(USB_raw_message):sizeof(USB_CAN_message);
 	transfer_params.p_data_buffer = (unsigned char*)xmit_buff;//(unsigned char*)&usbResp;
-	transfer_params.callback.fp_usb_in_transfer_complete = NULL; //user_bulk_adi_loopback_bulk_in_transfer_complete;
+	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error; // error function while transmit
 	transfer_params.transfer_timeout_ms = 1000;
 
@@ -350,16 +350,8 @@ Returns:        None.
 ==============================================================================*/
 static void user_bulk_adi_loopback_bulk_in_transfer_complete (void)
 {
-	/*
-	 * Cette routine est utile avec la vieille comm... Autrement on n'a rien a faire
-	 * a la fin du transfert de donnees vers l'hote
-	 */
-	//todo: remove!
-	//if (numPending)
-	//{
-    //	ADAL_ReleaseDataToFifo(numPending);  // incremente la tail du fifo de numPending...
-    //	numPending = 0;
-	//}
+	//Todo: include
+
 }
 
 /*=============================================================================
