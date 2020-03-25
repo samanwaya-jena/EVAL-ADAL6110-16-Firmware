@@ -63,9 +63,11 @@ void USB_pushStatus()
 	msg.data[2] = 0; // Voltage
 	msg.data[3] = 0; //
 	msg.data[4] = 0; // frame rate
-	msg.data[7] = (errorFlags >>0) & 0xFF;  // sensor
-	msg.data[6] = (errorFlags >>8) & 0xFF;  // software
-	msg.data[5] = (errorFlags >>16) & 0xFF; // hardware
+	msg.data[7] = (uint8_t)((errorFlags&0xFF0000) >>16); // hardware
+	msg.data[6] = (uint8_t)((errorFlags&0x00FF00) >>8);  // software
+	msg.data[5] = (uint8_t)((errorFlags&0x0000FF) >>0);  // sensor
+	msg.pad1 = 0x00;
+	msg.pad2 = 0x00;
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
 			SetError(error_SW_comm_fifo_full);
@@ -86,6 +88,8 @@ void USB_pushBoot()
 	msg.data[5] = 0;
 	msg.data[6] = 0;
 	msg.data[7] = 0;
+	msg.pad1 = 0x00;
+	msg.pad2 = 0x00;
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
 		SetError(error_SW_comm_fifo_full);
@@ -101,12 +105,14 @@ void USB_pushParameter(uint16_t address, uint16_t value, uint8_t paramType)
 	msg.len = 8;
 	msg.data[0] = msgID_respParametercmd;
 	msg.data[1] = paramType;
-	msg.data[2] = (uint8_t) (address&0xFF);
-	msg.data[3] = (uint8_t) (address>>8)&0xFF;
-	msg.data[4] = (uint8_t) (value&0xFF);
-	msg.data[5] = (uint8_t) (value>>8)&0xFF;
-	msg.data[4] = (uint8_t) (value>>16&0xFF);
-	msg.data[5] = (uint8_t) (value>>24)&0xFF;
+	msg.data[2] = (uint8_t) ((address&0xFF00)>>8);
+	msg.data[3] = (uint8_t) (address&0x00FF);
+	msg.data[4] = (uint8_t) ((value&0xFF000000)>>24);
+	msg.data[5] = (uint8_t) ((value&0x00FF0000)>>16);
+	msg.data[4] = (uint8_t) ((value&0x0000FF00)>>8);
+	msg.data[5] = (uint8_t) ((value&0x000000FF));
+	msg.pad1 = 0x00;
+	msg.pad2 = 0x00;
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
 		SetError(error_SW_comm_fifo_full);
@@ -140,37 +146,37 @@ void USB_pushTrack(uint16_t trackID, int pixelID, float probability, float inten
 
 	// send info
 	msg.id = msgID_trackInfo;
-	msg.data[0] = (uint8_t)trackID&0xFF;
-	msg.data[1] = (uint8_t)(trackID>>8)&0xFF;
+	msg.data[0] = (uint8_t)(trackID>>8)&0xFF;
+	msg.data[1] = (uint8_t)trackID&0xFF;
 	msg.data[2] = 0x00;
 	pixelID = pixelID<0?0:pixelID>15?15:pixelID;
-	msg.data[3] = (uint8_t)pixelID&0xFF;
-	msg.data[4] = (uint8_t)(pixelID>>8)&0xFF;
+	msg.data[3] = (uint8_t)(pixelID>>8)&0xFF;
+	msg.data[4] = (uint8_t)pixelID&0xFF;
 	probability = probability<0?0:probability>100?100:probability;
 	msg.data[5] = (uint8_t) ((int)probability)&0xFF;
 	intensity = intensity<-20?-20:intensity>108?108:intensity;
 	intensity = 2*(intensity+20); // 1/2 dB with a 20dB offset
-	msg.data[6] = (uint8_t)((int)intensity)&0xFF;
-	msg.data[7] = (uint8_t)(((int)intensity)>>8)&0xFF;
+	msg.data[6] = (uint8_t)(((int)intensity)>>8)&0xFF;
+	msg.data[7] = (uint8_t)((int)intensity)&0xFF;
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
 		SetError(error_SW_comm_fifo_full);
 
 	// send values
 	msg.id = msgID_trackValue;
-	msg.data[0] = (uint8_t)trackID&0xFF;
-	msg.data[1] = (uint8_t)(trackID>>8)&0xFF;
+	msg.data[0] = (uint8_t)(trackID>>8)&0xFF;
+	msg.data[1] = (uint8_t)trackID&0xFF;
 	distance = distance<0?0:distance>200?200:distance;
-	distance *= 100; // expressed in cm
-	msg.data[2] = (uint8_t) ((int)distance)&0xFF;
-	msg.data[3] = (uint8_t) (((int)distance)>>8)&0xFF;
+	distance = 200;//distance *= 100; // expressed in cm
+	msg.data[2] = (uint8_t) (((int)distance)>>8)&0xFF;
+	msg.data[3] = (uint8_t) ((int)distance)&0xFF;
 	//velocity = velocity<-100?-100:velocity>100?100:velocity;
 	velocity *= 100; // expressed in cm/s
-	msg.data[4] = (uint8_t) ((int)velocity)&0xFF;
-	msg.data[5] = (uint8_t)(((int)velocity)>>8)&0xFF;
+	msg.data[4] = (uint8_t)(((int)velocity)>>8)&0xFF;
+	msg.data[5] = (uint8_t) ((int)velocity)&0xFF;
 	acceleration = 0; // not used
-	msg.data[6] = (uint8_t)((int)acceleration)&0xFF;
-	msg.data[7] = (uint8_t)(((int)acceleration)>>8)&0xFF;
+	msg.data[6] = (uint8_t)(((int)acceleration)>>8)&0xFF;
+	msg.data[7] = (uint8_t)((int)acceleration)&0xFF;
 
 	if( MsgQueue_Ok != msgQueuePush((USB_msg*) &msg))
 		SetError(error_SW_comm_fifo_full);
@@ -188,17 +194,17 @@ void USB_pushEndOfFrame(uint16_t frameID, uint16_t systemID, uint16_t numTrackSe
 	msg.flags = 0x00;
 	msg.len = 8;
 
-	msg.data[0] = (uint8_t)frameID&0xFF;
-	msg.data[1] = (uint8_t)(frameID>>8)&0xFF;
-	msg.data[2] = (uint8_t)systemID&0xFF;
-	msg.data[3] = (uint8_t)(systemID>>8)&0xFF;
+	msg.data[0] = (uint8_t)(frameID>>8)&0xFF;
+	msg.data[1] = (uint8_t)frameID&0xFF;
+	msg.data[2] = (uint8_t)(systemID>>8)&0xFF;
+	msg.data[3] = (uint8_t)systemID&0xFF;
 	msg.data[4] = 0;
 	msg.data[5] = 0;
-	msg.data[6] = (uint8_t)numTrackSent&0xFF;
-	msg.data[7] = (uint8_t)(numTrackSent>>8)&0xFF;
+	msg.data[6] = (uint8_t)(numTrackSent>>8)&0xFF;
+	msg.data[7] = (uint8_t)numTrackSent&0xFF;
 
-	msg.pad1 = 0;
-	msg.pad2 = 0;
+	msg.pad1 = 0x00;
+	msg.pad2 = 0x00;
 
 	if( MsgQueue_Ok != msgQueuePush( (USB_msg*) &msg))
 		SetError(error_SW_comm_fifo_full);
@@ -213,7 +219,7 @@ void SendACK(USB_CAN_message* cmd, USB_msg* ret_msg)
 {
 	ret_msg->CAN.id = msgID_command;
 	ret_msg->CAN.timestamp = GetTime();
-	ret_msg->CAN.flags = 0;
+	ret_msg->CAN.flags = 0xA;
 	ret_msg->CAN.len = 8;
 	ret_msg->CAN.data[0] = (cmd->data[0]==msgID_getParametercmd)?msgID_ACKGetcmd:msgID_ACKSetcmd;
 	ret_msg->CAN.data[1] = cmd->data[1];
@@ -223,13 +229,15 @@ void SendACK(USB_CAN_message* cmd, USB_msg* ret_msg)
 	ret_msg->CAN.data[5] = cmd->data[5];
 	ret_msg->CAN.data[6] = cmd->data[6];
 	ret_msg->CAN.data[7] = cmd->data[7];
+	ret_msg->CAN.pad1 = 0x00;
+	ret_msg->CAN.pad2 = 0x00;
 }
 
 void SendNACK(USB_CAN_message* cmd, USB_msg* ret_msg)
 {
 	ret_msg->CAN.id = msgID_command;
 	ret_msg->CAN.timestamp = GetTime();
-	ret_msg->CAN.flags = 0;
+	ret_msg->CAN.flags = 0xA0;
 	ret_msg->CAN.len = 0;
 	ret_msg->CAN.len = 8;
 	ret_msg->CAN.data[0] = msgID_NACKcmd;
@@ -240,6 +248,8 @@ void SendNACK(USB_CAN_message* cmd, USB_msg* ret_msg)
 	ret_msg->CAN.data[5] = cmd->data[5];
 	ret_msg->CAN.data[6] = cmd->data[6];
 	ret_msg->CAN.data[7] = cmd->data[7];
+	ret_msg->CAN.pad1 = 0x00;
+	ret_msg->CAN.pad2 = 0x00;
 
 }
 
@@ -250,7 +260,6 @@ void SendNext(USB_CAN_message* cmd, USB_msg* ret_msg)
 		ret_msg->CAN.id = msgID_command;
 		ret_msg->CAN.timestamp = GetTime();
 		ret_msg->CAN.flags = 0;
-		ret_msg->CAN.len = 0;
 		ret_msg->CAN.len = 8;
 		ret_msg->CAN.data[0] = msgID_queueEmptycmd;
 		ret_msg->CAN.data[1] = 0x00;
@@ -260,6 +269,8 @@ void SendNext(USB_CAN_message* cmd, USB_msg* ret_msg)
 		ret_msg->CAN.data[5] = 0x00;
 		ret_msg->CAN.data[6] = 0x00;
 		ret_msg->CAN.data[7] = 0x00;
+		ret_msg->CAN.pad1 = 0x00;
+		ret_msg->CAN.pad2 = 0x00;
 	}
 }
 
@@ -296,19 +307,19 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 	 */
 	uint8_t ID = cmd->data[0];
 	uint8_t type= cmd->data[1];
-	uint16_t add = (uint16_t) ((cmd->data[3] << 8) & cmd->data[2]);
-	uint32_t val = (uint32_t) ((cmd->data[7] << 24) & (cmd->data[6] << 16) & (cmd->data[5] << 8) & cmd->data[4]);
+	uint16_t add = (uint16_t) ((cmd->data[2] << 8) + cmd->data[3]);
+	uint32_t val = (uint32_t) ((cmd->data[4] << 24) + (cmd->data[5] << 16) + (cmd->data[6] << 8) + cmd->data[7]);
 
 	switch(ID)
 	{
 	case msgID_setparametercmd :
 		switch(type)
 		{
-		case cmdParam_ADCRegister:
-			add |= RW_INTERNAL_MASK;
 		case cmdParam_SensorRegister:
+			add |= RW_INTERNAL_MASK;
+		case cmdParam_ADCRegister:
 			if(!param_WriteFifoPush( (add), (uint16_t) val)) SetError(error_SW_ADI);
-			cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Update request of parameter: 0x%04X to value 0x%04X\r\n",add,val);
+			cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Write request of parameter: 0x%04X to value 0x%04X\r\n",add,val);
 			break;
 		default:
 			return(2);
@@ -317,11 +328,11 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 	case msgID_getParametercmd :
 		switch(type)
 		{
-		case cmdParam_ADCRegister:
-			add |= RW_INTERNAL_MASK;
 		case cmdParam_SensorRegister:
+			add |= RW_INTERNAL_MASK;
+		case cmdParam_ADCRegister:
 			if(!param_ReadFifoPush(add)) SetError(error_SW_ADI);
-			cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Value request of parameter: 0x%04X\r\n",add,val);
+			cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"Read request of parameter: 0x%04X\r\n",add,val);
 			break;
 		default:
 			return(2);
@@ -329,7 +340,7 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		break;
 	case msgID_requestCookedcmd :
 		LiDARParameters[param_det_msg_decimation] = cmd->data[3];
-		LiDARParameters[param_det_msg_mask] = cmd->data[1] + (cmd->data[2]<<8);
+		LiDARParameters[param_det_msg_mask] = cmd->data[2] + (cmd->data[1]<<8);
 		if( LiDARParameters[param_det_msg_decimation] )
 		{
 			LiDARParameters[param_DSP_enable] = 1; // force detection...
@@ -343,7 +354,7 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		break;
 	case msgID_requestRawcmd :
 		LiDARParameters[param_raw_msg_decimation] = cmd->data[3];
-		LiDARParameters[param_det_msg_mask] = cmd->data[1] + (cmd->data[2]<<8);
+		LiDARParameters[param_det_msg_mask] = cmd->data[2] + (cmd->data[1]<<8);
 		if( LiDARParameters[param_raw_msg_decimation] )
 		{
 			LiDARParameters[param_DSP_enable] = 1; // force detection...

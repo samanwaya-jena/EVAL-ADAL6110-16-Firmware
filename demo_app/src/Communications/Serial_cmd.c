@@ -237,10 +237,6 @@ void ProcessChar(char curChar)
 
     switch (debugCmd[0])
     {
-//    case 'I':
-//    	PrintFlashInfo();
-//    	break;
-
     case 'l':
    		LiDARParameters[param_console_log] ^= CONSOLE_MASK_LOG;
    		if(LiDARParameters[param_console_log] & CONSOLE_MASK_LOG)

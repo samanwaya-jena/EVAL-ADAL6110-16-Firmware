@@ -219,14 +219,14 @@ int param_ProcessReadWriteFifo(void)
 {
 	uint32_t op = readWriteFifo[iReadWriteFifoTail];
 	uint16_t addrPlusRW = op >> 16;
-	uint16_t addr = addrPlusRW & ~RW_WRITE_MASK;
+	uint16_t addr = addrPlusRW & ~(RW_WRITE_MASK|RW_INTERNAL_MASK);
 	uint16_t data = op & 0xFFFF;
 	uint8_t type = (addrPlusRW & RW_INTERNAL_MASK)?cmdParam_SensorRegister:cmdParam_ADCRegister;
 	bool bWriteOp = ((addrPlusRW & RW_WRITE_MASK) != 0);
 
 	if (iReadWriteFifoHead != iReadWriteFifoTail)
 	{
-		if (op & 0x80000000) // write param
+		if (bWriteOp)//(op & 0x80000000) // write param
 		{
 			switch (addr)
 			{
@@ -241,18 +241,19 @@ int param_ProcessReadWriteFifo(void)
 				cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"All parameter reseted to default values\r\n");
 				//ADAL_Reset();
 				break;
-			case RW_INTERNAL_MASK+param_deviceID://0x4000: // device ID
-				ADAL_Reset();
-				break;
+			//ETR: removed, system crashes... maybe
+			//case RW_INTERNAL_MASK+param_deviceID://0x4000: // device ID
+			//	ADAL_Reset();
+			//	break;
 			default:
-				if (type == cmdParam_SensorRegister & LiDARParamDir[addr&~RW_INTERNAL_MASK]!=READONLY)
+				if (type == cmdParam_SensorRegister & LiDARParamDir[addr]!=READONLY)
 				{
 					LiDARParameters[addr&~RW_INTERNAL_MASK] = data;
-					cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"software parameter 0x%04X set to 0x%04X\r\n",addr&~RW_INTERNAL_MASK,data);
+					cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"software parameter 0x%04X set to 0x%04X\r\n",addr,data);
 				}
 				else
 				{
-					//figure how to keep local copy
+					//todo: figure how to keep local copy
 					ADAL_WriteParamToSPI(addr, data);
 					cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"ADAL6110 internal register 0x%04X set to 0x%04X\r\n",addr,data);
 				}
@@ -261,10 +262,10 @@ int param_ProcessReadWriteFifo(void)
 		}
 		else // read
 		{
-			if(addr & RW_INTERNAL_MASK)
+			if(type == cmdParam_SensorRegister)
 			{
 				data = LiDARParameters[addr&~RW_INTERNAL_MASK];
-				cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"software parameter 0x%04X read with value 0x%04X\r\n",addr&~RW_INTERNAL_MASK,data);
+				cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"software parameter 0x%04X read with value 0x%04X\r\n",addr,data);
 			}else
 			{
 				ADAL_ReadParamFromSPI(addr, &data);
