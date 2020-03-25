@@ -252,8 +252,8 @@ bool ReadDataFromSPI_Check(void)
 	return bAvailSpi;
 }
 
-void ResetADI(void) {
-
+void ResetADI(void)
+{
 	// TODO: Drive the reset pin when available
 	//We dont have reset ctrl. Need to wait a certain delay
 	//Use software reset for now
@@ -277,8 +277,6 @@ void ResetADI(void) {
 
 	while(i--){
 	}
-
-
 }
 
 /**
@@ -735,12 +733,12 @@ void AddFakeData(void)
 		if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
 		{
 			USB_pushTrack(0, 0, 100, 44, dist, 0, 0);
-			USB_pushTrack(0, 1, 100, 44, dist + 250, 0, 0);
-			USB_pushTrack(0, 2, 100, 44, dist + 500, 0, 0);
-			USB_pushTrack(0, 3, 100, 44, dist + 650, 0, 0);
-			USB_pushTrack(0, 4, 100, 44, dist + 650, 0, 0);
-			USB_pushTrack(0, 5, 100, 44, dist + 500, 0, 0);
-			USB_pushTrack(0, 6, 100, 44, dist + 250, 0, 0);
+			USB_pushTrack(0, 1, 100, 44, dist + 2.50, 0, 0);
+			USB_pushTrack(0, 2, 100, 44, dist + 5.00, 0, 0);
+			USB_pushTrack(0, 3, 100, 44, dist + 6.50, 0, 0);
+			USB_pushTrack(0, 4, 100, 44, dist + 6.50, 0, 0);
+			USB_pushTrack(0, 5, 100, 44, dist + 5.00, 0, 0);
+			USB_pushTrack(0, 6, 100, 44, dist + 2.50, 0, 0);
 			USB_pushTrack(0, 7, 100, 44, dist, 0, 0);
 			USB_pushEndOfFrame(frame_ID, 0, 8);
 		}
@@ -823,6 +821,7 @@ void ADAL_Acq(uint16_t *pBank)
 	*pBank = 0;
 	int numDet =0;
 
+	LED_BC3R_ON();
 	if (BankInTransfer == 0)
 	{
 		if (LiDARParameters[param_acq_enable])
@@ -883,6 +882,7 @@ void ADAL_Acq(uint16_t *pBank)
             }
 		}
 	}
+	LED_BC3R_OFF();
 }
 
 /*

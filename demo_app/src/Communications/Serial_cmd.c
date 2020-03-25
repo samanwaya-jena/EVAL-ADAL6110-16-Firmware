@@ -53,11 +53,12 @@ void Lidar_DumpRegs(void)
 
 		ADAL_ReadParamFromSPI(reg, &data);
 
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%c%c: %c%c%c%c\r\n", hex[(reg>>4)&0xF], hex[(reg>>0)&0xF],
-				hex[(data>>12)&0xF], hex[(data>>8)&0xF], hex[(data>>4)&0xF], hex[(data>>0)&0xF]);
+		//cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%c%c: %c%c%c%c\r\n", hex[(reg>>4)&0xF], hex[(reg>>0)&0xF],
+		//		hex[(data>>12)&0xF], hex[(data>>8)&0xF], hex[(data>>4)&0xF], hex[(data>>0)&0xF]);
+		cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"%02d: 0x%04X\r\n",reg,data);
 	}
 
-	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Ch: E TIA BAL\r\n");
+	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Ch: En\tTIA\tcpd\tTIA fb\tBAL\r\n");
 
 	for (ch=0; ch<16; ch++)
 	{
@@ -78,7 +79,7 @@ void Lidar_DumpRegs(void)
 		ADAL_ReadParamFromSPI(CH0ControlReg2Address + 4 * ch, &data);
 		bal = (data & 0x01FF);
 
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%02d: %d %d %d %d %d\r\n", ch, (en) ? 1 : 0, tia,chx_cpd_select , tia_feedback, bal);
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%02d: %d\t%d\t%d\t%d\t%d\r\n", ch, (en) ? 1 : 0, tia,chx_cpd_select , tia_feedback, bal);
 	}
 
 }
@@ -396,6 +397,52 @@ void ProcessChar(char curChar)
 		else
 			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Distance log cleared\n\r");
     	break;
+    case 'p':
+        {
+        	i = 1;
+        	uint16_t addr = 0;
+        	uint16_t value = 0;
+
+        	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+        		addr = addr * 10 + debugCmd[i++] - '0';
+
+        	if (debugCmd[i] == ' ' || debugCmd[i] == '=')
+        		i++;
+
+        	if(debugCmd[i] == '?')
+        	{
+        		param_ReadFifoPush(addr|0x4000);
+        		break;
+        	}
+        	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+        		value = value * 10 + debugCmd[i++] - '0';
+
+        	param_WriteFifoPush(addr|0x4000,value);
+        	break;
+        }
+    case 'P':
+            {
+            	i = 1;
+            	uint16_t addr = 0;
+            	uint16_t value = 0;
+
+            	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+            		addr = addr * 10 + debugCmd[i++] - '0';
+
+            	if (debugCmd[i] == ' ' || debugCmd[i] == '=')
+            		i++;
+
+            	if(debugCmd[i] == '?')
+            	        	{
+            	        		param_ReadFifoPush(addr);
+            	        		break;
+            	        	}
+            	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+            		value = value * 10 + debugCmd[i++] - '0';
+
+            	param_WriteFifoPush(addr,value);
+            	break;
+            }
     default:
     	cld_console(CLD_CONSOLE_RED,CLD_CONSOLE_BLACK,"Say again...\r\n");
     	break;

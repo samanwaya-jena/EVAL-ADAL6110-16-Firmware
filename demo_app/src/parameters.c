@@ -264,7 +264,7 @@ int param_ProcessReadWriteFifo(void)
 		{
 			if(type == cmdParam_SensorRegister)
 			{
-				data = LiDARParameters[addr&~RW_INTERNAL_MASK];
+				data = LiDARParameters[addr];
 				cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"software parameter 0x%04X read with value 0x%04X\r\n",addr,data);
 			}else
 			{
