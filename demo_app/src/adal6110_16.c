@@ -106,6 +106,13 @@ uint8_t spiMem[ADI_SPI_INT_MEMORY_SIZE];
 
 ADI_SPI_HANDLE hSpi = NULL;
 
+//
+// USB stat
+//
+
+int iUSBnum = 0;       // log the number of end of frame
+int iUSBnumCooked = 0; // number of detection sent
+int iUSBnumRaw = 0;    // number of raw frame sent
 
 /*
  * Private function prototypes
@@ -782,7 +789,8 @@ int DoAlgo(int16_t * pAcqFifo)
 			if (0 == frame_ID%LiDARParameters[param_det_msg_decimation])
 			{
 				numDet++;
-				USB_pushTrack(0x01, chIndex , 100, pDetections->intensity, pDetections->distance, 0, 0);
+				iUSBnumCooked++;
+				USB_pushTrack(numDet, chIndex , 100, pDetections->intensity, pDetections->distance, 0, 0);
 			}
 		}
     }
@@ -850,7 +858,8 @@ void ADAL_Acq(uint16_t *pBank)
 						{
 							if (LiDARParameters[param_raw_msg_mask]&(1<<LiDARParameters[param_channel_map_offset+ch]))
 							{
-								USB_pushRawData(LiDARParameters[param_channel_map_offset+ch], (uint16_t*) pAcqFifo[ch*DEVICE_SAMPLING_LENGTH]);
+								iUSBnumRaw++;
+								USB_pushRawData(LiDARParameters[param_channel_map_offset+ch], (uint16_t*) &pAcqFifo[ch*DEVICE_SAMPLING_LENGTH]);
 							}
 						}
 					}
@@ -865,6 +874,7 @@ void ADAL_Acq(uint16_t *pBank)
 				{
 					if (0 == frame_ID%LiDARParameters[param_det_msg_decimation] || 0 == frame_ID%LiDARParameters[param_raw_msg_decimation])
 					{
+						iUSBnum++;
 						USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
 					}
 				}
@@ -925,13 +935,7 @@ void ADAL_Reset(void)
 
 
 
-//
-// USB
-//
 
-int iUSBnum = 0;
-int iUSBnumOK = 0;
-int iUSBnumEmpty = 0;
 
 
 #ifdef USE_FAKE_DATA

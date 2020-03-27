@@ -220,7 +220,7 @@ CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Tr
 
     return rv;
 }
-
+/*
 void PrepResp(USB_msg *resp, unsigned char *buff)
 {
 	uint16_t* buff16;
@@ -252,7 +252,7 @@ void PrepResp(USB_msg *resp, unsigned char *buff)
 		buff[19] = (uint8_t)resp->CAN.pad2;
 	}
 }
-
+*/
 static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 {
     /* Parameters used to send Bulk IN data in response to the
@@ -264,9 +264,9 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 
     USB_CAN_message* usbCMDmsg = (USB_CAN_message *)&user_bulk_adi_loopback_buffer;
     USB_msg usbResp;
-    unsigned char xmit_buff[212];
-    int canlen = 20;
-    int rawlen = 212;
+    //unsigned char xmit_buff[212];
+    //int canlen = 20;
+    //int rawlen = 212;
     int i;
 
     LED_BC3G_OFF();  // indicator LED for communication
@@ -275,9 +275,9 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 
 	/* return message callback*/
     //todo: validate the buffer integrity...
-    PrepResp(&usbResp, xmit_buff);
-	transfer_params.num_bytes = (usbResp.CAN.id == msgID_transmitRaw)?rawlen:canlen;//sizeof(USB_raw_message):sizeof(USB_CAN_message);//
-	transfer_params.p_data_buffer = (unsigned char*)xmit_buff;//(unsigned char*)&usbResp;//
+    //PrepResp(&usbResp, xmit_buff);
+	transfer_params.num_bytes = (usbResp.CAN.id == msgID_transmitRaw)?sizeof(USB_raw_message):sizeof(USB_CAN_message);//rawlen:canlen;//
+	transfer_params.p_data_buffer = (unsigned char*)&usbResp;//(unsigned char*)xmit_buff;//
 	transfer_params.callback.fp_usb_in_transfer_complete = NULL; //user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error; // error function while transmit
 	transfer_params.transfer_timeout_ms = 1000;

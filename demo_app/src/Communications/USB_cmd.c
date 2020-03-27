@@ -107,12 +107,12 @@ void USB_pushParameter(uint16_t address, uint16_t value, uint8_t paramType)
 	msg->len = 8;
 	msg->data[0] = msgID_respParametercmd;
 	msg->data[1] = paramType;
-	msg->data[2] = (uint8_t) ((address&0xFF00)>>8);
-	msg->data[3] = (uint8_t) (address&0x00FF);
-	msg->data[4] = (uint8_t) ((value&0xFF000000)>>24);
-	msg->data[5] = (uint8_t) ((value&0x00FF0000)>>16);
-	msg->data[4] = (uint8_t) ((value&0x0000FF00)>>8);
-	msg->data[5] = (uint8_t) ((value&0x000000FF));
+	msg->data[3] = (uint8_t) ((address&0xFF00)>>8);
+	msg->data[2] = (uint8_t) (address&0x00FF);
+	msg->data[7] = (uint8_t) ((value&0xFF000000)>>24);
+	msg->data[6] = (uint8_t) ((value&0x00FF0000)>>16);
+	msg->data[5] = (uint8_t) ((value&0x0000FF00)>>8);
+	msg->data[4] = (uint8_t) ((value&0x000000FF));
 	msg->pad1 = 0x00;
 	msg->pad2 = 0x00;
 
@@ -124,12 +124,13 @@ void USB_pushRawData(uint16_t pixelID, uint16_t *buf)
 {
 	USB_raw_message* msg = (USB_raw_message*) &msg_to_push;
 
+	msg->id = msgID_transmitRaw;
 	msg->timestamp = GetTime();
 	msg->pixelNumber = pixelID;
 	msg->payloadsize = RAW_NUM_SAMPLES;
 	msg->synch[0] = 0x7FFF;
 	msg->synch[1] = 0x8000;
-	memcpy(msg->data, buf, sizeof(msg->data));
+	memcpy((uint8_t*)(msg->data), (uint8_t*)buf, sizeof(msg->data));
 
 	if( MsgQueue_Ok != msgQueuePush(&msg_to_push))
 		SetError(error_SW_comm_fifo_full);
@@ -149,42 +150,42 @@ void USB_pushTrack(uint16_t trackID, int pixelID, float probability, float inten
 
 	// send info
 	msg->id = msgID_trackInfo;
-	msg->data[0] = (uint8_t)(trackID>>8);
-	msg->data[1] = (uint8_t)trackID;
+	msg->data[1] = (uint8_t)(trackID>>8);
+	msg->data[0] = (uint8_t)trackID;
 	msg->data[2] = 0x00;
 	pixelID = pixelID<0?0:pixelID>15?15:pixelID;
 	val = (int)pixelID;
-	msg->data[3] = (uint8_t)(val>>8);
-	msg->data[4] = (uint8_t)val;
+	msg->data[4] = (uint8_t)(val>>8);
+	msg->data[3] = (uint8_t)val;
 	probability = probability<0?0:probability>100?100:probability;
 	val = (int)probability;
 	msg->data[5] = (uint8_t) val;
 	intensity = intensity<-20?-20:intensity>108?108:intensity;
 	intensity = 2*(intensity+20); // 1/2 dB with a 20dB offset
 	val = (int)intensity;
-	msg->data[6] = (uint8_t)(val>>8);
-	msg->data[7] = (uint8_t)(val);
+	msg->data[7] = (uint8_t)(val>>8);
+	msg->data[6] = (uint8_t)(val);
 
 	if( MsgQueue_Ok != msgQueuePush(&msg_to_push))
 		SetError(error_SW_comm_fifo_full);
 
 	// send values
 	msg->id = msgID_trackValue;
-	msg->data[0] = (uint8_t)(trackID>>8);
-	msg->data[1] = (uint8_t)trackID;
+	msg->data[1] = (uint8_t)(trackID>>8);
+	msg->data[0] = (uint8_t)trackID;
 	distance = distance<0?0:distance>200?200:distance;
-	distance = 200;//distance *= 100; // expressed in cm
+	distance *= 100; // expressed in cm
 	val = (int)distance;
-	msg->data[2] = (uint8_t) (val>>8);
-	msg->data[3] = (uint8_t) (val);
+	msg->data[3] = (uint8_t) (val>>8);
+	msg->data[2] = (uint8_t) (val);
 	//velocity = velocity<-100?-100:velocity>100?100:velocity;
 	velocity *= 100; // expressed in cm/s
 	val = (int)velocity;
-	msg->data[4] = (uint8_t)(val>>8);
-	msg->data[5] = (uint8_t) (val);
+	msg->data[5] = (uint8_t)(val>>8);
+	msg->data[4] = (uint8_t) (val);
 	val = (int)acceleration; // not used
-	msg->data[6] = (uint8_t)(val>>8);
-	msg->data[7] = (uint8_t)(val);
+	msg->data[7] = (uint8_t)(val>>8);
+	msg->data[6] = (uint8_t)(val);
 
 	if( MsgQueue_Ok != msgQueuePush(&msg_to_push))
 		SetError(error_SW_comm_fifo_full);
@@ -195,21 +196,22 @@ void USB_pushEndOfFrame(uint16_t frameID, uint16_t systemID, uint16_t numTrackSe
 {
 	USB_CAN_message* msg = (USB_CAN_message*) &msg_to_push;
 
-	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, " Frame Id: 0x%04X Pushed to msg queue with %d detection(s)\r\n", frameID, numTrackSent);
+	//removed debug message
+	//cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, " Frame Id: 0x%04X Pushed to msg queue with %d detection(s)\r\n", frameID, numTrackSent);
 
 	msg->id = msgID_FrameDone;
 	msg->timestamp = GetTime();
 	msg->flags = 0x00;
 	msg->len = 8;
 
-	msg->data[0] = (uint8_t)(frameID>>8)&0xFF;
-	msg->data[1] = (uint8_t)frameID&0xFF;
-	msg->data[2] = (uint8_t)(systemID>>8)&0xFF;
-	msg->data[3] = (uint8_t)systemID&0xFF;
+	msg->data[1] = (uint8_t)(frameID>>8)&0xFF;
+	msg->data[0] = (uint8_t)frameID&0xFF;
+	msg->data[3] = (uint8_t)(systemID>>8)&0xFF;
+	msg->data[2] = (uint8_t)systemID&0xFF;
 	msg->data[4] = 0;
 	msg->data[5] = 0;
-	msg->data[6] = (uint8_t)(numTrackSent>>8)&0xFF;
-	msg->data[7] = (uint8_t)numTrackSent&0xFF;
+	msg->data[7] = (uint8_t)(numTrackSent>>8)&0xFF;
+	msg->data[6] = (uint8_t)numTrackSent&0xFF;
 
 	msg->pad1 = 0x00;
 	msg->pad2 = 0x00;
@@ -327,8 +329,9 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 	 */
 	uint8_t ID = cmd->data[0];
 	uint8_t type= cmd->data[1];
-	uint16_t add = (uint16_t) ((cmd->data[2] << 8) + cmd->data[3]);
-	uint32_t val = (uint32_t) ((cmd->data[4] << 24) + (cmd->data[5] << 16) + (cmd->data[6] << 8) + cmd->data[7]);
+	// Big endian... MSB is last
+	uint16_t add = (uint16_t) ((cmd->data[3] << 8) + cmd->data[2]);
+	uint32_t val = (uint32_t) ((cmd->data[7] << 24) + (cmd->data[6] << 16) + (cmd->data[5] << 8) + cmd->data[4]);
 
 	switch(ID)
 	{
@@ -360,7 +363,7 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		break;
 	case msgID_requestCookedcmd :
 		LiDARParameters[param_det_msg_decimation] = cmd->data[3];
-		LiDARParameters[param_det_msg_mask] = cmd->data[2] + (cmd->data[1]<<8);
+		LiDARParameters[param_det_msg_mask] = cmd->data[1] + (cmd->data[2]<<8);
 		if( LiDARParameters[param_det_msg_decimation] )
 		{
 			LiDARParameters[param_DSP_enable] = 1; // force detection...
@@ -374,7 +377,7 @@ uint8_t ProcessCommand(USB_CAN_message* cmd)
 		break;
 	case msgID_requestRawcmd :
 		LiDARParameters[param_raw_msg_decimation] = cmd->data[3];
-		LiDARParameters[param_det_msg_mask] = cmd->data[2] + (cmd->data[1]<<8);
+		LiDARParameters[param_raw_msg_mask] = cmd->data[1] + (cmd->data[2]<<8);
 		if( LiDARParameters[param_raw_msg_decimation] )
 		{
 			LiDARParameters[param_DSP_enable] = 1; // force detection...

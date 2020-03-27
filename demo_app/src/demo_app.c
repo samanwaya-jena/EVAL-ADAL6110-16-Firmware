@@ -143,10 +143,10 @@ void DoMainStateRun()
 	if ((LiDARParameters[param_console_log] & CONSOLE_MASK_LOG) && (cld_time_passed_ms(log_time) >= 1000u))
 	{
 		log_time = cld_time_get();
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (bank 1:%d / bank 2:%d / unknown:%d) USB %d (OK:%d, Empty:%d)\r\n",
-				     iAcqNum, iAcqNum1, iAcqNum2, iAcqNumX, iUSBnum, iUSBnumOK, iUSBnumEmpty);
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (bank 1:%d / bank 2:%d / unknown:%d) USB frame sent: %d (Cooked:%d, Raw:%d)\r\n",
+				     iAcqNum, iAcqNum1, iAcqNum2, iAcqNumX, iUSBnum, iUSBnumCooked, iUSBnumRaw);
 		iAcqNum = iAcqNum1 = iAcqNum2 = iAcqNumX = 0;
-		iUSBnum = iUSBnumOK = iUSBnumEmpty = 0;
+		iUSBnum = iUSBnumCooked = iUSBnumRaw = 0;
 	}
 	/*
 	 * Communications

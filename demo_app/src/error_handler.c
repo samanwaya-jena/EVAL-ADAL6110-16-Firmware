@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include "demo_app.h"
 #include "Communications/cld_bf70x_bulk_lib.h"
+#include "parameters.h"
 
 static uint32_t errorFlags;
 static char* errText[error_numberOfErrors] = {"Bootup error",
@@ -35,12 +36,14 @@ void SetError(error_type err)
 	if (err < error_numberOfErrors)
 	{
 		errorFlags |= 1<<err;
-		cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "@%08d error:%04X -- %s\n\r", errTime, errorFlags, errText[err]);
+		if(LiDARParameters[param_console_log]&CONSOLE_MASK_DEBUG)
+			cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "@%08d error:%04X -- %s\n\r", errTime, errorFlags, errText[err]);
 	}else
 	{
 		errorFlags = 0xFFFFFFFF;
-		cld_console(CLD_CONSOLE_BLACK, CLD_CONSOLE_RED,
-				"@%08d error:%04X -- Unknown error! please call your local EVAL-ADAL6110_16 maintenance crew\n\r", errTime, errorFlags);
+		if(LiDARParameters[param_console_log]&CONSOLE_MASK_DEBUG)
+			cld_console(CLD_CONSOLE_BLACK, CLD_CONSOLE_RED,
+					"@%08d error:%04X -- Unknown error! please call your local EVAL-ADAL6110_16 maintenance crew\n\r", errTime, errorFlags);
 	}
 }
 

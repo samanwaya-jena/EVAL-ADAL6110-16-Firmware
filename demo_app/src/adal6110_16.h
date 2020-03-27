@@ -133,8 +133,8 @@ void ADAL_WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 // Testing counters
 //
 extern int iUSBnum;
-extern int iUSBnumOK;
-extern int iUSBnumEmpty;
+extern int iUSBnumCooked;
+extern int iUSBnumRaw;
 
 
 #endif /* ADAL6110_H_ */

@@ -13,13 +13,14 @@
 
 #define DISABLE_INT() unsigned int _intm = cli()
 #define ENABLE_INT() sti(_intm)
-#define QUEUE_LENGTH 256
-#define QUEUE_POINTER_MASK 0xFF
+// at 49 message per frame, 1024 is 20 frame buffer
+#define QUEUE_LENGTH 1024 //256
+#define QUEUE_POINTER_MASK 0x3FF //0xFF
 
 /*
  * private interface
  */
-static const USB_msg Queue[QUEUE_LENGTH];
+static USB_msg Queue[QUEUE_LENGTH];
 static int head;
 static int tail;
 
