@@ -8,8 +8,8 @@
 #ifndef __BF707_WAGNER_H__
 #define __BF707_WAGNER_H__
 
-#define FIRMWARE_MAJOR_REV 0
-#define FIRMWARE_MINOR_REV 15
+#define FIRMWARE_MAJOR_REV 1
+#define FIRMWARE_MINOR_REV 0
 
 
 #define EXTERNAL_SPI_DEVICE 0

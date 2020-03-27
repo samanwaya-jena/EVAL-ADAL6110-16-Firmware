@@ -33,7 +33,7 @@
 
 
 
-
+extern int inumSent;
 
 static USB_CAN_message user_bulk_adi_loopback_buffer;
 
@@ -276,9 +276,9 @@ static CLD_USB_Data_Received_Return_Type user_bulk_adi_can_cmd_received (void)
 	/* return message callback*/
     //todo: validate the buffer integrity...
     //PrepResp(&usbResp, xmit_buff);
-	transfer_params.num_bytes = (usbResp.CAN.id == msgID_transmitRaw)?sizeof(USB_raw_message):sizeof(USB_CAN_message);//rawlen:canlen;//
+	transfer_params.num_bytes = (usbResp.RAW.id == msgID_transmitRaw)?sizeof(USB_raw_message):sizeof(USB_CAN_message);//rawlen:canlen;//
 	transfer_params.p_data_buffer = (unsigned char*)&usbResp;//(unsigned char*)xmit_buff;//
-	transfer_params.callback.fp_usb_in_transfer_complete = NULL; //user_bulk_adi_loopback_bulk_in_transfer_complete;
+	transfer_params.callback.fp_usb_in_transfer_complete = user_bulk_adi_loopback_bulk_in_transfer_complete;
 	transfer_params.fp_transfer_aborted_callback = user_bulk_adi_loopback_device_transfer_error; // error function while transmit
 	transfer_params.transfer_timeout_ms = 1000;
 
@@ -325,7 +325,7 @@ Returns:        None.
 static void user_bulk_adi_loopback_bulk_in_transfer_complete (void)
 {
 	//Todo: include code to do at the end of USB bulk in transfer
-
+	inumSent++;
 }
 
 /*=============================================================================

@@ -116,6 +116,8 @@ void InitApp()
 	}
 }
 
+int inumSent;
+
 void DoMainStateRun()
 {
 	#define MINUTES(x)      (x/60000)
@@ -143,10 +145,11 @@ void DoMainStateRun()
 	if ((LiDARParameters[param_console_log] & CONSOLE_MASK_LOG) && (cld_time_passed_ms(log_time) >= 1000u))
 	{
 		log_time = cld_time_get();
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (bank 1:%d / bank 2:%d / unknown:%d) USB frame sent: %d (Cooked:%d, Raw:%d)\r\n",
-				     iAcqNum, iAcqNum1, iAcqNum2, iAcqNumX, iUSBnum, iUSBnumCooked, iUSBnumRaw);
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (b1:%d / b2:%d / ?:%d) || Frame: %d (Cooked:%d, Raw:%d) || USB msg:%d\r\n",
+				     iAcqNum, iAcqNum1, iAcqNum2, iAcqNumX, iUSBnum, iUSBnumCooked, iUSBnumRaw,inumSent);
 		iAcqNum = iAcqNum1 = iAcqNum2 = iAcqNumX = 0;
 		iUSBnum = iUSBnumCooked = iUSBnumRaw = 0;
+		inumSent = 0;
 	}
 	/*
 	 * Communications
