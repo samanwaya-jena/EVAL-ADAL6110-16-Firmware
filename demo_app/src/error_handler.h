@@ -24,7 +24,7 @@ typedef enum{
 } error_type;
 
 void SetError(error_type err);
-uint32_t GetError(void);
+uint16_t GetError(void);
 int IsErrorSet(error_type err);
 
 

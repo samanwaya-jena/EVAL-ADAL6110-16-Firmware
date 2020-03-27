@@ -15,6 +15,8 @@ typedef enum
 	param_deviceID = 0x00,          // byte1:family, byte2:configuration
 	param_manufDate,                // byte1:year (2000-2255), byte2: month (1-12)
 	param_serialNumber,             // unique number (if rollover, use in conjunction with date)
+	param_software_version,         // respond the software version of this code (from #define, not Flash)
+	param_error_status,             // current error bit field
 
 	param_acq_enable = 0x10,        // activate the polling function of the ADAL-6110-16
 	param_DSP_enable,               // activate the DSP function to have detection & tracking (if available)

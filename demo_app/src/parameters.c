@@ -15,6 +15,7 @@
 #include "adal6110_16.h"
 #include "Communications/USB_cmd.h"
 #include "Communications/cld_bf70x_bulk_lib.h"
+#include "demo_app.h"
 
 
 
@@ -108,6 +109,7 @@ void param_ResetFactoryDefault()
 
 	LiDARParameters[param_serialNumber] = serNum; // keeps the serial number;
 	LiDARParameters[param_manufDate] = date; // and date;
+	LiDARParameters[param_software_version] = (FIRMWARE_MAJOR_REV<<8) +FIRMWARE_MINOR_REV;
 
 	memcpy((char*)ADAL_currentValues,(char*)ADAL_DefaultValues,sizeof(ADAL_DefaultValues));
 
@@ -155,6 +157,8 @@ void param_LoadConfig(void)
 
 	if (IsErrorSet(error_SW_flash))
 		param_ResetFactoryDefault();
+
+	LiDARParameters[param_software_version] = (FIRMWARE_MAJOR_REV <<8) + FIRMWARE_MINOR_REV;
 
 }
 
