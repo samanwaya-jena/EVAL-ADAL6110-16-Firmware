@@ -112,6 +112,8 @@ void ADAL_Trig(void);
 void ADAL_SPITriggerMode(void);
 void ADAL_FreerunMode(void);
 void ADAL_FlashGain(uint16_t flashGain);
+float ADAL_SetFrameRate(uint16_t frame_rate);
+int ADAL_SetPulseWidth(uint16_t width);
 
 /*
  * Acquisition Control

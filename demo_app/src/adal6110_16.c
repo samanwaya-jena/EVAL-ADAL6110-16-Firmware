@@ -57,7 +57,7 @@ uint16_t Lidar_POR_Values[][2] =
 
 
 
-
+/* ETR: now useless... all reference are kept to ADAL6110 except for communcation
 int aChIdxADI[16] = {
   0,
   1,
@@ -76,8 +76,8 @@ int aChIdxADI[16] = {
   14,
   15
 };
-
-/*
+*/
+/* ETR: moved to paramters
 int aChIdxArray[16] = {
   7,
   8,
@@ -725,6 +725,51 @@ void ADAL_FlashGain(uint16_t flashGain)
     ADAL_WriteParamToSPI(Control0Address, data);
 }
 
+float ADAL_SetFrameRate(uint16_t frame_rate)
+{
+	uint16_t CONTROL_regval, FLASHDLY_regval, FRAMEDLY_regval,FRAMEDLY_newval;
+	uint16_t flash_gain, tr_delay, flash_delay, frame_delay;
+	float flash_time,frame_time;
+
+	ADAL_ReadParamFromSPI(Control0Address, &CONTROL_regval);
+	ADAL_ReadParamFromSPI(DelayBetweenFlashesAddress, &FLASHDLY_regval);
+	ADAL_ReadParamFromSPI(FRAMEDELAY, &FRAMEDLY_regval);
+	flash_gain  = (CONTROL_regval  & 0x1F80) >>7;
+	tr_delay    = (CONTROL_regval  & 0x0078) >>3;
+	flash_delay = (FLASHDLY_regval & 0xFFF8) >>3;
+	frame_delay = (FRAMEDLY_regval & 0x7FF8) >>3;
+
+	flash_time  = flash_gain * ( (4e-9 * tr_delay) + (500e-9 + (flash_delay*100e-9)) );
+	frame_time  = 1/frame_rate;
+	frame_delay = (uint16_t)(((frame_time - flash_time) - 166100e-9)/100e-9);
+	frame_delay = frame_delay & 0x0FFF;
+	FRAMEDLY_regval &= 0x8007;
+	FRAMEDLY_regval |= (frame_delay<<3);
+
+	ADAL_WriteParamToSPI(FRAMEDELAY,FRAMEDLY_regval);
+
+	frame_time = flash_time + (frame_delay*100e-9)+166100e-9;
+	return ( 1/frame_time );
+}
+
+int ADAL_SetPulseWidth(uint16_t width)
+{
+	uint16_t regval;
+
+	ADAL_ReadParamFromSPI(TriggerOutAddress, &regval);
+
+	regval &= 0xFFC7; //reset bits 5..3
+
+	if(width < 10) regval |= 0x0000;
+	else if (width < 14) regval |= 0x0008;
+	else if (width < 18) regval |= 0x0010;
+	else if (width < 22) regval |= 0x0018;
+	else regval |= 0x0020;
+
+	ADAL_WriteParamToSPI(TriggerOutAddress,regval);
+
+	return(8+((regval&0x0038)>>1));
+}
 
 
 //

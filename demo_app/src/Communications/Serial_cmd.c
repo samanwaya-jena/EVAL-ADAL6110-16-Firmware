@@ -41,25 +41,20 @@ const char * hex = "0123456789ABCDEF";
 
 void Lidar_DumpRegs(void)
 {
-	uint8_t regs[] = { DeviceIDAddress,Control0Address,Control1Address,DataControlAddress,DelayBetweenFlashesAddress,TriggerOutAddress};
+	uint8_t regs[] = { DeviceIDAddress,Control0Address,Control1Address,DataControlAddress,DelayBetweenFlashesAddress,TriggerOutAddress,FRAMEDELAY};
 	int i, ch;
 
 	int num = sizeof(regs) / sizeof(regs[0]);
-
 	for (i=0; i<num; i++)
 	{
 		uint16_t reg = regs[i];
 		uint16_t data = 0xFFFF;
 
 		ADAL_ReadParamFromSPI(reg, &data);
-
-		//cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%c%c: %c%c%c%c\r\n", hex[(reg>>4)&0xF], hex[(reg>>0)&0xF],
-		//		hex[(data>>12)&0xF], hex[(data>>8)&0xF], hex[(data>>4)&0xF], hex[(data>>0)&0xF]);
 		cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"%02d: 0x%04X\r\n",reg,data);
 	}
 
 	cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Ch: En\tTIA\tcpd\tTIA fb\tBAL\r\n");
-
 	for (ch=0; ch<16; ch++)
 	{
 		uint16_t en, tia, bal;
@@ -68,17 +63,13 @@ void Lidar_DumpRegs(void)
 
 		ADAL_ReadParamFromSPI(ChannelEnableAddress, &data);
 		en = (data & (1 << ch) );
-
 		ADAL_ReadParamFromSPI(CH0ControlReg0Address + 4 * ch, &data);
 		tia = data;
-
 		ADAL_ReadParamFromSPI(CH0ControlReg1Address + 4 * ch, &data);
 		chx_cpd_select =  (uint8_t) ((data >> 8) & 0x7);
 		tia_feedback = (uint8_t) (data & 0xFF);
-
 		ADAL_ReadParamFromSPI(CH0ControlReg2Address + 4 * ch, &data);
 		bal = (data & 0x01FF);
-
 		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%02d: %d\t%d\t%d\t%d\t%d\r\n", ch, (en) ? 1 : 0, tia,chx_cpd_select , tia_feedback, bal);
 	}
 
@@ -268,10 +259,12 @@ void ProcessChar(char curChar)
 
     case 's':
     	LiDARParameters[param_acq_enable] = 0;
+    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition stopped\n\r");
     	break;
 
     case 'q':
     	LiDARParameters[param_acq_enable] = 1;
+    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition started\n\r");
     	break;
 
 //    case 'z':
@@ -281,10 +274,12 @@ void ProcessChar(char curChar)
 
     case 't':
     	ADAL_SPITriggerMode();
+    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition set in trigger mode\n\r");
     	break;
 
     case 'f':
     	ADAL_FreerunMode();
+    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition set in free run mode\n\r");
     	break;
 
     case 'd':
@@ -319,6 +314,28 @@ void ProcessChar(char curChar)
     	break;
     }
 
+    case'v':
+    {
+    	i = 1;
+    	uint16_t frame_rate = 0;
+
+		while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+			frame_rate = frame_rate * 10 + debugCmd[i++] - '0';
+
+		cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"ADAL6110-16 frame rate set to %3.2f fps", ADAL_SetFrameRate(frame_rate));
+    	break;
+    }
+    case'w':
+    {
+		i = 1;
+		uint16_t width = 0;
+
+		while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
+			width = width * 10 + debugCmd[i++] - '0';
+
+		cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"ADAL6110-16 pulse width set to %d ns", ADAL_SetPulseWidth(width));
+		break;
+    }
     case 'b':
     {
     	i = 1;
@@ -356,6 +373,7 @@ void ProcessChar(char curChar)
     	ADAL_ChannelTIAFeedback(ch, feedback);
     	break;
     }
+
     case 'u':
    		LiDARParameters[param_console_log] ^= CONSOLE_MASK_USB;
    		if(LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
@@ -374,6 +392,7 @@ void ProcessChar(char curChar)
     		cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Serial number set to: 0x%04X\n\r",LiDARParameters[param_serialNumber]);
     	}
     	break;
+
     case 'D':
        	i = 1;
        	if (LiDARParameters[param_manufDate])
@@ -386,10 +405,12 @@ void ProcessChar(char curChar)
    				    LiDARParameters[param_manufDate]>>8,LiDARParameters[param_manufDate]&0x0F);
        	}
        	break;
+
     case 'S':
     	param_SaveConfig();
     	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Configuration saved to Flash memory\r\n");
     	break;
+
     case 'r':
     	LiDARParameters[param_console_log] ^= CONSOLE_MASK_DIST;
     	if(LiDARParameters[param_console_log] & CONSOLE_MASK_DIST)
@@ -397,6 +418,7 @@ void ProcessChar(char curChar)
 		else
 			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Distance log cleared\n\r");
     	break;
+
     case 'p':
         {
         	i = 1;
@@ -420,6 +442,7 @@ void ProcessChar(char curChar)
         	param_WriteFifoPush(addr|0x4000,value);
         	break;
         }
+
     case 'P':
             {
             	i = 1;
@@ -433,16 +456,17 @@ void ProcessChar(char curChar)
             		i++;
 
             	if(debugCmd[i] == '?')
-            	        	{
-            	        		param_ReadFifoPush(addr);
-            	        		break;
-            	        	}
+				{
+					param_ReadFifoPush(addr);
+					break;
+				}
             	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
             		value = value * 10 + debugCmd[i++] - '0';
 
             	param_WriteFifoPush(addr,value);
             	break;
             }
+
     default:
     	cld_console(CLD_CONSOLE_RED,CLD_CONSOLE_BLACK,"Say again...\r\n");
     	break;
