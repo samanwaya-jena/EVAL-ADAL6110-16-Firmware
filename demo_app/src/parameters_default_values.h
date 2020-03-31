@@ -47,13 +47,13 @@ uint8_t param_dir_values[number_of_param]=
 
 uint16_t ADAL_DefaultValues[][2] =
 {
-    {Control0Address , 0x1F80},
+    {Control0Address , 0x880},
     {Control1Address , 0x8040},
     //{DataControlAddress , },
-    {DelayBetweenFlashesAddress , 0x4000},
+    {DelayBetweenFlashesAddress , 0xAD10},
     {ChannelEnableAddress , 0xFFFF},
     {DataAcqMode , 0x0001},
-    {TriggerOutAddress , 0x1021},
+    {TriggerOutAddress , 0x1011},
     {CH0ControlReg0Address , 0x3C3F},
     {CH0ControlReg1Address , 0x0B80},
     {CH0ControlReg2Address , 0x00FF},
@@ -111,14 +111,14 @@ uint16_t ADAL_DefaultValues[][2] =
     {DCEN , 0xFFFF},
     //{AGCDCBPID0, },
     //{AGCDCBPID1 , },
-    {FRAMEDELAY , 0x8000},
+    {FRAMEDELAY , 0xFFF8},
     //{STARTADDRPOINTER , },
     //{SRAM_READY , },
     {LFSRSEEDL , 0x9190},
     {LFSRSEEDH , 0x0001},
     //{SRAM_DATA , }*/
-	{Control0Address , 0x1F81},
-	{Control0Address , 0x1F82}
+	{Control0Address , 0x0881},
+	{Control0Address , 0x0882}
 };
 
 #endif /* PARAMETERS_DEFAULT_VALUES_H_ */
