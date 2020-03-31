@@ -729,9 +729,10 @@ float ADAL_SetFrameRate(uint16_t frame_rate)
 {
 	uint16_t CONTROL_regval, FLASHDLY_regval, FRAMEDLY_regval,FRAMEDLY_newval;
 	uint16_t flash_gain, tr_delay, flash_delay, frame_delay;
-	float flash_time,frame_time;
+	float flash_time,frame_time,period;
 
 	ADAL_ReadParamFromSPI(Control0Address, &CONTROL_regval);
+	ADAL_WriteParamToSPI(Control0Address, CONTROL_regval&0xFFFE); // stop operations
 	ADAL_ReadParamFromSPI(DelayBetweenFlashesAddress, &FLASHDLY_regval);
 	ADAL_ReadParamFromSPI(FRAMEDELAY, &FRAMEDLY_regval);
 	flash_gain  = (CONTROL_regval  & 0x1F80) >>7;
@@ -739,17 +740,29 @@ float ADAL_SetFrameRate(uint16_t frame_rate)
 	flash_delay = (FLASHDLY_regval & 0xFFF8) >>3;
 	frame_delay = (FRAMEDLY_regval & 0x7FF8) >>3;
 
-	flash_time  = flash_gain * ( (4e-9 * tr_delay) + (500e-9 + (flash_delay*100e-9)) );
-	frame_time  = 1/frame_rate;
-	frame_delay = (uint16_t)(((frame_time - flash_time) - 166100e-9)/100e-9);
-	frame_delay = frame_delay & 0x0FFF;
-	FRAMEDLY_regval &= 0x8007;
-	FRAMEDLY_regval |= (frame_delay<<3);
+	frame_delay = 0xFFF; // always longest delay... (200Hz max rate)
+	FRAMEDLY_regval = ((frame_delay&0x0FFF)<<3)|0x8000;
 
+	period  = 1.0/frame_rate;
+	period = period<0.004?0.004:period>0.02?0.02:period; //limit: 50 to 250 Hz
+	frame_time = 166100e-9 + (frame_delay*100e-9);  //(uint16_t)(((frame_time - flash_time) - 166100e-9)/100e-9);
+	flash_time = period - frame_time;
+	flash_time /= flash_gain;     // accumulation
+	flash_time -= tr_delay*4e-9;  //skip length
+	flash_delay = (uint16_t)(flash_time/100e-9); //scale
+	flash_delay -= 5;           // minimum length
+	flash_delay = flash_delay>0x1FFF?0x1FFF:flash_delay<500?500:flash_delay; //bound between the register limit and 20kHz
+	FLASHDLY_regval = (flash_delay&0x1FFF)<<3;
+
+	period = flash_gain*((tr_delay*4e-9) + (flash_delay*100e-9) + 500e-9) + (frame_delay * 100e-9) + 166100e-9;
+	cld_console(CLD_CONSOLE_YELLOW,CLD_CONSOLE_BLACK,"p=%f, fr=%e,fl=%e, g=%d tr=%e \r\n",period,frame_time,flash_time,flash_gain,tr_delay*4e-9);
+	cld_console(CLD_CONSOLE_YELLOW,CLD_CONSOLE_BLACK,"Fr_delay=%d, Fl_delay=%d, Tr_delay=%d, Flash_gain=%d\n\r",frame_delay,flash_delay,tr_delay,flash_gain);
+
+	ADAL_WriteParamToSPI(DelayBetweenFlashesAddress,FLASHDLY_regval);
 	ADAL_WriteParamToSPI(FRAMEDELAY,FRAMEDLY_regval);
+	ADAL_WriteParamToSPI(Control0Address, CONTROL_regval); // restart with previous values
 
-	frame_time = flash_time + (frame_delay*100e-9)+166100e-9;
-	return ( 1/frame_time );
+	return ( 1/period );
 }
 
 int ADAL_SetPulseWidth(uint16_t width)

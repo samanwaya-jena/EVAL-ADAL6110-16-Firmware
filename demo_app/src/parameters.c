@@ -252,8 +252,9 @@ int param_ProcessReadWriteFifo(void)
 			default:
 				if (type == cmdParam_SensorRegister & LiDARParamDir[addr]!=READONLY)
 				{
-					LiDARParameters[addr&~RW_INTERNAL_MASK] = data;
-					cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"software parameter 0x%04X set to 0x%04X\r\n",addr,data);
+					LiDARParameters[addr] = data;
+					if (addr == param_frame_rate) LiDARParameters[param_frame_rate] = (uint16_t)ADAL_SetFrameRate(LiDARParameters[param_frame_rate]);
+					cld_console(CLD_CONSOLE_PURPLE,CLD_CONSOLE_BLACK,"software parameter 0x%04X set to 0x%04X\r\n",addr,LiDARParameters[param_frame_rate]);
 				}
 				else
 				{

@@ -826,59 +826,65 @@
 			<register>
 				<index>5</index>
 				<address>18</address>
-				<description>Serial log (bit0: detection, bit1: USB communications)</description>
+				<description>Serial log (bit0: detection, bit1: USB communications, bit2: debug info)</description>
 			</register>
 
 			<register>
 				<index>6</index>
+				<address>19</address>
+				<description>Frame rate (in fps)</description>
+			</register>
+
+			<register>
+				<index>7</index>
 				<address>32</address>
 				<description>Detection algorithm selection</description>
 			</register>
 			
 			<register>
-				<index>7</index>
+				<index>8</index>
 				<address>33</address>
 				<description>Tracking algorithm selection</description>
 			</register>
 			  
 			<register>
-				<index>8</index>
+				<index>9</index>
 				<address>34</address>
 				<description>Number of detection per channel</description>
 			</register>
 			
 			<register>
-				<index>9</index>
+				<index>10</index>
 				<address>35</address>
 				<description>Number of track per channel</description>
 			</register>
 			
 			<register>
-				<index>10</index>
+				<index>11</index>
 				<address>96</address>
 				<description>Detection/track data xmit decimation (0 to disable)</description>
 			</register>
 
 			<register>
-				<index>11</index>
+				<index>12</index>
 				<address>97</address>
 				<description>Detection/track data xmit mask</description>
 			</register>
 			
 			<register>
-				<index>12</index>
+				<index>13</index>
 				<address>98</address>
 				<description>Raw data xmit decimation (0 to disable)</description>
 			</register>
 			  
 			<register>
-				<index>13</index>
+				<index>14</index>
 				<address>99</address>
 				<description>Raw Data xmit mask</description>
 			</register>
 			
 			<register>
-				<index>14</index>
+				<index>15</index>
 				<address>100</address>
 				<description>Status period (in ms)</description>
 			</register>

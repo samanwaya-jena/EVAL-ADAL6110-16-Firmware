@@ -258,12 +258,12 @@ void ProcessChar(char curChar)
     	break;
 
     case 's':
-    	LiDARParameters[param_acq_enable] = 0;
+    	param_WriteFifoPush(param_acq_enable|0x4000,0);
     	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition stopped\n\r");
     	break;
 
     case 'q':
-    	LiDARParameters[param_acq_enable] = 1;
+    	param_WriteFifoPush(param_acq_enable|0x4000,1);
     	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition started\n\r");
     	break;
 
@@ -311,6 +311,7 @@ void ProcessChar(char curChar)
     		flashGain = flashGain * 10 + debugCmd[i++] - '0';
 
     	ADAL_FlashGain(flashGain);
+    	ADAL_SetFrameRate(LiDARParameters[param_frame_rate]);
     	break;
     }
 
@@ -322,8 +323,8 @@ void ProcessChar(char curChar)
 		while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
 			frame_rate = frame_rate * 10 + debugCmd[i++] - '0';
 
-		cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"ADAL6110-16 frame rate set to %3.2f fps", ADAL_SetFrameRate(frame_rate));
-    	break;
+		param_WriteFifoPush(param_frame_rate|0x4000,frame_rate);
+		break;
     }
     case'w':
     {
@@ -333,7 +334,7 @@ void ProcessChar(char curChar)
 		while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
 			width = width * 10 + debugCmd[i++] - '0';
 
-		cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"ADAL6110-16 pulse width set to %d ns", ADAL_SetPulseWidth(width));
+		cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"ADAL6110-16 pulse width set to %d ns\r\n", ADAL_SetPulseWidth(width));
 		break;
     }
     case 'b':
@@ -433,13 +434,13 @@ void ProcessChar(char curChar)
 
         	if(debugCmd[i] == '?')
         	{
-        		param_ReadFifoPush(addr|0x4000);
+        		param_ReadFifoPush((addr&0x3FFF)|0x4000);
         		break;
         	}
         	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
         		value = value * 10 + debugCmd[i++] - '0';
 
-        	param_WriteFifoPush(addr|0x4000,value);
+        	param_WriteFifoPush((addr&0x3FFF)|0x4000,value&0x3FFF);
         	break;
         }
 
@@ -457,13 +458,13 @@ void ProcessChar(char curChar)
 
             	if(debugCmd[i] == '?')
 				{
-					param_ReadFifoPush(addr);
+					param_ReadFifoPush(addr&0x3FFF);
 					break;
 				}
             	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
             		value = value * 10 + debugCmd[i++] - '0';
 
-            	param_WriteFifoPush(addr,value);
+            	param_WriteFifoPush((addr&0x3FFF),value&0xFFFF);
             	break;
             }
 
