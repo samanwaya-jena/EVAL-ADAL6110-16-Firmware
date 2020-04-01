@@ -127,7 +127,9 @@ void param_InitValues(void)
 
 	memcpy((char*)LiDARParamDir,(char*)param_dir_values,sizeof(LiDARParamDir));
 
+
 	param_LoadConfig();
+	//param_ResetFactoryDefault();
 }
 
 

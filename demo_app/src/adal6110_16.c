@@ -651,8 +651,15 @@ void ADAL_Trig(void)
 	uint16_t data;
 
 	ADAL_ReadParamFromSPI(Control1Address, &data);
-
 	ADAL_WriteParamToSPI(Control1Address, data | 0x4000);
+}
+
+void ADAL_ClearTrig(void)
+{
+	uint16_t data;
+
+	ADAL_ReadParamFromSPI(Control1Address, &data);
+	ADAL_WriteParamToSPI(Control1Address, data & ~0x4000); // reset the trigger bit
 }
 
 void ADAL_SPITriggerMode(void)
@@ -660,44 +667,35 @@ void ADAL_SPITriggerMode(void)
 	uint16_t data;
 
 	ADAL_ReadParamFromSPI(Control1Address, &data);
-
 	ADAL_WriteParamToSPI(Control1Address, (data & ~0x4000) & ~0x8000);
 }
 
 void ADAL_FreerunMode(void)
 {
 	uint16_t data;
-
 	ADAL_ReadParamFromSPI(Control1Address, &data);
-
 	ADAL_WriteParamToSPI(Control1Address, (data & ~0x4000) | 0x8000);
 }
-
+/*
 void ADAL_ChannelEnable(int ch, int enable)
 {
 	uint16_t data;
 
 	ADAL_ReadParamFromSPI(ChannelEnableAddress, &data);
-
-	if (enable)
-		data |=  (1 << ch);
-	else
-		data &= ~(1 << ch);
-
+	if (enable)	data |=  (1 << ch);
+	else data &= ~(1 << ch);
     ADAL_WriteParamToSPI(ChannelEnableAddress, data);
 }
-
+*/
 void ADAL_ChannelTIAFeedback(int ch, uint16_t feedback)
 {
 	uint16_t data;
 	uint16_t temp = 0;
 
 	ADAL_ReadParamFromSPI(CH0ControlReg1Address + ch * 4, &data);
-
 	data &= ~0x00FF;
 	temp = (uint8_t) feedback;
 	data |= temp;
-
     ADAL_WriteParamToSPI(CH0ControlReg1Address + ch * 4, data);
 }
 
@@ -706,10 +704,8 @@ void ADAL_ChannelDCBal(int ch, uint16_t bal)
 	uint16_t data;
 
 	ADAL_ReadParamFromSPI(CH0ControlReg2Address + ch * 4, &data);
-
 	data &= ~0x01FF;
 	data |= bal;
-
     ADAL_WriteParamToSPI(CH0ControlReg2Address + ch * 4, data);
 }
 
@@ -718,11 +714,10 @@ void ADAL_FlashGain(uint16_t flashGain)
 	uint16_t data;
 
 	ADAL_ReadParamFromSPI(Control0Address, &data);
-
-	data &= ~0xFF10;
-	data |= (flashGain << 7) & 0xFF10;
-
+	data &= ~0x1F80;
+	data |= ((flashGain & 0x003F) << 7);
     ADAL_WriteParamToSPI(Control0Address, data);
+
 }
 
 float ADAL_SetFrameRate(uint16_t frame_rate)
@@ -755,8 +750,8 @@ float ADAL_SetFrameRate(uint16_t frame_rate)
 	FLASHDLY_regval = (flash_delay&0x1FFF)<<3;
 
 	period = flash_gain*((tr_delay*4e-9) + (flash_delay*100e-9) + 500e-9) + (frame_delay * 100e-9) + 166100e-9;
-	cld_console(CLD_CONSOLE_YELLOW,CLD_CONSOLE_BLACK,"p=%f, fr=%e,fl=%e, g=%d tr=%e \r\n",period,frame_time,flash_time,flash_gain,tr_delay*4e-9);
-	cld_console(CLD_CONSOLE_YELLOW,CLD_CONSOLE_BLACK,"Fr_delay=%d, Fl_delay=%d, Tr_delay=%d, Flash_gain=%d\n\r",frame_delay,flash_delay,tr_delay,flash_gain);
+	//cld_console(CLD_CONSOLE_YELLOW,CLD_CONSOLE_BLACK,"p=%f, fr=%e,fl=%e, g=%d tr=%e \r\n",period,frame_time,flash_time,flash_gain,tr_delay*4e-9);
+	//cld_console(CLD_CONSOLE_YELLOW,CLD_CONSOLE_BLACK,"Fr_delay=%d, Fl_delay=%d, Tr_delay=%d, Flash_gain=%d\n\r",frame_delay,flash_delay,tr_delay,flash_gain);
 
 	ADAL_WriteParamToSPI(DelayBetweenFlashesAddress,FLASHDLY_regval);
 	ADAL_WriteParamToSPI(FRAMEDELAY,FRAMEDLY_regval);
@@ -788,7 +783,7 @@ int ADAL_SetPulseWidth(uint16_t width)
 //
 // Simulation
 //
-
+/*
 void AddFakeData(void)
 {
 	static uint16_t dist = 10;
@@ -813,7 +808,7 @@ void AddFakeData(void)
 	if (dist > 35)
 		dist = 5;
 }
-
+*/
 
 
 

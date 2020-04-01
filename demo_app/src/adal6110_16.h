@@ -9,8 +9,8 @@
 
 
 #define DATA_NUM_PTS	(DEVICE_NUM_CHANNEL * DEVICE_SAMPLING_LENGTH)
-#define FRAME_NUM_PTS	DATA_NUM_PTS + (DEVICE_NUM_CHANNEL * 5) + 16  // extra debug data... not sent in rawdata message... Do we need it?
-//#define FRAME_NUM_PTS	DATA_NUM_PTS                                  // original length in frame
+//#define FRAME_NUM_PTS	DATA_NUM_PTS + (DEVICE_NUM_CHANNEL * 5) + 16  // extra debug data... not sent in rawdata message... Do we need it?
+#define FRAME_NUM_PTS	DATA_NUM_PTS                                  // original length in frame
 
 typedef struct
 {
@@ -104,11 +104,12 @@ void ADAL_InitADI(void);
  */
 void ADAL_GetADIData(uint16_t *pBank, uint16_t * pData);
 
-void ADAL_ChannelEnable(int ch, int enable);
+//void ADAL_ChannelEnable(int ch, int enable);
 void ADAL_ChannelTIAFeedback(int ch, uint16_t feedback);
 void ADAL_ChannelDCBal(int ch, uint16_t bal);
 
 void ADAL_Trig(void);
+void ADAL_ClearTrig(void);
 void ADAL_SPITriggerMode(void);
 void ADAL_FreerunMode(void);
 void ADAL_FlashGain(uint16_t flashGain);

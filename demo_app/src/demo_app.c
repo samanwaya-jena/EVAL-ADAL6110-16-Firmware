@@ -161,7 +161,11 @@ void DoMainStateRun()
 	uint16_t banknum = 0;
 	ADAL_Acq(&banknum);
 	if (!banknum)// || !LiDARParameters[param_acq_enable])
+	{
+		ADAL_ClearTrig();
 		param_ProcessReadWriteFifo();
+	}
+
 
 	if (banknum)
 	{

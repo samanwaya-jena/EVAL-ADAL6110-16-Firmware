@@ -79,30 +79,42 @@ void Lidar_GetData(void)
 {
 	uint16_t banknum = 0;
 	int i,j,ch;
+	CLD_RV ret;
 
 	memset(buf, 0, sizeof(buf));
 
 	ADAL_GetADIData(&banknum, buf);
 
 	uint16_t * pData = buf;
+	uint16_t data_to_send[25]; //send 100 data on 5 lines
 
 	if (banknum)
 	{
 		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "bank %d\r\n", banknum);
 
-		for(ch=0; ch<3; ch++)
+		for(ch=0; ch<DEVICE_NUM_CHANNEL; ch++)
 		{
-			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Ch %d\r\n", ch);
+			while(CLD_SUCCESS != cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Ch %d\r\n", LiDARParameters[param_channel_map_offset+ch]));
 
-			for(j=0; j<3; j++)
+			for(j=0; j<4; j++)
 			{
-				for(i=0; i<10; i++)
+				for(i=0; i<25; i++)
 				{
-					uint16_t data = pData[ch*100 + j*10 + i];
-					cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, " %c%c%c%c ",
-						hex[(data>>12)&0xF], hex[(data>>8)&0xF], hex[(data>>4)&0xF], hex[(data>>0)&0xF]);
+					data_to_send[i] = pData[ch*DEVICE_SAMPLING_LENGTH + j*25 + i];
+					//uint16_t data = pData[ch*DEVICE_SAMPLING_LENGTH + j*20 + i];
+					//cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, " %c%c%c%c ",
+					//	hex[(data>>12)&0xF], hex[(data>>8)&0xF], hex[(data>>4)&0xF], hex[(data>>0)&0xF]);
 				}
-				cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\r\n");
+				do
+				{
+					ret = cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK,"  %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X\r\n",
+							data_to_send[0],data_to_send[1],data_to_send[2],data_to_send[3],data_to_send[4],
+							data_to_send[5],data_to_send[6],data_to_send[7],data_to_send[8],data_to_send[9],
+							data_to_send[10],data_to_send[11],data_to_send[12],data_to_send[13],data_to_send[14],
+							data_to_send[15],data_to_send[16],data_to_send[17],data_to_send[18],data_to_send[19],
+							data_to_send[20],data_to_send[21],data_to_send[22],data_to_send[23],data_to_send[24]);
+				}while(ret != CLD_SUCCESS);
+				//cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\r\n");
 			}
 		}
 	}
@@ -110,29 +122,12 @@ void Lidar_GetData(void)
 		cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "No data!\r\n");
 }
 
-int chIdx[16] = {
-100 * 0,
-100 * 1,
-100 * 2,
-100 * 3,
-100 * 4,
-100 * 5,
-100 * 6,
-100 * 7,
-100 * 15,
-100 * 14,
-100 * 13,
-100 * 12,
-100 * 11,
-100 * 10,
-100 * 9,
-100 * 8
-};
-
 void Lidar_GetDataCSV(void)
 {
 	uint16_t banknum = 0;
 	int ch,sample;
+	int16_t data_to_send[DEVICE_NUM_CHANNEL];
+	CLD_RV ret;
 
 	memset(buf, 0, sizeof(buf));
 
@@ -142,21 +137,21 @@ void Lidar_GetDataCSV(void)
 
 	if (banknum)
 	{
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "##, ch00 , ch01 , ch02 , ch03 , ch04 , ch05 , ch06 , ch07 , ch08 , ch09 , ch10 , ch11 , ch12 , ch13 , ch14 , ch15\r\n", banknum);
-
-		for(sample=0; sample<100; sample++)
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "##,\tch00,\tch01,\tch02,\tch03,\tch04,\tch05,\tch06,\tch07,\tch08,\tch09,\tch10,\tch11,\tch12,\tch13,\tch14,\tch15\r\n", banknum);
+		for(sample=0; sample<DEVICE_SAMPLING_LENGTH; sample++)
 		{
-			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%2d,", sample);
-
-			for(ch=0; ch<16; ch++)
+			for(ch=0; ch<DEVICE_NUM_CHANNEL; ch++)
+				data_to_send[LiDARParameters[param_channel_map_offset+ch]] = (int16_t)pData[DEVICE_SAMPLING_LENGTH*ch + sample];
+			do
 			{
-				int16_t data = pData[chIdx[ch] + sample];
-
-				cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%6d,", data);
-			}
-			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "\r\n");
+				ret = cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"%03d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d\r\n",sample,
+					data_to_send[0],data_to_send[1],data_to_send[2],data_to_send[3],data_to_send[4],data_to_send[5],data_to_send[6],data_to_send[7],
+					data_to_send[8],data_to_send[9],data_to_send[10],data_to_send[11],data_to_send[12],data_to_send[13],data_to_send[14],data_to_send[15]);
+			}while(ret != CLD_SUCCESS);
 		}
 	}
+	else
+		cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "No data!\r\n");
 }
 
 uint8_t c2i(char c)
@@ -284,22 +279,6 @@ void ProcessChar(char curChar)
 
     case 'd':
    		Lidar_DumpRegs();
-    	break;
-
-    case '1':
-   		ADAL_ChannelEnable(0, 1);
-    	break;
-
-    case '!':
-   		ADAL_ChannelEnable(0, 0);
-    	break;
-
-    case '2':
-   		ADAL_ChannelEnable(1, 1);
-    	break;
-
-    case '@':
-   		ADAL_ChannelEnable(1, 0);
     	break;
 
     case 'g':
