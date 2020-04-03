@@ -662,7 +662,8 @@ void ADAL_ClearTrig(void)
 	uint16_t data;
 
 	ADAL_ReadParamFromSPI(Control1Address, &data);
-	ADAL_WriteParamToSPI(Control1Address, data & ~0x4000); // reset the trigger bit
+	if (!(data&0x8000)) // trig mode?
+		ADAL_WriteParamToSPI(Control1Address, data & ~0x4000); // reset the trigger bit
 }
 
 void ADAL_SPITriggerMode(void)
@@ -670,14 +671,14 @@ void ADAL_SPITriggerMode(void)
 	uint16_t data;
 
 	ADAL_ReadParamFromSPI(Control1Address, &data);
-	ADAL_WriteParamToSPI(Control1Address, (data & ~0x4000) & ~0x8000);
+	ADAL_WriteParamToSPI(Control1Address, (data & ~0x4000) & ~0x8000); // Clear bit 15 and 14
 }
 
 void ADAL_FreerunMode(void)
 {
 	uint16_t data;
 	ADAL_ReadParamFromSPI(Control1Address, &data);
-	ADAL_WriteParamToSPI(Control1Address, (data & ~0x4000) | 0x8000);
+	ADAL_WriteParamToSPI(Control1Address, (data & ~0x4000) | 0x8000); // clear bit 14, set bit 15
 }
 /*
 void ADAL_ChannelEnable(int ch, int enable)

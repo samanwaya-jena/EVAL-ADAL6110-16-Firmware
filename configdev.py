@@ -164,6 +164,7 @@ def program_device(sp):
 	'''
 	global serialnumber, year, month
 	try:
+		print("Setting Values...")
 		while not send_cmd(sp,"N",serialnumber,r'Serial'): 
 			time.sleep(1)
 		while not send_cmd(sp,"D",256*year+month,r'Date'):
@@ -199,7 +200,7 @@ def configure_device():
 				return False
 			else:
 				print("config OK, writing to flash")
-				sp.write("S\r")
+				sp.write(b'S\r')
 		else: 
 			print("Previous configuration detected")
 			return False

@@ -1,0 +1,2 @@
+date and time		Serial	Config
+2020-04-03 17:00:47	0050	0x0A03
