@@ -196,8 +196,6 @@ void USB_pushEndOfFrame(uint16_t frameID, uint16_t systemID, uint16_t numTrackSe
 {
 	USB_CAN_message* msg = (USB_CAN_message*) &msg_to_push;
 
-	//removed debug message
-	//cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, " Frame Id: 0x%04X Pushed to msg queue with %d detection(s)\r\n", frameID, numTrackSent);
 
 	msg->id = msgID_FrameDone;
 	msg->timestamp = GetTime();
@@ -300,11 +298,17 @@ void USB_ReadCommand(USB_CAN_message* cmd, USB_msg* ret_msg)
 
 	case msgID_poll:
 		SendNext(cmd,ret_msg);
-		if ((ret_msg->CAN.data[0] != msgID_queueEmptycmd) && (LiDARParameters[param_console_log] & CONSOLE_MASK_USB))
+		if (ret_msg->RAW.id != msgID_transmitRaw)
 		{
-			cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X) \r\n",
-					ret_msg->CAN.id, ret_msg->CAN.data[0], ret_msg->CAN.data[1], ret_msg->CAN.data[2], ret_msg->CAN.data[3],
-					ret_msg->CAN.data[4], ret_msg->CAN.data[5], ret_msg->CAN.data[6], ret_msg->CAN.data[7]);
+			if ((ret_msg->CAN.data[0] != msgID_queueEmptycmd) && (LiDARParameters[param_console_log] & CONSOLE_MASK_USB))
+			{
+				cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%04X (%02X %02X %02X %02X %02X %02X %02X %02X) \r\n",
+						ret_msg->CAN.id, ret_msg->CAN.data[0], ret_msg->CAN.data[1], ret_msg->CAN.data[2], ret_msg->CAN.data[3],
+						ret_msg->CAN.data[4], ret_msg->CAN.data[5], ret_msg->CAN.data[6], ret_msg->CAN.data[7]);
+			}
+		}else if (LiDARParameters[param_console_log] & CONSOLE_MASK_USB)
+		{
+			cld_console(CLD_CONSOLE_YELLOW, CLD_CONSOLE_BLACK, " <--0x%02X (%02d:%3d)\r\n",ret_msg->RAW.id,ret_msg->RAW.pixelNumber,ret_msg->RAW.payloadsize);
 		}
 		break;
 

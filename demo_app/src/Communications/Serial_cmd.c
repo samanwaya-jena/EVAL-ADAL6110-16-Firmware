@@ -74,7 +74,7 @@ void Lidar_DumpRegs(void)
 	}
 
 }
-
+/*
 void Lidar_GetData(void)
 {
 	uint16_t banknum = 0;
@@ -121,7 +121,8 @@ void Lidar_GetData(void)
 	else
 		cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "No data!\r\n");
 }
-
+*/
+/*
 void Lidar_GetDataCSV(void)
 {
 	uint16_t banknum = 0;
@@ -153,6 +154,7 @@ void Lidar_GetDataCSV(void)
 	else
 		cld_console(CLD_CONSOLE_RED, CLD_CONSOLE_BLACK, "No data!\r\n");
 }
+*/
 
 uint8_t c2i(char c)
 {
@@ -232,13 +234,13 @@ void ProcessChar(char curChar)
    			cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition log cleared\n\r");
     	break;
 
-    case 'a':
-   		Lidar_GetData();
-    	break;
+//    case 'a':
+//   		Lidar_GetData();
+//    	break;
 
-    case 'A':
-   		Lidar_GetDataCSV();
-    	break;
+//    case 'A':
+//  		Lidar_GetDataCSV();
+//    	break;
 
     case 'i':
    		Lidar_PrintInfo();
@@ -254,12 +256,12 @@ void ProcessChar(char curChar)
 
     case 's':
     	param_WriteFifoPush(param_acq_enable|0x4000,0);
-    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition stopped\n\r");
+    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Acquisition stopped\n\r");
     	break;
 
     case 'q':
     	param_WriteFifoPush(param_acq_enable|0x4000,1);
-    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"acquisition started\n\r");
+    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Acquisition started\n\r");
     	break;
 
 //    case 'z':
@@ -419,7 +421,7 @@ void ProcessChar(char curChar)
         	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
         		value = value * 10 + debugCmd[i++] - '0';
 
-        	param_WriteFifoPush((addr&0x3FFF)|0x4000,value&0x3FFF);
+        	param_WriteFifoPush((addr&0x3FFF)|0x4000,value);
         	break;
         }
 

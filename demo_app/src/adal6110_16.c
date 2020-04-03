@@ -132,6 +132,9 @@ void ADAL_WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
 {
 	uint8_t ProBuffer1[4];
 
+	if (_startAddress == DelayBetweenFlashesAddress)
+		if(_data < 500) _data = 500; // limit the laser frequency to 20kHz
+
 	ProBuffer1[0] = (_startAddress << 3);
 	ProBuffer1[1] = (_startAddress << 3) >> 8;
 	ProBuffer1[2] = (_data >> 0);
