@@ -127,9 +127,11 @@ void param_InitValues(void)
 
 	memcpy((char*)LiDARParamDir,(char*)param_dir_values,sizeof(LiDARParamDir));
 
-
 	param_LoadConfig();
 	//param_ResetFactoryDefault();
+
+	//reset the acquisition enable to start in a good position
+	LiDARParameters[param_acq_enable] = 0;
 }
 
 

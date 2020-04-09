@@ -25,7 +25,7 @@ uint16_t param_default [number_of_param]=
 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x20 algo selection and general params
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x30 detection algo param
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x40 tracking algo param
-7,  8,  6,  9,  5,  10,  4,  11,  3,  12,  2,  13,  1,  14,  0,  15,   // 0x50 channel mapping
+14,  12,  10,  8,  6,  4,  2,  0,  1,  3,  5,  7,  9,  11,  13,  15,   // 0x50 channel mapping
 0, 0, 0, 0, 1000                                                       // 0x60 communication
 };
 
