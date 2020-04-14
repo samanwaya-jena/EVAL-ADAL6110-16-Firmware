@@ -20,7 +20,6 @@
 #include "adal6110_16.h"
 #include "parameters.h"
 
-#define USE_USB
 
 typedef enum
 {
@@ -55,7 +54,6 @@ int main(int argc, char *argv[])
             case MAIN_STATE_USER_INIT:
             {
             	LED_BC3G_ON();LED_BC3R_ON(); //amber
-#ifdef USE_USB
             	User_Bulk_Init_Return_Code rv = user_bulk_init();
                 if (rv == USER_BULK_INIT_SUCCESS)
                 {
@@ -67,22 +65,12 @@ int main(int argc, char *argv[])
                 {
                     main_state = MAIN_STATE_ERROR;
                 }
-#else //USE_USB
-                main_state = MAIN_STATE_RUN;
-#endif //USE_USB
                 break;
             }
 
             case MAIN_STATE_RUN:
             	LED_BC3G_ON();LED_BC3R_OFF();//Green
-#ifdef USE_USB
                 DoMainStateRun();
-#else //USE_USB
-                {
-                   	uint16_t banknum = 0;
-					ADAL_Acq(&banknum);
-                }
-#endif //USE_USB
             break;
 
             case MAIN_STATE_ERROR:

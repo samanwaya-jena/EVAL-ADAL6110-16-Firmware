@@ -24,6 +24,7 @@
 
 #include "Serial_cmd.h"
 #include "USB_cmd.h"
+#include "msg_queue.h"
 
 #include "../demo_app.h"
 #include "../error_handler.h"
@@ -34,6 +35,7 @@
 
 
 extern int inumSent;
+CLD_Time last_bulk_time;
 
 static USB_CAN_message user_bulk_adi_loopback_buffer;
 
@@ -165,7 +167,13 @@ void user_bulk_main (void)
 {
     cld_bf70x_bulk_lib_main();
     Serial_Process();
-
+    if(cld_time_passed_ms(last_bulk_time) > 5000) // cancel all communication
+    {
+    	LiDARParameters[param_raw_msg_decimation]=0;
+    	LiDARParameters[param_det_msg_decimation]=0;
+    	msgQueueReset();
+    	USB_pushBoot();
+    }
 }
 
 /*=============================================================================
@@ -206,6 +214,7 @@ CLD_USB_Transfer_Request_Return_Type user_bulk_bulk_out_data_received(CLD_USB_Tr
 {
     CLD_USB_Transfer_Request_Return_Type rv = CLD_USB_TRANSFER_STALL;
 
+    last_bulk_time = cld_time_get();
 
     if (p_transfer_data->num_bytes == sizeof(USB_CAN_message))
 	{

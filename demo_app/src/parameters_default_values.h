@@ -54,7 +54,7 @@ uint16_t ADAL_DefaultValues[][2] =
     {ChannelEnableAddress , 0xFFFF},
     {DataAcqMode , 0x0001},
     {TriggerOutAddress , 0x1011},
-    {CH0ControlReg0Address , 0x3C3F},
+    {CH0ControlReg0Address , 0x2E1F},// 0x3C3F}, // What?? why is this one different?  // datasheet p.26 010 0|1111|10 0 1|1111 = 0x4F9F
     {CH0ControlReg1Address , 0x0B80},
     {CH0ControlReg2Address , 0x00FF},
     {CH1ControlReg0Address , 0x2E1F},

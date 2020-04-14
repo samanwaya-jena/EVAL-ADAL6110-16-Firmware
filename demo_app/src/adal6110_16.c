@@ -37,66 +37,29 @@ uint16_t frame_ID;
 
 uint16_t Lidar_POR_Values[][2] =
 {
-		{ 9, 0x7A4F },                   // 0x7A5F  according to wag-214 code
-		{ TriggerOutAddress, 0x1811 },
-		{ 95, 0x8FCC },
-		{ 96, 0x8FCC },
-		{ 97, 0x8FCC },
-		{ 98, 0x8FCC },
-		{ 99, 0x8FCC },
-		{ 100, 0x8FCC },
-		{ 101, 0x8FCC },
-		{ 102, 0x8FCC },
-		{ 144, 0x0420 },
-		{ 145, 0x87B4 },
-		{ 146, 0x0004 },
-		{ 129, 0x0001 },
-		{ 131, 0x0A40 },
-		{132, 0xC201}                    // might not be needed according to wag-214 code
+		// According with Datasheet p.19
+		{ TriggerOutAddress, 0x1011 }, //12 ns
+		{ 0x0009, 0x7A4F },            //startup 2
+		{ 0x004D, 0x823F },            //startup 3  (set in datasheet)
+		{ 0x0054, 0x2AAA },            //startup 4  (set in datasheet)
+		{ 0x0056, 0x823F },            //startup 5  (set in datasheet)
+		{ 0x005D, 0x2AAA },            //startup 6  (set in datasheet)
+		{ 0x005F, 0x8FCC },            //startup 7
+		{ 0x0060, 0x8FCC },            //startup 8
+		{ 0x0063, 0x8FCC },            //startup 9
+		{ 0x0062, 0x8FCC },            //startup 10
+		{ 0x0063, 0x8FCC },            //startup 11
+		{ 0x0064, 0x8FCC },            //startup 12
+		{ 0x0065, 0x8FCC },            //startup 13
+		{ 0x0066, 0x8FCC },            //startup 14
+		{ 0x0081, 0x0001 },            //startup 15
+		{ 0x0083, 0x0A40 },            //startup 16  (0x0840 in datasheet)
+		{ 0x0084, 0xC201 },            //startup 17  (0x0420 in datasheet)
+		{ 0x0090, 0x0420 },            //startup 18
+		{ 0x0091, 0x87B4 },            //startup 19
+		{ 0x0092, 0x0004 }             //TC_STATUS (no mention of value in datasheet)
 };
 
-
-
-/* ETR: now useless... all reference are kept to ADAL6110 except for communcation
-int aChIdxADI[16] = {
-  0,
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  7,
-  8,
-  9,
-  10,
-  11,
-  12,
-  13,
-  14,
-  15
-};
-*/
-/* ETR: moved to paramters
-int aChIdxArray[16] = {
-  7,
-  8,
-  6,
-  9,
-  5,
-  10,
-  4,
-  11,
-  3,
-  12,
-  2,
-  13,
-  1,
-  14,
-  0,
-  15
-};
-*/
 
 #ifdef USE_DMA
 uint8_t spiMem[ADI_SPI_DMA_MEMORY_SIZE];
@@ -400,8 +363,8 @@ void ADAL_InitADI(void) {
 
   	dataToBeRead = 0;
 
-  	while(!dataToBeRead) { // Wait until bit 4 of register 0x92 is set
-  		ADAL_ReadParamFromSPI(146, &dataToBeRead);
+  	while(!dataToBeRead) { // Wait until bit 4 of TC_STATUS register (0x92) is set
+  		ADAL_ReadParamFromSPI(TC_STATUS, &dataToBeRead);
   		if (dataToBeRead == 0xffff){
   			dataToBeRead = 0;
   		}
