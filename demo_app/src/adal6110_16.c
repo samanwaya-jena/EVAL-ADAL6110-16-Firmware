@@ -3,7 +3,7 @@
 */
 
 //#define USE_DMA
-#define USE_ALGO
+
 
 #include <stdint.h>
 #include <string.h>
@@ -19,27 +19,21 @@
 #include "Communications/cld_bf70x_bulk_lib.h"
 #include "post_debug.h"
 #include "parameters.h"
-
-#ifdef USE_ALGO
 #include "algo.h"
-#endif //USE_ALGO
-
-
 
 
 /**
  * Private constant and variables
  */
-
-
 uint16_t frame_ID;
+static uint16_t BankInTransfer = 0;
+static int16_t pAcqData[1682];
 
-
-uint16_t Lidar_POR_Values[][2] =
+uint16_t ADAL_POR_Values[][2] =
 {
 		// According with Datasheet p.19
 		{ TriggerOutAddress, 0x1011 }, //12 ns
-		{ 0x0009, 0x7A4F },            //startup 2
+		{ 0x0009, 0x7A4F },            //startup 2  (set to 0x7A5F for 2ns mode)
 		{ 0x004D, 0x823F },            //startup 3  (set in datasheet)
 		{ 0x0054, 0x2AAA },            //startup 4  (set in datasheet)
 		{ 0x0056, 0x823F },            //startup 5  (set in datasheet)
@@ -58,6 +52,79 @@ uint16_t Lidar_POR_Values[][2] =
 		{ 0x0090, 0x0420 },            //startup 18
 		{ 0x0091, 0x87B4 },            //startup 19
 		{ 0x0092, 0x0004 }             //TC_STATUS (no mention of value in datasheet)
+};
+
+uint16_t ADAL_Init_Values[][2] =
+{
+	{ LFSRSEEDL, 0x9190 },
+	{ LFSRSEEDH, 0x0001 },
+	{ Control0Address, 0x0F80 },    // 8 accum = 0x0400, 16 accum = 0x0800 // 64 accum = 0x1F80 (ne pas dépasser)
+	{ Control1Address, 0x8040 },
+	{ TriggerOutAddress, 0x1011 }, //2ns: 0x8021, 4ns: 0x1021  // 0x1011 = 16 ns pulse in 4ns mode
+	{ DataAcqMode, 0x0001 },       //2ns: 0x0000,  4ns :0x0001
+	{ DelayBetweenFlashesAddress, 0x5ED8}, //0x5ED8 (1 frame period = 10 ms => 100 Hz @ 32 accum)
+
+	{ CH0ControlReg0Address, 0x3C3F },
+	{ CH1ControlReg0Address, 0x3C3F },
+	{ CH2ControlReg0Address, 0x3C3F },
+	{ CH3ControlReg0Address, 0x3C3F },
+	{ CH4ControlReg0Address, 0x3C3F },
+	{ CH5ControlReg0Address, 0x3C3F },
+	{ CH6ControlReg0Address, 0x3C3F },
+	{ CH7ControlReg0Address, 0x3C3F },
+	{ CH8ControlReg0Address, 0x3C3F },
+	{ CH9ControlReg0Address, 0x3C3F },
+	{ CH10ControlReg0Address, 0x3C3F },
+	{ CH11ControlReg0Address, 0x3C3F },
+	{ CH12ControlReg0Address, 0x3C3F },
+	{ CH13ControlReg0Address, 0x3C3F },
+	{ CH14ControlReg0Address, 0x3C3F },
+	{ CH15ControlReg0Address, 0x3C3F },
+
+	{ CH0ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH1ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH2ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH3ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH4ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH5ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH6ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH7ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH8ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH9ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH10ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH11ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH12ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH13ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH14ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH15ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+
+	{ CH0ControlReg2Address, 0x00FF },
+	{ CH1ControlReg2Address, 0x00FF },
+	{ CH2ControlReg2Address, 0x00FF },
+	{ CH3ControlReg2Address, 0x00FF },
+	{ CH4ControlReg2Address, 0x00FF },
+	{ CH5ControlReg2Address, 0x00FF },
+	{ CH6ControlReg2Address, 0x00FF },
+	{ CH7ControlReg2Address, 0x00FF },
+	{ CH8ControlReg2Address, 0x00FF },
+	{ CH9ControlReg2Address, 0x00FF },
+	{ CH10ControlReg2Address, 0x00FF },
+	{ CH11ControlReg2Address, 0x00FF },
+	{ CH12ControlReg2Address, 0x00FF },
+	{ CH13ControlReg2Address, 0x00FF },
+	{ CH14ControlReg2Address, 0x00FF },
+	{ CH15ControlReg2Address, 0x00FF },
+
+	{ FRAMEDELAY, 0xFFF8 }, // Slow it down to max
+	{ AGCDCBCTRL, 0x0014 }, // Default: 0x0104, Enable AGC to change anything: 0x0115 //might be changed to 0x0000 according to wag-214 code
+
+	{ Control3Adress, 0 },
+	//{ 77, 0xC23F }, //in POR
+	//{ 86, 0x823F }, // in POR
+	{ ChannelEnableAddress, 0xFFFF },
+	{ AGCEN, 0x0000 },
+	{ DCEN, 0xFFFF },
+	{ Control3Adress, 1 }
 };
 
 
@@ -81,8 +148,6 @@ int iUSBnumRaw = 0;    // number of raw frame sent
  * Private function prototypes
  */
 static void ClearSram(void);
-
-
 
 /**
  *  @brief Writes param to SPI
@@ -145,9 +210,7 @@ void ADAL_ReadDataFromSPI(uint16_t * pData, int num)
 {
 	//TO CHANGE METHOD TO USE SRAMREADOUTADDR
 	uint8_t ProBuffer1[2] = {0xF8, 0x87}; //{LSB, MSB}
-
 	ADI_SPI_TRANSCEIVER Xcv0DMA;
-
 	ADI_SPI_RESULT result;
 
 	Xcv0DMA.pPrologue = ProBuffer1;
@@ -177,7 +240,6 @@ void ADAL_ReadDataFromSPI(uint16_t * pData, int num)
 
 		}
 	}
-
 	/* Disable DMA */
 //	result = adi_spi_EnableDmaMode(hSpi, false);
 }
@@ -186,7 +248,6 @@ void ReadDataFromSPI_Start(uint16_t * pData, int num)
 {
 	static uint8_t gProBuffer1[2] = {0xF8, 0x87};
 	static ADI_SPI_TRANSCEIVER gXcv0DMA;
-
 	ADI_SPI_RESULT result;
 
 #ifdef USE_DMA
@@ -209,19 +270,14 @@ void ReadDataFromSPI_Start(uint16_t * pData, int num)
 bool ReadDataFromSPI_Check(void)
 {
 	ADI_SPI_RESULT result;
-
 	bool bAvailSpi = false;
 
 	result = adi_spi_IsBufferAvailable(hSpi, &bAvailSpi);
-
 	if (bAvailSpi)
 	{
 		ADI_SPI_TRANSCEIVER     *pTransceiver = NULL;
-
 		result =  adi_spi_GetBuffer(hSpi, &pTransceiver);
-
 	}
-
 	return bAvailSpi;
 }
 
@@ -236,21 +292,13 @@ void ResetADI(void)
 	//READ Control0Address
 	ADAL_ReadParamFromSPI(Control0Address, &reg);
 
-	//CLEAR BIT 0
-	reg &= 0xFFFE;
-	ADAL_WriteParamToSPI(Control0Address, reg);
+	ADAL_WriteParamToSPI(Control0Address, reg |= 0x0001); //SET BIT 0
+	for(int time=i;time;time--);
 
-	while(i--){
-	}
-
-	//SET Bit 0
-	reg |= 0x0001;
-	ADAL_WriteParamToSPI(Control0Address, reg);
-	i = 600000;
-
-	while(i--){
-	}
+	ADAL_WriteParamToSPI(Control0Address, reg &= 0xFFFE);//CLEAR Bit 0
+	for(int time=i;time;time--);
 }
+
 
 /**
  *
@@ -263,16 +311,12 @@ void ResetADI(void)
 /**
  * @brief initialize SPI port for ADI communication
  */
-void ADAL_InitADI(void) {
-    int i;
-    uint16_t dataToBeRead = 0;
-    uint32_t waitTimer = 80000; //wait 200us @ 400mhz
-
+uint16_t ADAL_SPI_init(void)
+{
+	ADI_SPI_RESULT result;
 
 	if (hSpi == NULL)
 	{
-		ADI_SPI_RESULT result;
-
 		result = adi_spi_Open(GORDON_SPI_DEVICE, spiMem, sizeof(spiMem), &hSpi);
 		//result = adi_spi_Open(2, spiMem, sizeof(spiMem), &hSpi);
 		CHECK_RESULT(result, "adi_spi_Open");
@@ -305,7 +349,6 @@ void ADAL_InitADI(void) {
 
 		/* No call backs required*/
 	//	result = adi_spi_RegisterCallback(hSpi, NULL, NULL);
-
 	//	result = adi_spi_SetTransceiverMode(hSpi, ADI_SPI_TXRX_MODE);
 
 		result = adi_spi_SetClockPolarity(hSpi, true);
@@ -332,37 +375,44 @@ void ADAL_InitADI(void) {
 			CHECK_RESULT(result, "adi_spi_SetRxWatermark");
 		}
 	}
+	return((uint16_t) result);
+}
 
-	ResetADI();
+void ADAL_InitADI(void) {
+    int i;
+    uint16_t dataToBeRead = 0;
+    uint32_t waitTimer = 80000; //wait 200us @ 400mhz
 
-	int num = sizeof(Lidar_POR_Values) / sizeof(Lidar_POR_Values[0]);
-	int numParams = num;
+    ADAL_SPI_init();
+	//ResetADI();
 
+	BankInTransfer = 0;
+	frame_ID = 0;
+
+	int num = sizeof(ADAL_POR_Values) / sizeof(ADAL_POR_Values[0]);
 	for (i=0; i<num; i++)
-	{
-		ADAL_WriteParamToSPI(Lidar_POR_Values[i][0], Lidar_POR_Values[i][1]);
-		//ReadParamFromSPI(Lidar_POR_Values[i][0], &dataToBeRead);
-	}
+		ADAL_WriteParamToSPI(ADAL_POR_Values[i][0], ADAL_POR_Values[i][1]);
 
-	ADAL_WriteParamToSPI(CH0ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH1ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH2ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH3ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH4ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH5ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH6ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH7ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH8ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH9ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH10ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH11ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH12ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH13ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH14ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH15ControlReg0Address, 0x003F);//might not be needed according to wag-214 code
+	/*
+	ADAL_WriteParamToSPI(CH0ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH1ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH2ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH3ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH4ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH5ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH6ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH7ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH8ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH9ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH10ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH11ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH12ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH13ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH14ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
+	ADAL_WriteParamToSPI(CH15ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
+    */
 
   	dataToBeRead = 0;
-
   	while(!dataToBeRead) { // Wait until bit 4 of TC_STATUS register (0x92) is set
   		ADAL_ReadParamFromSPI(TC_STATUS, &dataToBeRead);
   		if (dataToBeRead == 0xffff){
@@ -371,102 +421,13 @@ void ADAL_InitADI(void) {
   		dataToBeRead = dataToBeRead & 8;
   	}
 
-	ADAL_WriteParamToSPI(LFSRSEEDL, 0x9190);
-	ADAL_WriteParamToSPI(LFSRSEEDH, 0x0001);
-	ADAL_WriteParamToSPI(Control0Address, 0x1F80);    // 8 accum = 0x0400, 16 accum = 0x0800 // 64 accum = 0x1F80 (ne pas dépasser)
-	ADAL_WriteParamToSPI(Control1Address, 0x8040);
-	ADAL_WriteParamToSPI(TriggerOutAddress, 0x1021); //2ns: 0x8021, 4ns: 0x1021
-	ADAL_WriteParamToSPI(DataAcqMode, 0x0001);       //2ns: 0x0000,  4ns :0x0001
-	ADAL_WriteParamToSPI(DelayBetweenFlashesAddress, 0x4000); //0x4000 (1 frame period = 13.08 ms, 76.45 Hz MAX, measured with scope and FRAMEDELAY to minimum)
+	num = sizeof(ADAL_Init_Values) / sizeof(ADAL_Init_Values[0]);
+	for (i=0; i<num; i++)
+		ADAL_WriteParamToSPI(ADAL_Init_Values[i][0], ADAL_Init_Values[i][1]);
 
-	ADAL_WriteParamToSPI(CH0ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH1ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH2ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH3ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH4ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH5ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH6ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH7ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH8ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH9ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH10ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH11ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH12ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH13ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH14ControlReg0Address, 0x3C3F);
-	ADAL_WriteParamToSPI(CH15ControlReg0Address, 0x3C3F);
-
-	// this block is set to 0x0B80 in documentation revB... Who's right?
-	ADAL_WriteParamToSPI(CH0ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH1ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH2ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH3ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH4ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH5ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH6ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH7ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH8ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH9ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH10ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH11ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH12ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH13ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH14ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-	ADAL_WriteParamToSPI(CH15ControlReg1Address, 0x0180); //might be changed to 0x09A0 according to wag-214 code
-
-  	ADAL_WriteParamToSPI(CH0ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH1ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH2ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH3ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH4ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH5ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH6ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH7ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH8ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH9ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH10ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH11ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH12ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH13ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH14ControlReg2Address, 0x00FF);
-  	ADAL_WriteParamToSPI(CH15ControlReg2Address, 0x00FF);
-
-  	ADAL_WriteParamToSPI(FRAMEDELAY, 0x8000); // Slow it down to max (3.86 ms gordon frame period with 64 accumulation)
-  	ADAL_WriteParamToSPI(AGCDCBCTRL, 0x0014); // Default: 0x0104, Enable AGC to change anything: 0x0115 //might be changed to 0x0000 according to wag-214 code
-
-  	ADAL_WriteParamToSPI(185, 0);
-  	ADAL_WriteParamToSPI(77, 0xC23F);
-  	ADAL_WriteParamToSPI(86, 0x823F);
-  	ADAL_WriteParamToSPI(ChannelEnableAddress, 0xFFFF);
-  	ADAL_WriteParamToSPI(AGCEN, 0x0000);
-  	ADAL_WriteParamToSPI(DCEN, 0xFFFF);
-  	ADAL_WriteParamToSPI(185, 1);
-
-  	while(waitTimer--){ // Wait 200 us
-  	}
-
-  	ADAL_WriteParamToSPI(Control0Address, 0x1F81); // Set system ready to 1  //might not be needed according to wag-214 code
-  	ADAL_WriteParamToSPI(Control0Address, 0x1F82); // Set system ready to 1
-
-
-  	//Apply last used config from flash
- // 	num = sizeof(Lidar_InitValues) / sizeof(Lidar_InitValues[0]);
-//	numParams = num;
-
-//	if(Flash_LoadConfig(0, &Lidar_InitValues[0][0], &numParams))
-//	{
-//		numParams = 0;
-//		num= 0;
-//	}
-//	else
-//	{
-//		num = numParams;
-//		for (i=0; i<num; i++)
-//		{
-//			WriteParamToSPI(Lidar_InitValues[i][0], Lidar_InitValues[i][1]);
-//		}
-//	}
-
+	ResetADI();
+	ADAL_ReadParamFromSPI(Control0Address, &dataToBeRead);
+  	ADAL_WriteParamToSPI(Control0Address, dataToBeRead | 0x0002); // Start system
 }
 
 
@@ -502,19 +463,15 @@ void ForceGetADIData(uint16_t bankNum, uint16_t * pData) {
 /**
  * @brief Clear the sram by reading both banks
  */
-int16_t AcqFifoReset[FRAME_NUM_PTS];
-
-static void ClearSram(void) {
-
-	ForceGetADIData(0x01, (uint16_t*) AcqFifoReset);
-	ForceGetADIData(0x02, (uint16_t*) AcqFifoReset);
-
+static void ClearSram(void)
+{
+	ForceGetADIData(0x01, (uint16_t*) pAcqData);
+	ForceGetADIData(0x02, (uint16_t*) pAcqData);
 }
 
 /**
  * @brief Retreive the data from the ADI device
  */
-
 void ADAL_GetADIData(uint16_t *pBank, uint16_t * pData) {
 	uint16_t bankStatus = 0;
 
@@ -779,7 +736,6 @@ void AddFakeData(void)
 
 
 
-#ifdef USE_ALGO
 
 static float tmpAcqFloat[DEVICE_SAMPLING_LENGTH];
 
@@ -823,10 +779,6 @@ int DoAlgo(int16_t * pAcqFifo)
     }
     return numDet;
 }
-#endif //USE_ALGO
-
-
-
 
 
 
@@ -834,15 +786,6 @@ int DoAlgo(int16_t * pAcqFifo)
 // Acquisition control
 //
 
-static uint16_t BankInTransfer = 0;
-
-volatile int iFifoHead = 0;
-volatile int iFifoTail = 0;
-
-#define NUM_FIFO			4
-#define NUM_FIFO_MASK		(NUM_FIFO-1)
-
-static tDataFifo dataFifo[NUM_FIFO];
 
 void ADAL_Acq(uint16_t *pBank)
 {
@@ -853,109 +796,47 @@ void ADAL_Acq(uint16_t *pBank)
 	if (BankInTransfer == 0)
 	{
 		if (LiDARParameters[param_acq_enable])
-			GetADIData_Start(&BankInTransfer, (uint16_t*) dataFifo[iFifoHead].AcqFifo);
+			GetADIData_Start(&BankInTransfer, (uint16_t*) pAcqData);
 	}
 	else
 	{
 		if (GetADIData_Check())
 		{
-			bool bAccDone = true;
-			int16_t * pAcqFifo = dataFifo[iFifoHead].AcqFifo;
+		*pBank = BankInTransfer;
+		BankInTransfer = 0;
+		GetADIData_Stop();
 
-			*pBank = BankInTransfer;
-			BankInTransfer = 0;
-
-			GetADIData_Stop();
-
-			if (bAccDone)
+			frame_ID = (frame_ID+1) & 0xFFFF;
+			if(LiDARParameters[param_raw_msg_decimation])
 			{
-				frame_ID = (frame_ID+1) & 0xFFFF;
-				if(LiDARParameters[param_raw_msg_decimation])
+				if (0 == frame_ID%LiDARParameters[param_raw_msg_decimation])
 				{
-					if (0 == frame_ID%LiDARParameters[param_raw_msg_decimation])
+					for(int ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
 					{
-						for(int ch=0; ch<DEVICE_NUM_CHANNEL; ++ch)
+						if (LiDARParameters[param_raw_msg_mask]&(1<<LiDARParameters[param_channel_map_offset+ch]))
 						{
-							if (LiDARParameters[param_raw_msg_mask]&(1<<LiDARParameters[param_channel_map_offset+ch]))
-							{
-								iUSBnumRaw++;
-								USB_pushRawData(LiDARParameters[param_channel_map_offset+ch], (uint16_t*) &pAcqFifo[ch*DEVICE_SAMPLING_LENGTH]);
-							}
+							iUSBnumRaw++;
+							USB_pushRawData(LiDARParameters[param_channel_map_offset+ch], (uint16_t*) &pAcqData[ch*DEVICE_SAMPLING_LENGTH]);
 						}
 					}
 				}
-				if (LiDARParameters[param_DSP_enable])
-				{
-#ifdef USE_ALGO
-					numDet = DoAlgo(pAcqFifo);
-#endif //USE_ALGO
-				}
-				if(LiDARParameters[param_det_msg_decimation] || LiDARParameters[param_raw_msg_decimation])
-				{
-					if (0 == frame_ID%LiDARParameters[param_det_msg_decimation] || 0 == frame_ID%LiDARParameters[param_raw_msg_decimation])
-					{
-						iUSBnum++;
-						USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
-					}
-				}
-
 			}
-
-            if (bAccDone)
-            {
-				int iFifoHeadNext = (iFifoHead + 1) & NUM_FIFO_MASK;
-
-				if (iFifoHeadNext != iFifoTail)
+			if (LiDARParameters[param_DSP_enable])
+			{
+				numDet = DoAlgo(pAcqData);
+			}
+			if(LiDARParameters[param_det_msg_decimation] || LiDARParameters[param_raw_msg_decimation])
+			{
+				if (0 == frame_ID%LiDARParameters[param_det_msg_decimation] || 0 == frame_ID%LiDARParameters[param_raw_msg_decimation])
 				{
-					iFifoHead = iFifoHeadNext;
+					iUSBnum++;
+					USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
 				}
-            }
+			}
 		}
 	}
 	LED_BC3R_OFF();
 }
-
-/*
-void ADAL_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo)
-{
-	if (iFifoHead != iFifoTail)
-	{
-		if (iFifoTail < iFifoHead)
-			*pNumFifo = iFifoHead - iFifoTail;
-		else
-			*pNumFifo = NUM_FIFO - iFifoTail;
-
-		*pDataPtr = &dataFifo[iFifoTail];
-	}
-	else
-	{
-		*pDataPtr = NULL;
-	    *pNumFifo = 0;
-	}
-}
-
-void ADAL_ReleaseDataToFifo(uint16_t numFifo)
-{
-	iFifoTail = (iFifoTail + numFifo) & NUM_FIFO_MASK;
-}
-*/
-
-void ADAL_Reset(void)
-{
-	//TODO DEBUG why it reboot the cpu
-	//ADAL_InitADI();
-
-	iFifoHead = 0;
-	iFifoTail = 0;
-
-	BankInTransfer = 0;
-
-	frame_ID = 0;
-}
-
-
-
-
 
 
 #ifdef USE_FAKE_DATA

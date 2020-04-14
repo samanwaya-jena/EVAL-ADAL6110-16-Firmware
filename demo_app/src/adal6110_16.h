@@ -12,12 +12,6 @@
 //#define FRAME_NUM_PTS	DATA_NUM_PTS + (DEVICE_NUM_CHANNEL * 5) + 16  // extra debug data... not sent in rawdata message... Do we need it?
 #define FRAME_NUM_PTS	DATA_NUM_PTS                                  // original length in frame
 
-typedef struct
-{
-	int16_t AcqFifo[FRAME_NUM_PTS];
-} tDataFifo;
-
-
 enum ADI_REGISTER_INDEX {
 	DeviceIDAddress = 0x00, // Read only
 	Control0Address = 0x01,
@@ -86,6 +80,7 @@ enum ADI_REGISTER_INDEX {
 	AGCDCBPID1 = 0xE7,
 	FRAMEDELAY = 0xE8,
 	TC_STATUS = 0x92,
+	Control3Adress = 0xB9,
 	STARTADDRPOINTER = 0xF5,
 	SRAM_READY = 0xF6, // read only
 	LFSRSEEDL = 0xF7,
@@ -121,10 +116,6 @@ int ADAL_SetPulseWidth(uint16_t width);
  * Acquisition Control
  */
 void ADAL_Acq(uint16_t *pBank);
-void ADAL_Reset(void);
-// TODO: remove old communication??
-//void ADAL_GetDataFromFifo(tDataFifo ** pDataPtr, uint16_t * pNumFifo);
-//void ADAL_ReleaseDataToFifo(uint16_t numFifo);
 
 /*
  * Parameter read/write SPI functions
