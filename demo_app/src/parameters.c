@@ -103,6 +103,7 @@ void param_ResetFactoryDefault()
 	uint16_t serNum = LiDARParameters[param_serialNumber];
 	uint16_t date   = LiDARParameters[param_manufDate];
 
+	ADAL_Stop();
 	memcpy((char*)LiDARParameters,(char*)param_default,sizeof(LiDARParameters));
 
 	LiDARParameters[param_serialNumber] = serNum; // keeps the serial number;
@@ -117,6 +118,7 @@ void param_ResetFactoryDefault()
 	{
 		ADAL_WriteParamToSPI(ADAL_currentValues[i][0], ADAL_currentValues[i][1]);
 	}
+	ADAL_Start();
 }
 
 void param_InitValues(void)
@@ -136,6 +138,8 @@ void param_InitValues(void)
 void param_LoadConfig(void)
 {
 	int num,i;
+
+	ADAL_Stop();
 
 	num = number_of_param/2; // saved in 32bits instead of 16
 	if( !Flash_LoadConfig(FLASH_DSP_BANK, (uint16_t*)LiDARParameters, &num))
@@ -161,6 +165,8 @@ void param_LoadConfig(void)
 		param_ResetFactoryDefault();
 
 	LiDARParameters[param_software_version] = (FIRMWARE_MAJOR_REV <<8) + FIRMWARE_MINOR_REV;
+
+	ADAL_Start();
 
 }
 

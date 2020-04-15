@@ -19,6 +19,7 @@
 #include "Communications/cld_bf70x_bulk_lib.h"
 #include "post_debug.h"
 #include "parameters.h"
+//#include "parameters_default_values.h"
 #include "algo.h"
 
 
@@ -32,12 +33,14 @@ static int16_t pAcqData[1682];
 uint16_t ADAL_POR_Values[][2] =
 {
 		// According with Datasheet p.19
+		{ Control1Address, 0x0040 }, // bit6 in control 1 is a startup register
 		{ TriggerOutAddress, 0x1011 }, //12 ns
+		{ Control3Adress, 0x00 },
 		{ 0x0009, 0x7A4F },            //startup 2  (set to 0x7A5F for 2ns mode)
-		{ 0x004D, 0x823F },            //startup 3  (set in datasheet)
-		{ 0x0054, 0x2AAA },            //startup 4  (set in datasheet)
-		{ 0x0056, 0x823F },            //startup 5  (set in datasheet)
-		{ 0x005D, 0x2AAA },            //startup 6  (set in datasheet)
+		{ 0x004D, 0xC23F },            //startup 3  (set to 0xC23F for signal stability)
+		{ 0x0054, 0x2AAA },            //startup 4
+		{ 0x0056, 0xC23F },            //startup 5  (set to 0xC23F for signal stability)
+		{ 0x005D, 0x2AAA },            //startup 6
 		{ 0x005F, 0x8FCC },            //startup 7
 		{ 0x0060, 0x8FCC },            //startup 8
 		{ 0x0063, 0x8FCC },            //startup 9
@@ -50,8 +53,7 @@ uint16_t ADAL_POR_Values[][2] =
 		{ 0x0083, 0x0A40 },            //startup 16  (0x0840 in datasheet)
 		{ 0x0084, 0xC201 },            //startup 17  (0x0420 in datasheet)
 		{ 0x0090, 0x0420 },            //startup 18
-		{ 0x0091, 0x87B4 },            //startup 19
-		{ 0x0092, 0x0004 }             //TC_STATUS (no mention of value in datasheet)
+		{ 0x0091, 0x87B4 }             //startup 19
 };
 
 uint16_t ADAL_Init_Values[][2] =
@@ -64,39 +66,39 @@ uint16_t ADAL_Init_Values[][2] =
 	{ DataAcqMode, 0x0001 },       //2ns: 0x0000,  4ns :0x0001
 	{ DelayBetweenFlashesAddress, 0x5ED8}, //0x5ED8 (1 frame period = 10 ms => 100 Hz @ 32 accum)
 
-	{ CH0ControlReg0Address, 0x3C3F },
-	{ CH1ControlReg0Address, 0x3C3F },
-	{ CH2ControlReg0Address, 0x3C3F },
-	{ CH3ControlReg0Address, 0x3C3F },
-	{ CH4ControlReg0Address, 0x3C3F },
-	{ CH5ControlReg0Address, 0x3C3F },
-	{ CH6ControlReg0Address, 0x3C3F },
-	{ CH7ControlReg0Address, 0x3C3F },
-	{ CH8ControlReg0Address, 0x3C3F },
-	{ CH9ControlReg0Address, 0x3C3F },
-	{ CH10ControlReg0Address, 0x3C3F },
-	{ CH11ControlReg0Address, 0x3C3F },
-	{ CH12ControlReg0Address, 0x3C3F },
-	{ CH13ControlReg0Address, 0x3C3F },
-	{ CH14ControlReg0Address, 0x3C3F },
-	{ CH15ControlReg0Address, 0x3C3F },
+	{ CH0ControlReg0Address, 0x2E1F },
+	{ CH1ControlReg0Address, 0x2E1F },
+	{ CH2ControlReg0Address, 0x2E1F },
+	{ CH3ControlReg0Address, 0x2E1F },
+	{ CH4ControlReg0Address, 0x2E1F },
+	{ CH5ControlReg0Address, 0x2E1F },
+	{ CH6ControlReg0Address, 0x2E1F },
+	{ CH7ControlReg0Address, 0x2E1F },
+	{ CH8ControlReg0Address, 0x2E1F },
+	{ CH9ControlReg0Address, 0x2E1F },
+	{ CH10ControlReg0Address, 0x2E1F },
+	{ CH11ControlReg0Address, 0x2E1F },
+	{ CH12ControlReg0Address, 0x2E1F },
+	{ CH13ControlReg0Address, 0x2E1F },
+	{ CH14ControlReg0Address, 0x2E1F },
+	{ CH15ControlReg0Address, 0x2E1F },
 
-	{ CH0ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH1ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH2ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH3ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH4ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH5ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH6ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH7ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH8ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH9ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH10ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH11ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH12ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH13ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH14ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH15ControlReg1Address, 0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH0ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH1ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH2ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH3ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH4ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH5ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH6ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH7ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH8ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH9ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH10ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH11ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH12ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH13ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH14ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH15ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
 
 	{ CH0ControlReg2Address, 0x00FF },
 	{ CH1ControlReg2Address, 0x00FF },
@@ -119,8 +121,6 @@ uint16_t ADAL_Init_Values[][2] =
 	{ AGCDCBCTRL, 0x0014 }, // Default: 0x0104, Enable AGC to change anything: 0x0115 //might be changed to 0x0000 according to wag-214 code
 
 	{ Control3Adress, 0 },
-	//{ 77, 0xC23F }, //in POR
-	//{ 86, 0x823F }, // in POR
 	{ ChannelEnableAddress, 0xFFFF },
 	{ AGCEN, 0x0000 },
 	{ DCEN, 0xFFFF },
@@ -162,6 +162,8 @@ void ADAL_WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
 
 	if (_startAddress == DelayBetweenFlashesAddress)
 		if(_data < 500) _data = 500; // limit the laser frequency to 20kHz
+	if (_startAddress == AGCEN || _startAddress == DCEN || _startAddress == ChannelEnableAddress)
+		ADAL_WriteParamToSPI(Control3Adress,0);
 
 	ProBuffer1[0] = (_startAddress << 3);
 	ProBuffer1[1] = (_startAddress << 3) >> 8;
@@ -169,8 +171,10 @@ void ADAL_WriteParamToSPI(uint16_t _startAddress, uint16_t _data)
 	ProBuffer1[3] = (_data >> 8);
 
 	ADI_SPI_TRANSCEIVER Xcv0  = {ProBuffer1, 4u, NULL, 0u, NULL, 0u};
-
 	ADI_SPI_RESULT result = adi_spi_ReadWrite(hSpi, &Xcv0);
+
+	if (_startAddress == AGCEN || _startAddress == DCEN || _startAddress == ChannelEnableAddress)
+		ADAL_WriteParamToSPI(Control3Adress,1);
 }
 
 /**
@@ -281,7 +285,15 @@ bool ReadDataFromSPI_Check(void)
 	return bAvailSpi;
 }
 
-void ResetADI(void)
+/**
+ *
+ *  Public API
+ *
+ *
+ *
+ */
+
+void ADAL_Reset(void)
 {
 	// TODO: Drive the reset pin when available
 	//We dont have reset ctrl. Need to wait a certain delay
@@ -300,13 +312,23 @@ void ResetADI(void)
 }
 
 
-/**
- *
- *  Public API
- *
- *
- *
- */
+void ADAL_Start(void)
+{
+	uint16_t reg;
+
+	ADAL_ReadParamFromSPI(Control0Address, &reg);
+	ADAL_WriteParamToSPI(Control0Address, reg |= 0x0002); //SET BIT 0
+}
+
+
+void ADAL_Stop(void)
+{
+	uint16_t reg;
+
+	ADAL_ReadParamFromSPI(Control0Address, &reg);
+	ADAL_WriteParamToSPI(Control0Address, reg &= ~0x0002); //SET BIT 0
+}
+
 
 /**
  * @brief initialize SPI port for ADI communication
@@ -384,7 +406,6 @@ void ADAL_InitADI(void) {
     uint32_t waitTimer = 80000; //wait 200us @ 400mhz
 
     ADAL_SPI_init();
-	//ResetADI();
 
 	BankInTransfer = 0;
 	frame_ID = 0;
@@ -413,7 +434,7 @@ void ADAL_InitADI(void) {
     */
 
   	dataToBeRead = 0;
-  	while(!dataToBeRead) { // Wait until bit 4 of TC_STATUS register (0x92) is set
+  	while(!dataToBeRead) {                    // Wait until valid clock (TC_STATUS bit 4)
   		ADAL_ReadParamFromSPI(TC_STATUS, &dataToBeRead);
   		if (dataToBeRead == 0xffff){
   			dataToBeRead = 0;
@@ -425,9 +446,8 @@ void ADAL_InitADI(void) {
 	for (i=0; i<num; i++)
 		ADAL_WriteParamToSPI(ADAL_Init_Values[i][0], ADAL_Init_Values[i][1]);
 
-	ResetADI();
-	ADAL_ReadParamFromSPI(Control0Address, &dataToBeRead);
-  	ADAL_WriteParamToSPI(Control0Address, dataToBeRead | 0x0002); // Start system
+	ADAL_Reset();
+	ADAL_Start();
 }
 
 

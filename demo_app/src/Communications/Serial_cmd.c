@@ -64,13 +64,13 @@ void Lidar_DumpRegs(void)
 		ADAL_ReadParamFromSPI(ChannelEnableAddress, &data);
 		en = (data & (1 << ch) );
 		ADAL_ReadParamFromSPI(CH0ControlReg0Address + 4 * ch, &data);
-		tia = data;
+		tia = data & 0x1F;
 		ADAL_ReadParamFromSPI(CH0ControlReg1Address + 4 * ch, &data);
 		chx_cpd_select =  (uint8_t) ((data >> 8) & 0x7);
 		tia_feedback = (uint8_t) (data & 0xFF);
 		ADAL_ReadParamFromSPI(CH0ControlReg2Address + 4 * ch, &data);
 		bal = (data & 0x01FF);
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%02d: %d\t%d\t%d\t%d\t%d\r\n", ch, (en) ? 1 : 0, tia,chx_cpd_select , tia_feedback, bal);
+		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "%02d: %d\t%02X\t%02X\t%02X\t%03X\r\n", ch, (en) ? 1 : 0, tia,chx_cpd_select , tia_feedback, bal);
 	}
 
 }
@@ -392,6 +392,11 @@ void ProcessChar(char curChar)
     	param_SaveConfig();
     	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Configuration saved to Flash memory\r\n");
     	break;
+
+    case 'R':
+    	param_ResetFactoryDefault();
+        	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Configuration reset to factory defaults\r\n");
+        	break;
 
     case 'r':
     	LiDARParameters[param_console_log] ^= CONSOLE_MASK_DIST;

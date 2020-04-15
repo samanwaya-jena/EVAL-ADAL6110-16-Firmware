@@ -94,6 +94,8 @@ enum ADI_REGISTER_INDEX {
  * initialize SPI port for ADI communication
  */
 void ADAL_InitADI(void);
+void ADAL_Start(void);
+void ADAL_Stop(void);
 
 /**
  * Retreive the data from the ADI device
@@ -103,7 +105,6 @@ void ADAL_GetADIData(uint16_t *pBank, uint16_t * pData);
 //void ADAL_ChannelEnable(int ch, int enable);
 void ADAL_ChannelTIAFeedback(int ch, uint16_t feedback);
 void ADAL_ChannelDCBal(int ch, uint16_t bal);
-
 void ADAL_Trig(void);
 void ADAL_ClearTrig(void);
 void ADAL_SPITriggerMode(void);
@@ -123,13 +124,11 @@ void ADAL_Acq(uint16_t *pBank);
 void ADAL_ReadParamFromSPI(uint16_t _startAddress, uint16_t *_data);
 void ADAL_WriteParamToSPI(uint16_t _startAddress, uint16_t _data);
 
-
 //
 // Testing counters
 //
 extern int iUSBnum;
 extern int iUSBnumCooked;
 extern int iUSBnumRaw;
-
 
 #endif /* ADAL6110_H_ */
