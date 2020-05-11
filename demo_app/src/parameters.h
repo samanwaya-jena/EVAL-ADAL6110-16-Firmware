@@ -22,6 +22,7 @@ typedef enum
 	param_DSP_enable,               // activate the DSP function to have detection & tracking (if available)
 	param_console_log,              // bitfield (see CONSOLE_MASK definition below)
 	param_frame_rate,               // sets the desired frame rate (in fps)
+	param_error_correction,         // sets the error correction function
 
 	param_detection_algo = 0x20,
 	param_tracking_algo,

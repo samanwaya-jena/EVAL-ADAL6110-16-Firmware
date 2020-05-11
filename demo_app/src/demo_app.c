@@ -19,6 +19,7 @@
 
 #include "adal6110_16.h"
 #include "parameters.h"
+#include "error_handler.h"
 
 
 typedef enum
@@ -105,6 +106,12 @@ void InitApp()
 }
 
 int inumSent;
+CLD_Time log_time = 0;
+CLD_Time watchTime  = 0;
+int iAcqNum = 0;
+int iAcqNum1 = 0;
+int iAcqNum2 = 0;
+int iAcqNumX = 0;
 
 void DoMainStateRun()
 {
@@ -112,13 +119,7 @@ void DoMainStateRun()
     #define SECONDS(x)      ((x/1000)%60)
     #define M_SECONDS(x)    (x%1000)
 
-	static CLD_Time log_time = 0;
-	static CLD_Time watchTime  = 0;
-
-    static int iAcqNum = 0;
-    static int iAcqNum1 = 0;
-    static int iAcqNum2 = 0;
-    static int iAcqNumX = 0;
+	static int avgNumSent=0;
 
 	/*
 	 * Status validation and board behavior
@@ -130,11 +131,29 @@ void DoMainStateRun()
 		USB_pushStatus();
 	}
 	// every second, log how many data has been logged
-	if ((LiDARParameters[param_console_log] & CONSOLE_MASK_LOG) && (cld_time_passed_ms(log_time) >= 1000u))
+	if (cld_time_passed_ms(log_time) >= 1000u)
 	{
 		log_time = cld_time_get();
-		cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (b1:%d / b2:%d / ?:%d) || Frame: %d (Cooked:%d, Raw:%d) || USB msg:%d\r\n",
-				     iAcqNum, iAcqNum1, iAcqNum2, iAcqNumX, iUSBnum, iUSBnumCooked, iUSBnumRaw,inumSent);
+		if(avgNumSent)
+			avgNumSent += (inumSent-avgNumSent)/16;
+		else
+			avgNumSent = inumSent;
+		//error correction once per second
+		if(LiDARParameters[param_error_correction])
+		{
+			if (IsErrorSet(error_SW_comm_fifo_full))
+			{
+				if(avgNumSent/49 < LiDARParameters[param_frame_rate])
+					LiDARParameters[param_frame_rate] = (uint16_t)ADAL_SetFrameRate(avgNumSent/50);
+				else
+					LiDARParameters[param_frame_rate] = (uint16_t)ADAL_SetFrameRate(LiDARParameters[param_frame_rate]--);
+			}
+		}
+		if (LiDARParameters[param_console_log] & CONSOLE_MASK_LOG)
+		{
+			cld_console(CLD_CONSOLE_GREEN, CLD_CONSOLE_BLACK, "Acq: %d (b1:%d / b2:%d / ?:%d) || Frame: %d (Cooked:%d, Raw:%d) || USB msg:%d\r\n",
+						 iAcqNum, iAcqNum1, iAcqNum2, iAcqNumX, iUSBnum, iUSBnumCooked, iUSBnumRaw,inumSent);
+		}
 		iAcqNum = iAcqNum1 = iAcqNum2 = iAcqNumX = 0;
 		iUSBnum = iUSBnumCooked = iUSBnumRaw = 0;
 		inumSent = 0;

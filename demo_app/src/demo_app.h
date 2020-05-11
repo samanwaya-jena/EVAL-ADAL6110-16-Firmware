@@ -3,13 +3,13 @@
 */
 
 #include <ADSP-BF707_device.h>
-
+#include "Communications/cld_bf70x_bulk_lib.h"
 
 #ifndef __BF707_WAGNER_H__
 #define __BF707_WAGNER_H__
 
 #define FIRMWARE_MAJOR_REV 1
-#define FIRMWARE_MINOR_REV 0
+#define FIRMWARE_MINOR_REV 1
 
 
 #define EXTERNAL_SPI_DEVICE 0
@@ -47,7 +47,12 @@
 #define LP_DRIVER_POWER_ON() pADI_PORTB->DATA_CLR = (1 << 6)
 #define LP_DRIVER_POWER_OFF() pADI_PORTB->DATA_SET = (1 << 6)
 
-
-
+extern int inumSent;
+extern CLD_Time log_time;
+extern CLD_Time watchTime;
+extern int iAcqNum;
+extern int iAcqNum1;
+extern int iAcqNum2;
+extern int iAcqNumX;
 
 #endif /* __BF707_WAGNER_H__ */

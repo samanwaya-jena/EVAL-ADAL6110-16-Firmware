@@ -11,6 +11,7 @@
 #include "demo_app.h"
 #include "Communications/cld_bf70x_bulk_lib.h"
 #include "parameters.h"
+#include "adal6110_16.h"
 
 static uint16_t errorFlags;
 static char* errText[error_numberOfErrors] = {"Bootup error",
@@ -49,6 +50,7 @@ void SetError(error_type err)
 
 	LiDARParameters[param_error_status] = errorFlags;
 }
+
 
 uint16_t GetError(void)
 {

@@ -21,7 +21,7 @@
 
 uint16_t param_default [number_of_param]=
 {DEVICEID, DATENULL , SERIALNULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       // 0x00 sensor information
-0, 1, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                      // 0x10 Enable switches
+0, 1, 0, 100, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                      // 0x10 Enable switches
 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x20 algo selection and general params
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x30 detection algo param
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                        // 0x40 tracking algo param
