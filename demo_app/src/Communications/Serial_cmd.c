@@ -333,6 +333,7 @@ void ProcessChar(char curChar)
     	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
     		bal = bal * 10 + debugCmd[i++] - '0';
 
+    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"programming DC balance to %02X for channel %d\n\r",bal,ch);
     	ADAL_ChannelDCBal(ch, bal);
     	break;
     }
@@ -352,6 +353,7 @@ void ProcessChar(char curChar)
     	while (debugCmd[i] >= '0' && debugCmd[i] <= '9')
     		feedback = feedback * 10 + debugCmd[i++] - '0';
 
+    	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"programming TIA Feedback to %02X for channel %d\n\r",feedback,ch);
     	ADAL_ChannelTIAFeedback(ch, feedback);
     	break;
     }
@@ -395,8 +397,8 @@ void ProcessChar(char curChar)
 
     case 'R':
     	param_ResetFactoryDefault();
-        	cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Configuration reset to factory defaults\r\n");
-        	break;
+        cld_console(CLD_CONSOLE_GREEN,CLD_CONSOLE_BLACK,"Configuration reset to factory defaults\r\n");
+        break;
 
     case 'r':
     	LiDARParameters[param_console_log] ^= CONSOLE_MASK_DIST;

@@ -60,7 +60,7 @@ uint16_t ADAL_Init_Values[][2] =
 {
 	{ LFSRSEEDL, 0x9190 },
 	{ LFSRSEEDH, 0x0001 },
-	{ Control0Address, 0x0F80 },    // 8 accum = 0x0400, 16 accum = 0x0800 // 64 accum = 0x1F80 (ne pas dépasser)
+	{ Control0Address, 0x1000 },    // 8 accum = 0x0400, 16 accum = 0x0800 // 63 accum = 0x1F80 (ne pas dépasser)
 	{ Control1Address, 0x8040 },
 	{ TriggerOutAddress, 0x1011 }, //2ns: 0x8021, 4ns: 0x1021  // 0x1011 = 16 ns pulse in 4ns mode
 	{ DataAcqMode, 0x0001 },       //2ns: 0x0000,  4ns :0x0001
@@ -83,22 +83,22 @@ uint16_t ADAL_Init_Values[][2] =
 	{ CH14ControlReg0Address, 0x2E1F },
 	{ CH15ControlReg0Address, 0x2E1F },
 
-	{ CH0ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH1ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH2ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH3ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH4ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH5ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH6ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH7ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH8ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH9ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH10ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH11ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH12ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH13ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH14ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
-	{ CH15ControlReg1Address, 0x0980},//0x0180 }, //might be changed to 0x09A0 according to wag-214 code
+	{ CH0ControlReg1Address, 0x0B80},
+	{ CH1ControlReg1Address, 0x0B80},
+	{ CH2ControlReg1Address, 0x0B80},
+	{ CH3ControlReg1Address, 0x0B80},
+	{ CH4ControlReg1Address, 0x0B80},
+	{ CH5ControlReg1Address, 0x0B80},
+	{ CH6ControlReg1Address, 0x0B80},
+	{ CH7ControlReg1Address, 0x0B80},
+	{ CH8ControlReg1Address, 0x0B80},
+	{ CH9ControlReg1Address, 0x0B80},
+	{ CH10ControlReg1Address, 0x0B80},
+	{ CH11ControlReg1Address, 0x0B80},
+	{ CH12ControlReg1Address, 0x0B80},
+	{ CH13ControlReg1Address, 0x0B80},
+	{ CH14ControlReg1Address, 0x0B80},
+	{ CH15ControlReg1Address, 0x0B80},
 
 	{ CH0ControlReg2Address, 0x00FF },
 	{ CH1ControlReg2Address, 0x00FF },
@@ -634,23 +634,45 @@ void ADAL_ChannelEnable(int ch, int enable)
 void ADAL_ChannelTIAFeedback(int ch, uint16_t feedback)
 {
 	uint16_t data;
-	uint16_t temp = 0;
-
-	ADAL_ReadParamFromSPI(CH0ControlReg1Address + ch * 4, &data);
-	data &= ~0x00FF;
-	temp = (uint8_t) feedback;
-	data |= temp;
-    ADAL_WriteParamToSPI(CH0ControlReg1Address + ch * 4, data);
+	if (ch>=0 && ch<16)
+	{
+		ADAL_ReadParamFromSPI(CH0ControlReg1Address + ch * 4, &data);
+		data &= ~0x00FF;
+		data |= ((uint8_t)feedback) & 0x00FF;
+		ADAL_WriteParamToSPI(CH0ControlReg1Address + ch * 4, data);
+	}
+    else
+    {
+    	for (ch=0;ch<16;ch++)
+    	{
+    		ADAL_ReadParamFromSPI(CH0ControlReg1Address + ch * 4, &data);
+			data &= ~0x00FF;
+			data |= ((uint8_t)feedback) & 0x00FF;
+			ADAL_WriteParamToSPI(CH0ControlReg1Address + ch * 4, data);
+    	}
+    }
 }
 
 void ADAL_ChannelDCBal(int ch, uint16_t bal)
 {
 	uint16_t data;
-
-	ADAL_ReadParamFromSPI(CH0ControlReg2Address + ch * 4, &data);
-	data &= ~0x01FF;
-	data |= bal;
-    ADAL_WriteParamToSPI(CH0ControlReg2Address + ch * 4, data);
+	if (ch>=0 && ch<16)
+	{
+		ADAL_ReadParamFromSPI(CH0ControlReg2Address + ch * 4, &data);
+		data &= ~0x01FF;
+		data |= bal & 0x01FF;
+		ADAL_WriteParamToSPI(CH0ControlReg2Address + ch * 4, data);
+	}
+	else
+	{
+		for (ch=0;ch<16;ch++)
+		{
+			ADAL_ReadParamFromSPI(CH0ControlReg2Address + ch * 4, &data);
+			data &= ~0x01FF;
+			data |= bal & 0x01FF;
+			ADAL_WriteParamToSPI(CH0ControlReg2Address + ch * 4, data);
+		}
+	}
 }
 
 void ADAL_FlashGain(uint16_t flashGain)
