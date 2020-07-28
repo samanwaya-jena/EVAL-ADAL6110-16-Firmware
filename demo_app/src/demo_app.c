@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 
 void InitApp()
 {
-	Main_States main_state = MAIN_STATE_SYSTEM_INIT;
+	main_state = MAIN_STATE_SYSTEM_INIT;
 
 	setup_gpio_state();
 
@@ -91,8 +91,8 @@ void InitApp()
 	 * Initialize managed drivers and/or services that have been added to
 	 * the project.
 	 */
-	if(adi_initComponents()) main_state = MAIN_STATE_ERROR;
 	if(!power_init()) main_state = MAIN_STATE_ERROR;
+	if(adi_initComponents()) main_state = MAIN_STATE_ERROR;
 	if(Flash_Init()) main_state = MAIN_STATE_ERROR;
 	ADAL_InitADI();
 

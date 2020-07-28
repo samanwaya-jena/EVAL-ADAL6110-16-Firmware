@@ -25,9 +25,9 @@ uint32_t ChangeFreq( uint32_t, uint32_t );
 
 /* default power settings */
 #define DF_DEFAULT    (0x0u)
-#define MSEL_DEFAULT  (0x10u)
-#define SSEL_DEFAULT  (0x8u)
-#define CSEL_DEFAULT  (0x4u)
+#define MSEL_DEFAULT  (0x10u)  //16 for 800MHz PLLclk
+#define SSEL_DEFAULT  (0x4u)//(0x8u)   //4 for sysclk to 200MHz
+#define CSEL_DEFAULT  (0x2u)//(0x4u)   //2 for coreclk to 400MHz
 
 #define MHZTOHZ       (1000000u)
 

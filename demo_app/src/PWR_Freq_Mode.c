@@ -71,6 +71,11 @@ uint32_t power_init(  )
 	result = adi_pwr_Init(DEV_NUM, CLKIN);
 	CHECK_RESULT(result, "adi_pwr_Open");
 
+	//todo: initialize MSEL value for 800MHz PLL clock
+	//result =  adi_pwr_SetClkControlRegister(DEV_NUM, ADI_PWR_CLK_CTL_DF, DF_DEFAULT);
+	//result =  adi_pwr_SetClkControlRegister(DEV_NUM, ADI_PWR_CLK_CTL_MSEL, MSEL_DEFAULT);
+
+
 	result = adi_pwr_InstallCallback(DEV_NUM, PWRCallback);
 	CHECK_RESULT(result, "adi_pwr_InstallCallback");
 

@@ -358,7 +358,8 @@ uint16_t ADAL_SPI_init(void)
 		CHECK_RESULT(result, "adi_spi_SetClockPhase");
 
 		/* Setting the clock frequency of spi   The frequency of the SPI clock is calculated by SCLK / 2* (Baud=3)*/
-		result = adi_spi_SetClock( hSpi, 9);
+		//to have a 50 MHz SPI on a 100 MHz sclk, the divider should be set to 1 (100/(2+1) = 50)
+		result = adi_spi_SetClock( hSpi, 1);//9);
 		CHECK_RESULT(result, "adi_spi_SetClock");
 
 		/* Selecting slave1 as the device*/
@@ -413,25 +414,6 @@ void ADAL_InitADI(void) {
 	int num = sizeof(ADAL_POR_Values) / sizeof(ADAL_POR_Values[0]);
 	for (i=0; i<num; i++)
 		ADAL_WriteParamToSPI(ADAL_POR_Values[i][0], ADAL_POR_Values[i][1]);
-
-	/*
-	ADAL_WriteParamToSPI(CH0ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH1ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH2ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH3ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH4ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH5ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH6ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH7ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH8ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH9ControlReg0Address, 0x003F);  //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH10ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH11ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH12ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH13ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH14ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
-	ADAL_WriteParamToSPI(CH15ControlReg0Address, 0x003F); //might not be needed according to wag-214 code
-    */
 
   	dataToBeRead = 0;
   	while(!dataToBeRead) {                    // Wait until valid clock (TC_STATUS bit 4)
@@ -705,7 +687,9 @@ float ADAL_SetFrameRate(uint16_t frame_rate)
 	FRAMEDLY_regval = ((frame_delay&0x0FFF)<<3)|0x8000;
 
 	period  = 1.0/frame_rate;
-	period = period<0.004?0.004:period>0.02?0.02:period; //limit: 50 to 250 Hz
+	//todo: put back the upper frame rate limit to its best value, it was switched for tests -- so far 467 without USB comm...
+	//todo: validate the logic of keeping 10fps as a minimum as certain flash gain will not allow this slow frame rate (minimum 23 flashes)
+	period = period<0.001?0.001:period>0.1?0.1:period; //limit: 50 to 250 Hz
 	frame_time = 166100e-9 + (frame_delay*100e-9);  //(uint16_t)(((frame_time - flash_time) - 166100e-9)/100e-9);
 	flash_time = period - frame_time;
 	flash_time /= flash_gain;     // accumulation
@@ -834,7 +818,7 @@ void ADAL_Acq(uint16_t *pBank)
 	*pBank = 0;
 	int numDet =0;
 
-	LED_BC3R_ON();
+
 	if (BankInTransfer == 0)
 	{
 		if (LiDARParameters[param_acq_enable])
@@ -842,6 +826,7 @@ void ADAL_Acq(uint16_t *pBank)
 	}
 	else
 	{
+		LED_BC3R_ON();
 		if (GetADIData_Check())
 		{
 		*pBank = BankInTransfer;
@@ -876,8 +861,8 @@ void ADAL_Acq(uint16_t *pBank)
 				}
 			}
 		}
+		LED_BC3R_OFF();
 	}
-	LED_BC3R_OFF();
 }
 
 

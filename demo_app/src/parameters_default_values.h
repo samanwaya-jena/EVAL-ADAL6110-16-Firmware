@@ -47,7 +47,7 @@ uint8_t param_dir_values[number_of_param]=
 
 uint16_t ADAL_DefaultValues[][2] =
 {
-    {Control0Address , 0x1000},
+    {Control0Address , 0x1000},  //32 flash gain
     {Control1Address , 0x8040},
     //{DataControlAddress , },
     {DelayBetweenFlashesAddress , 0x5ED8},

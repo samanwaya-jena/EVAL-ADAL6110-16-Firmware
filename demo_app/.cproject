@@ -37,7 +37,7 @@
 							</tool>
 							<tool command="ccblkfn" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="blackfin.toolchain.compiler.620437758" name="CrossCore Blackfin C/C++ Compiler" superClass="blackfin.toolchain.compiler">
 								<option id="compiler.option.optimization.893167349" name="Enable optimization (-O)" superClass="compiler.option.optimization" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-								<option id="compiler.option.debugcode.1347787218" name="Generate debug information (-g)" superClass="compiler.option.debugcode" useByScannerDiscovery="false" value="false" valueType="boolean"/>
+								<option id="compiler.option.debugcode.1347787218" name="Generate debug information (-g)" superClass="compiler.option.debugcode" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="compiler.option.proc.1174239025" name="-proc" superClass="compiler.option.proc" useByScannerDiscovery="false" value=" ADSP-BF707" valueType="string"/>
 								<option id="compiler.option.sirevision.1669715694" name="-si-revision" superClass="compiler.option.sirevision" useByScannerDiscovery="false" value=" 1.1" valueType="string"/>
 								<option id="compiler.option.preprocessdefs.1899787389" name="Preprocessor definitions (-D):" superClass="compiler.option.preprocessdefs" useByScannerDiscovery="false" valueType="definedSymbols">
@@ -76,7 +76,8 @@
 								</option>
 								<option id="linker.option.misrachecksrcfiles.1127082766" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="blackfin.linker.option.memusage.102133300" name="Memory Usage" superClass="blackfin.linker.option.memusage" useByScannerDiscovery="false" value="blackfin.linker.option.memusage.enumerated.sramcache" valueType="enumerated"/>
-								<option id="linker.option.stripdbginfo.1704426340" superClass="linker.option.stripdbginfo" value="true" valueType="boolean"/>
+								<option id="linker.option.stripdbginfo.1704426340" name="Strip debug information (-S)" superClass="linker.option.stripdbginfo" value="false" valueType="boolean"/>
+								<option id="linker.option.generateobjtrace.1724575893" superClass="linker.option.generateobjtrace" value="true" valueType="boolean"/>
 								<inputType id="linker.doj.input.1918017046" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.925817650" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
