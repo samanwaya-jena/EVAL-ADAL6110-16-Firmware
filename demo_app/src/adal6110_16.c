@@ -817,6 +817,7 @@ void ADAL_Acq(uint16_t *pBank)
 {
 	*pBank = 0;
 	int numDet =0;
+	int framedatasent;
 
 
 	if (BankInTransfer == 0)
@@ -829,10 +830,11 @@ void ADAL_Acq(uint16_t *pBank)
 		LED_BC3R_ON();
 		if (GetADIData_Check())
 		{
-		*pBank = BankInTransfer;
-		BankInTransfer = 0;
-		GetADIData_Stop();
+			*pBank = BankInTransfer;
+			BankInTransfer = 0;
+			GetADIData_Stop();
 
+			framedatasent = 0;
 			frame_ID = (frame_ID+1) & 0xFFFF;
 			if(LiDARParameters[param_raw_msg_decimation])
 			{
@@ -844,6 +846,7 @@ void ADAL_Acq(uint16_t *pBank)
 						{
 							iUSBnumRaw++;
 							USB_pushRawData(LiDARParameters[param_channel_map_offset+ch], (uint16_t*) &pAcqData[ch*DEVICE_SAMPLING_LENGTH]);
+							framedatasent++;
 						}
 					}
 				}
@@ -851,14 +854,15 @@ void ADAL_Acq(uint16_t *pBank)
 			if (LiDARParameters[param_DSP_enable])
 			{
 				numDet = DoAlgo(pAcqData);
+				framedatasent += numDet;
 			}
-			if(LiDARParameters[param_det_msg_decimation] || LiDARParameters[param_raw_msg_decimation])
+			if(framedatasent)//LiDARParameters[param_det_msg_decimation] || LiDARParameters[param_raw_msg_decimation])
 			{
-				if (0 == frame_ID%LiDARParameters[param_det_msg_decimation] || 0 == frame_ID%LiDARParameters[param_raw_msg_decimation])
-				{
+				//if (0 == frame_ID%LiDARParameters[param_det_msg_decimation] || 0 == frame_ID%LiDARParameters[param_raw_msg_decimation])
+				//{
 					iUSBnum++;
 					USB_pushEndOfFrame(frame_ID, 0x0000, numDet);
-				}
+				//}
 			}
 		}
 		LED_BC3R_OFF();
