@@ -784,7 +784,8 @@ int DoAlgo(int16_t * pAcqFifo)
             tmpAcqFloat[i] = (float) pAcqFifo[ch * DEVICE_SAMPLING_LENGTH + i];
 
         //threshold2(pDetections, tmpAcqFloat, ch);
-        threshold3(pDetections, tmpAcqFloat, ch);
+        //threshold3(pDetections, tmpAcqFloat, ch);
+        threshold4(pDetections, tmpAcqFloat, ch);
 
         if (pDetections->distance && LiDARParameters[param_det_msg_decimation] && (LiDARParameters[param_det_msg_mask]&(1<<chIndex)))
 		{

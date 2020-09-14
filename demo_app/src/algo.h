@@ -42,6 +42,7 @@ typedef struct{
 
 void threshold2(detection_type* detPtr, float* buffer, int ch);
 void threshold3(detection_type* detPtr, float* buffer, int ch);
+void threshold4(detection_type* detPtr, float* buffer, int ch);
 
 
 #endif //_ALGO_H_
